@@ -76,31 +76,11 @@ class WFC {
                 'imgsrc': 'corner.png',
                 'rotations': [0, 1, 2, 3],
                 'weight': 1,
-                'valid': {
-                    'top': [
-                        { key: 'corner', rotations: [1, 2] },
-                        { key: 't', rotations: [0, 1, 3] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [1] },
-                    ],
-                    'right': [
-                        { key: 'corner', rotations: [2, 3] },
-                        { key: 't', rotations: [0, 1, 2] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [0] },
-                    ],
-                    'bottom': [
-                        { key: 'corner', rotations: [1, 2] },
-                        { key: 't', rotations: [0] },
-                        { key: 'line', rotations: [0] },
-                        { key: 'empty', rotations: [0] },
-                    ],
-                    'left': [
-                        { key: 'corner', rotations: [2, 3] },
-                        { key: 't', rotations: [1] },
-                        { key: 'line', rotations: [1] },
-                        { key: 'empty', rotations: [0] },
-                    ]
+                'socket': {
+                    'top': '010',
+                    'right': '010',
+                    'bottom': '000',
+                    'left': '000'
                 }
             },
             {
@@ -108,31 +88,11 @@ class WFC {
                 'imgsrc': 'cross.png',
                 'rotations': [0, 1],
                 'weight': 1,
-                'valid': {
-                    'top': [
-                        { key: 'corner', rotations: [1, 2] },
-                        { key: 't', rotations: [0, 1, 3] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [1] },
-                    ],
-                    'right': [
-                        { key: 'corner', rotations: [2, 3] },
-                        { key: 't', rotations: [0, 1, 2] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [0] },
-                    ],
-                    'bottom': [
-                        { key: 'corner', rotations: [0, 3] },
-                        { key: 't', rotations: [1, 2, 3] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [1] },
-                    ],
-                    'left': [
-                        { key: 'corner', rotations: [0, 1] },
-                        { key: 't', rotations: [0, 2, 3] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [0] },
-                    ]
+                'socket': {
+                    'top': '010',
+                    'right': '010',
+                    'bottom': '010',
+                    'left': '010'
                 }
             },
             {
@@ -140,62 +100,22 @@ class WFC {
                 'imgsrc': 'empty.png',
                 'rotations': [0],
                 'weight': 1,
-                'valid': {
-                    'top': [
-                        { key: 'corner', rotations: [0, 3] },
-                        { key: 't', rotations: [2] },
-                        { key: 'line', rotations: [0] },
-                        { key: 'empty', rotations: [0] },
-                    ],
-                    'right': [
-                        { key: 'corner', rotations: [0, 1] },
-                        { key: 't', rotations: [3] },
-                        { key: 'line', rotations: [1] },
-                        { key: 'empty', rotations: [0] },
-                    ],
-                    'bottom': [
-                        { key: 'corner', rotations: [1, 2] },
-                        { key: 't', rotations: [0] },
-                        { key: 'line', rotations: [0] },
-                        { key: 'empty', rotations: [0] },
-                    ],
-                    'left': [
-                        { key: 'corner', rotations: [2, 3] },
-                        { key: 't', rotations: [1] },
-                        { key: 'line', rotations: [1] },
-                        { key: 'empty', rotations: [0] },
-                    ]
+                'socket': {
+                    'top': '000',
+                    'right': '000',
+                    'bottom': '000',
+                    'left': '000'
                 }
             },
             {
                 'name': 'line',
                 'imgsrc': 'line.png',
                 'rotations': [0, 1],
-                'valid': {
-                    'top': [
-                        { key: 'corner', rotations: [0, 3] },
-                        { key: 't', rotations: [2] },
-                        { key: 'line', rotations: [0] },
-                        { key: 'empty', rotations: [0] },
-                    ],
-                    'right': [
-                        { key: 'corner', rotations: [2, 3] },
-                        { key: 't', rotations: [0, 1, 2] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [0] },
-                    ],
-                    'bottom': [
-                        { key: 'corner', rotations: [1, 2] },
-                        { key: 't', rotations: [0] },
-                        { key: 'line', rotations: [0] },
-                        { key: 'empty', rotations: [0] },
-                    ],
-                    'left': [
-                        { key: 'corner', rotations: [0, 1] },
-                        { key: 't', rotations: [0, 2, 3] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [0] },
-                    ]
+                'socket': {
+                    'top': '000',
+                    'right': '010',
+                    'bottom': '000',
+                    'left': '010'
                 }
             },
             {
@@ -203,31 +123,11 @@ class WFC {
                 'imgsrc': 't.png',
                 'rotations': [0, 1, 2, 3],
                 'weight': 1,
-                'valid': {
-                    'top': [
-                        { key: 'corner', rotations: [0, 3] },
-                        { key: 't', rotations: [2] },
-                        { key: 'line', rotations: [0] },
-                        { key: 'empty', rotations: [0] },
-                    ],
-                    'right': [
-                        { key: 'corner', rotations: [2, 3] },
-                        { key: 't', rotations: [0, 1, 2] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [0] },
-                    ],
-                    'bottom': [
-                        { key: 'corner', rotations: [0, 3] },
-                        { key: 't', rotations: [1, 2, 3] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [1] },
-                    ],
-                    'left': [
-                        { key: 'corner', rotations: [0, 1] },
-                        { key: 't', rotations: [0, 2, 3] },
-                        { key: 'cross', rotations: [0, 1] },
-                        { key: 'line', rotations: [0] },
-                    ]
+                'socket': {
+                    'top': '000',
+                    'right': '010',
+                    'bottom': '010',
+                    'left': '010'
                 }
             },
         ];
@@ -243,15 +143,63 @@ class WFC {
             return piecesMap;
         }, {});
         let mappedPieces = this.pieces.reduce((piecesMap, piece) => {
+            if (!this.currentSet.includes(piece.name)) {
+                return piecesMap;
+            }
+            let pieceSockets = piece.socket;
+            piece.socketmatching = {};
+            piece.rotations.forEach((rotation) => {
+                let socketMatchObject = {};
+                this.directionsMapIntToKey.forEach((direction, index) => {
+                    let rotationMoved = (index - rotation) % this.directionsMapIntToKey.length;
+                    if (rotationMoved < 0)
+                        rotationMoved += this.directionsMapIntToKey.length;
+                    let newRotation = this.directionsMapIntToKey[rotationMoved];
+                    socketMatchObject[direction] = pieceSockets[newRotation];
+                });
+                console.log(socketMatchObject);
+                piece.socketmatching[rotation] = socketMatchObject;
+            });
             piecesMap[piece.name] = piece;
             return piecesMap;
         }, {});
-        this.piecesMap = this.pieces.reduce((piecesMap, piece) => {
+        this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair) => {
+            let piece = piecePair[1];
             if (!this.currentSet.includes(piece.name)) {
                 return piecesMap;
             }
             if (piece.rotations == undefined) {
                 piece.rotations = [0];
+            }
+            if (piece.socket != undefined) {
+                piece.newValid = {};
+                let pieceSockets = piece.socket;
+                Object.entries(pieceSockets).forEach(([socketDirection, socket]) => {
+                    let socketDirectionIndex = this.directionsMapKeyToInt[socketDirection];
+                    let searchDirectionIndex = (socketDirectionIndex + (this.directionsMapIntToKey.length / 2)) % this.directionsMapIntToKey.length;
+                    let searchDirection = this.directionsMapIntToKey[searchDirectionIndex];
+                    this.pieces.forEach((pieceSearch) => {
+                        if (pieceSearch.socketmatching != undefined) {
+                            let matches = Object.entries(pieceSearch.socketmatching);
+                            matches.forEach((socketSearch) => {
+                                let socketSearchDirectionSocket = socketSearch[1][searchDirection];
+                                let socketDirectionSearch = parseInt(socketSearch[0]);
+                                if (socketSearchDirectionSocket == socket) {
+                                    if (piece.newValid[socketDirection] == undefined) {
+                                        piece.newValid[socketDirection] = [];
+                                    }
+                                    let findValidObject = piece.newValid[socketDirection].find((x) => x.key == pieceSearch.name);
+                                    if (findValidObject == undefined) {
+                                        piece.newValid[socketDirection].push({ key: pieceSearch.name, rotations: [socketDirectionSearch] });
+                                    }
+                                    else {
+                                        findValidObject.rotations.push(socketDirectionSearch);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                });
             }
             piece.rotations.forEach((rotation) => {
                 var _a, _b;
@@ -264,16 +212,18 @@ class WFC {
                 this.directionsMapIntToKey.forEach((direction, index) => {
                     let outerOffsettedIndex = (index + rotation) % this.directionsMapIntToKey.length;
                     let outerOffsettedDirection = this.directionsMapIntToKey[outerOffsettedIndex];
-                    piece.valid[direction].forEach((t) => {
+                    piece.newValid[direction].forEach((t) => {
                         let originalPiece = mappedPieces[t.key];
-                        t.rotations.forEach((directionRotation) => {
-                            let offsettedIndex = (directionRotation + rotation) % originalPiece.rotations.length;
-                            let offsettedDirection = this.directionsMapIntToKey[offsettedIndex];
-                            let validName = t.key + "_" + offsettedIndex;
-                            if (!validNeighbors[outerOffsettedDirection].includes(validName)) {
-                                validNeighbors[outerOffsettedDirection].push(validName);
-                            }
-                        });
+                        if (originalPiece != undefined) {
+                            t.rotations.forEach((directionRotation) => {
+                                let offsettedIndex = (directionRotation + rotation) % originalPiece.rotations.length;
+                                let offsettedDirection = this.directionsMapIntToKey[offsettedIndex];
+                                let validName = t.key + "_" + offsettedIndex;
+                                if (!validNeighbors[outerOffsettedDirection].includes(validName)) {
+                                    validNeighbors[outerOffsettedDirection].push(validName);
+                                }
+                            });
+                        }
                     });
                 });
                 let weight = (_a = piece.weight) !== null && _a !== void 0 ? _a : 1;
@@ -285,12 +235,13 @@ class WFC {
                     name: piece.name,
                     rotation: rotation,
                     validNeighbors: validNeighbors,
+                    newValid: piece.newValid,
                     weight: weight,
                 };
             });
             return piecesMap;
         }, {});
-        //console.log('piecesMap', this.piecesMap);
+        console.log('piecesMap', this.piecesMap);
         this.startOver();
         this.startDrawingLoop();
     }
