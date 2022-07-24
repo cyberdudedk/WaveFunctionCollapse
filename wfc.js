@@ -2,15 +2,15 @@
 class WFC {
     constructor(canvasId) {
         this.tileName = '';
-        this.tileScaleHeight = 30;
-        this.tileScaleWidth = 30;
+        this.tileScaleHeight = 40;
+        this.tileScaleWidth = 40;
         this.halfScaleHeight = this.tileScaleHeight / 2;
         this.halfScaleWidth = this.tileScaleWidth / 2;
-        this.fast = false;
-        this.runSpeed = 1;
-        this.runLoop = 100;
-        this.tilesHeight = 20;
-        this.tilesWidth = 20;
+        this.fast = true;
+        this.runSpeed = 10;
+        this.runLoop = 10;
+        this.tilesHeight = 30;
+        this.tilesWidth = 30;
         this.superImposed = 2;
         this.useMouse = false;
         this.pieces = [];
@@ -31,7 +31,9 @@ class WFC {
         };
         this.sets = {};
         this.set = "all";
-        this.currentSet = [];
+        this.currentSet = {} = {};
+        this.retryCount = 0;
+        this.maxRetryCount = 50;
         this.stopRunning = true;
         this.wfcLoop = undefined;
         this.canvas = document.getElementById(canvasId);
@@ -56,81 +58,283 @@ class WFC {
         canvas.width = this.tilesWidth * this.tileScaleWidth;
         ctx.fillStyle = "transparent";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        this.tileName = 'Knots';
+        //this.tileName = 'Knots';
+        this.tileName = 'Circuit';
         this.set = 'all';
-        this.sets = {
-            all: ["corner", "t", "cross", "line", "empty"],
-            nonempty: ["corner", "t", "cross", "line"],
-            onlycorners: ["corner"],
-            nocrossnoempty: ["corner", "t", "line"],
-            nocross: ["corner", "t", "line", "empty"],
-            onlyt: ["t"],
-            braided: ["line", "cross"],
-            cross: ["cross"],
-            crosst: ["cross", "t"],
-            cornert: ["corner", "t"],
+        let tileSets = {
+            'Knots': {
+                all: {
+                    "corner": {},
+                    "t": {},
+                    "cross": {},
+                    "line": {},
+                    "empty": {},
+                },
+                nonempty: { "corner": {}, "t": {}, "cross": {}, "line": {} },
+                onlycorners: { "corner": {} },
+                nocrossnoempty: { "corner": {}, "t": {}, "line": {} },
+                nocross: { "corner": {}, "t": {}, "line": {}, "empty": {} },
+                onlyt: { "t": {} },
+                braided: { "line": {}, "cross": {} },
+                cross: { "cross": {} },
+                crosst: { "cross": {}, "t": {} },
+                cornert: { "corner": {}, "t": {} }
+            },
+            'Circuit': {
+                all: {
+                    "bridge": {},
+                    "component": {},
+                    "connection": {},
+                    "corner": {},
+                    "dskew": {},
+                    "skew": {},
+                    "substrate": {},
+                    "t": {},
+                    "track": {},
+                    "transition": {},
+                    "turn": {},
+                    "viad": {},
+                    "vias": {},
+                    "wire": {},
+                }
+            }
         };
-        this.pieces = [
-            {
-                'name': 'corner',
-                'imgsrc': 'corner.png',
-                'rotations': [0, 1, 2, 3],
-                'weight': 1,
-                'socket': {
-                    'top': '010',
-                    'right': '010',
-                    'bottom': '000',
-                    'left': '000'
-                }
-            },
-            {
-                'name': 'cross',
-                'imgsrc': 'cross.png',
-                'rotations': [0, 1],
-                'weight': 1,
-                'socket': {
-                    'top': '010',
-                    'right': '010',
-                    'bottom': '010',
-                    'left': '010'
-                }
-            },
-            {
-                'name': 'empty',
-                'imgsrc': 'empty.png',
-                'rotations': [0],
-                'weight': 1,
-                'socket': {
-                    'top': '000',
-                    'right': '000',
-                    'bottom': '000',
-                    'left': '000'
-                }
-            },
-            {
-                'name': 'line',
-                'imgsrc': 'line.png',
-                'rotations': [0, 1],
-                'socket': {
-                    'top': '000',
-                    'right': '010',
-                    'bottom': '000',
-                    'left': '010'
-                }
-            },
-            {
-                'name': 't',
-                'imgsrc': 't.png',
-                'rotations': [0, 1, 2, 3],
-                'weight': 1,
-                'socket': {
-                    'top': '000',
-                    'right': '010',
-                    'bottom': '010',
-                    'left': '010'
-                }
-            },
-        ];
+        let tilePieces = {
+            'Circuit': [
+                {
+                    'name': 'bridge',
+                    'imgsrc': 'bridge.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '020',
+                        'bottom': '010',
+                        'left': '020'
+                    }
+                },
+                {
+                    'name': 'connection',
+                    'imgsrc': 'connection.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 3,
+                    'socket': {
+                        'top': '010',
+                        'right': '003',
+                        'bottom': '333',
+                        'left': '300'
+                    }
+                },
+                {
+                    'name': 'dskew',
+                    'imgsrc': 'dskew.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '010',
+                        'bottom': '010',
+                        'left': '010'
+                    }
+                },
+                {
+                    'name': 'skew',
+                    'imgsrc': 'skew.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '010',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'substrate',
+                    'imgsrc': 'substrate.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 't',
+                    'imgsrc': 't.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '010',
+                        'bottom': '010',
+                        'left': '010'
+                    }
+                },
+                {
+                    'name': 'track',
+                    'imgsrc': 'track.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '000',
+                        'bottom': '010',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'transition',
+                    'imgsrc': 'transition.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '020',
+                        'right': '000',
+                        'bottom': '010',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'turn',
+                    'imgsrc': 'turn.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '010',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'viad',
+                    'imgsrc': 'viad.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '010',
+                        'bottom': '000',
+                        'left': '010'
+                    }
+                },
+                {
+                    'name': 'vias',
+                    'imgsrc': 'vias.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'wire',
+                    'imgsrc': 'wire.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '020',
+                        'bottom': '000',
+                        'left': '020'
+                    }
+                },
+                {
+                    'name': 'component',
+                    'imgsrc': 'component.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '333',
+                        'right': '333',
+                        'bottom': '333',
+                        'left': '333'
+                    }
+                },
+                {
+                    'name': 'corner',
+                    'imgsrc': 'corner.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '003',
+                        'left': '300'
+                    }
+                },
+            ],
+            'Knots': [
+                {
+                    'name': 'corner',
+                    'imgsrc': 'corner.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '010',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'cross',
+                    'imgsrc': 'cross.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '010',
+                        'bottom': '010',
+                        'left': '010'
+                    }
+                },
+                {
+                    'name': 'empty',
+                    'imgsrc': 'empty.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'line',
+                    'imgsrc': 'line.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '010',
+                        'bottom': '000',
+                        'left': '010'
+                    }
+                },
+                {
+                    'name': 't',
+                    'imgsrc': 't.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '010',
+                        'bottom': '010',
+                        'left': '010'
+                    }
+                },
+            ]
+        };
+        this.pieces = tilePieces[this.tileName];
+        this.sets = tileSets[this.tileName];
         this.currentSet = this.sets[this.set];
         let loadImagesAsync = this.pieces.map(async (x) => {
             return {
@@ -138,12 +342,23 @@ class WFC {
                 img: await this.preloadImage('tiles/' + this.tileName + '/' + x.imgsrc)
             };
         });
+        console.log('currentSet', this.currentSet);
+        Object.entries(this.currentSet).forEach((value) => {
+            let pieceName = value[0];
+            let properties = value[1];
+            if (properties.rotations != undefined) {
+                this.pieces.find(x => x.name == pieceName).rotations = properties.rotations;
+            }
+            if (properties.weight != undefined) {
+                this.pieces.find(x => x.name == pieceName).weight = properties.weight;
+            }
+        });
         this.imagesMap = (await Promise.all(loadImagesAsync)).reduce((piecesMap, piece) => {
             piecesMap[piece.name] = piece.img;
             return piecesMap;
         }, {});
         let mappedPieces = this.pieces.reduce((piecesMap, piece) => {
-            if (!this.currentSet.includes(piece.name)) {
+            if (this.currentSet[piece.name] == undefined) {
                 return piecesMap;
             }
             let pieceSockets = piece.socket;
@@ -155,82 +370,87 @@ class WFC {
                     if (rotationMoved < 0)
                         rotationMoved += this.directionsMapIntToKey.length;
                     let newRotation = this.directionsMapIntToKey[rotationMoved];
-                    socketMatchObject[direction] = pieceSockets[newRotation];
+                    let flipped = index >= (this.directionsMapIntToKey.length / 2);
+                    if (flipped) {
+                        socketMatchObject[direction] = pieceSockets[newRotation].split("").reverse().join("");
+                    }
+                    else {
+                        socketMatchObject[direction] = pieceSockets[newRotation];
+                    }
                 });
-                console.log(socketMatchObject);
                 piece.socketmatching[rotation] = socketMatchObject;
             });
             piecesMap[piece.name] = piece;
             return piecesMap;
         }, {});
+        let socketBuckets = {};
+        Object.entries(mappedPieces).forEach((mappedPieceValue) => {
+            let pieceName = mappedPieceValue[0];
+            let piece = mappedPieceValue[1];
+            if (piece.socketmatching != undefined) {
+                Object.entries(piece.socketmatching).forEach((socketMatchValue) => {
+                    let socketDirection = parseInt(socketMatchValue[0]);
+                    let socketMatch = socketMatchValue[1];
+                    Object.entries(socketMatch).forEach((socket) => {
+                        let socketDirectionInner = socket[0];
+                        let socketMatchInnerValue = socket[1];
+                        let socketDirectionInnerIndex = this.directionsMapKeyToInt[socketDirectionInner];
+                        let socketDirectionPolarIndex = (socketDirectionInnerIndex + this.directionsMapIntToKey.length / 2) % this.directionsMapIntToKey.length;
+                        let socketDirectionPolar = this.directionsMapIntToKey[socketDirectionPolarIndex];
+                        if (socketBuckets[socketMatchInnerValue] == undefined) {
+                            let innerObject = {};
+                            socketBuckets[socketMatchInnerValue] = innerObject;
+                        }
+                        if (socketBuckets[socketMatchInnerValue][socketDirectionPolar] == undefined) {
+                            socketBuckets[socketMatchInnerValue][socketDirectionPolar] = [];
+                        }
+                        socketBuckets[socketMatchInnerValue][socketDirectionPolar].push(pieceName + "_" + socketDirection);
+                    });
+                });
+            }
+        });
+        console.log('socketBuckets', socketBuckets);
+        console.log('mappedPieces', mappedPieces);
         this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair) => {
             let piece = piecePair[1];
-            if (!this.currentSet.includes(piece.name)) {
+            if (this.currentSet[piece.name] == undefined) {
                 return piecesMap;
             }
             if (piece.rotations == undefined) {
                 piece.rotations = [0];
             }
-            if (piece.socket != undefined) {
-                piece.newValid = {};
-                let pieceSockets = piece.socket;
-                Object.entries(pieceSockets).forEach(([socketDirection, socket]) => {
-                    let socketDirectionIndex = this.directionsMapKeyToInt[socketDirection];
-                    let searchDirectionIndex = (socketDirectionIndex + (this.directionsMapIntToKey.length / 2)) % this.directionsMapIntToKey.length;
-                    let searchDirection = this.directionsMapIntToKey[searchDirectionIndex];
-                    this.pieces.forEach((pieceSearch) => {
-                        if (pieceSearch.socketmatching != undefined) {
-                            let matches = Object.entries(pieceSearch.socketmatching);
-                            matches.forEach((socketSearch) => {
-                                let socketSearchDirectionSocket = socketSearch[1][searchDirection];
-                                let socketDirectionSearch = parseInt(socketSearch[0]);
-                                if (socketSearchDirectionSocket == socket) {
-                                    if (piece.newValid[socketDirection] == undefined) {
-                                        piece.newValid[socketDirection] = [];
-                                    }
-                                    let findValidObject = piece.newValid[socketDirection].find((x) => x.key == pieceSearch.name);
-                                    if (findValidObject == undefined) {
-                                        piece.newValid[socketDirection].push({ key: pieceSearch.name, rotations: [socketDirectionSearch] });
-                                    }
-                                    else {
-                                        findValidObject.rotations.push(socketDirectionSearch);
-                                    }
-                                }
-                            });
-                        }
-                    });
-                });
-            }
             piece.rotations.forEach((rotation) => {
                 var _a, _b;
+                let pieceName = piece.name + "_" + rotation;
                 let validNeighbors = {
                     top: [],
                     right: [],
                     bottom: [],
                     left: []
                 };
-                this.directionsMapIntToKey.forEach((direction, index) => {
-                    let outerOffsettedIndex = (index + rotation) % this.directionsMapIntToKey.length;
-                    let outerOffsettedDirection = this.directionsMapIntToKey[outerOffsettedIndex];
-                    piece.newValid[direction].forEach((t) => {
-                        let originalPiece = mappedPieces[t.key];
-                        if (originalPiece != undefined) {
-                            t.rotations.forEach((directionRotation) => {
-                                let offsettedIndex = (directionRotation + rotation) % originalPiece.rotations.length;
-                                let offsettedDirection = this.directionsMapIntToKey[offsettedIndex];
-                                let validName = t.key + "_" + offsettedIndex;
-                                if (!validNeighbors[outerOffsettedDirection].includes(validName)) {
-                                    validNeighbors[outerOffsettedDirection].push(validName);
-                                }
-                            });
-                        }
-                    });
-                });
+                if (piece.socketmatching != undefined) {
+                    if (piece.socketmatching[rotation] != undefined) {
+                        let rotationDirection = this.directionsMapIntToKey[rotation];
+                        let socketMatch = piece.socketmatching[rotation];
+                        Object.entries(socketMatch).forEach((socketPair) => {
+                            let socketDirection = socketPair[0];
+                            let socket = socketPair[1];
+                            if (socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
+                                let validPiecesForSocket = socketBuckets[socket][socketDirection];
+                                validPiecesForSocket.forEach((validPiece) => {
+                                    if (!validNeighbors[socketDirection].includes(validPiece)) {
+                                        validNeighbors[socketDirection].push(validPiece);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
                 let weight = (_a = piece.weight) !== null && _a !== void 0 ? _a : 1;
                 if (Array.isArray(piece.weight)) {
                     weight = (_b = weight[rotation]) !== null && _b !== void 0 ? _b : 1;
                 }
-                piecesMap[piece.name + "_" + rotation] = {
+                piecesMap[pieceName] = {
                     key: piece.name + "_" + rotation,
                     name: piece.name,
                     rotation: rotation,
@@ -307,9 +527,19 @@ class WFC {
             return x.minsum <= rnd && x.maxsum > rnd;
         });
         if (selected == undefined) {
-            console.log(summed, summed);
+            console.log('summed', summed);
         }
         return selected.key;
+    }
+    noValidFound() {
+        this.retryCount++;
+        this.stopWFCLoop();
+        if (this.retryCount <= this.maxRetryCount) {
+            this.startOver();
+        }
+        else {
+            console.log('not possible to solve within ' + this.maxRetryCount + ' retries');
+        }
     }
     runWFC3() {
         for (var i = 0; i < this.runLoop; i++) {
@@ -329,17 +559,13 @@ class WFC {
             let currentTile = this.tiles[x][y];
             if (currentTile.validPieces != undefined) {
                 if (currentTile.validPieces.length == 0) {
-                    console.log('not possible to solve restarting');
-                    this.stopWFCLoop();
-                    this.startOver();
+                    this.noValidFound();
                     break;
                 }
                 let randomPiece = Math.floor(Math.random() * currentTile.validPieces.length);
                 let tileKey = this.getRandomElementFromArrayWeigted(currentTile.validPieces);
                 if (tileKey == null) {
-                    console.log('not possible to solve restarting');
-                    this.stopWFCLoop();
-                    this.startOver();
+                    this.noValidFound();
                     break;
                 }
                 let piece = this.piecesMap[tileKey];
@@ -477,8 +703,8 @@ class WFC {
         this.drawImgGrid(img, x, y, rotation, 0.8 / possible);
     }
     drawSuperimposedPartGrid(img, x, y, gridSize, gridIndex, rotation, possible) {
-        let width = Math.ceil(this.tileScaleWidth / gridSize);
-        let height = Math.ceil(this.tileScaleHeight / (gridSize));
+        let width = this.tileScaleWidth / gridSize;
+        let height = this.tileScaleHeight / (gridSize);
         let newX = (this.tileScaleWidth * x) + ((gridIndex % gridSize) * width);
         let newY = (this.tileScaleHeight * y) + ((Math.floor(gridIndex / gridSize)) * height);
         this.drawImg(img, newX, newY, width, height, rotation, 0.4);
