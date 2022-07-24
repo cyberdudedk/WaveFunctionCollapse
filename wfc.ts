@@ -3,8 +3,8 @@ class WFC {
     public ctx: CanvasRenderingContext2D;
     public tileName: string = '';
 
-    public tileScaleHeight = 40;
-    public tileScaleWidth = 40;
+    public tileScaleHeight = 30;
+    public tileScaleWidth = 30;
     private halfScaleHeight = this.tileScaleHeight / 2;
     private halfScaleWidth = this.tileScaleWidth / 2;
 
@@ -12,8 +12,8 @@ class WFC {
     private runSpeed: number = 10;
     private runLoop: number = 10;
 
-    public tilesHeight = 30;
-    public tilesWidth = 30;
+    public tilesHeight = 20;
+    public tilesWidth = 20;
     public superImposed = 2;
     public useMouse = false;
 
@@ -67,11 +67,12 @@ class WFC {
         canvas.width = this.tilesWidth * this.tileScaleWidth;
         ctx.fillStyle = "transparent";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        //this.tileName = 'Knots';
-        this.tileName = 'Circuit';
+        const queryParams = new URLSearchParams(window.location.search);
+        this.tileName = queryParams.get('tile') ?? 'Knots';
+        //this.tileName = 'Circuit';
+        //this.tileName = 'Castle';
         
-        this.set = 'all';
+        this.set = queryParams.get('set') ?? 'all';
 
         let tileSets: { [name: string]: any } = { 
             'Knots': {
@@ -108,6 +109,21 @@ class WFC {
                     "viad": { },
                     "vias": { },
                     "wire": { },
+                }
+            },
+            'Castle': {
+                all: {
+                    "bridge": { }, 
+                    "ground": { }, 
+                    "river": { }, 
+                    "riverturn": { }, 
+                    "road": { }, 
+                    "roadturn": { }, 
+                    "t": { },
+                    "tower": { },
+                    "wall": { },
+                    "wallriver": { },
+                    "wallroad": { },
                 }
             }
         };
@@ -345,8 +361,150 @@ class WFC {
                         'left': '010'
                     }
                 },
+            ],
+            'Castle': [
+                {
+                    'name': 'bridge',
+                    'imgsrc': 'bridge.png',
+                    'rotations': [0,1],
+                    'weight': 2,
+                    'socket': {
+                        'top': '010',
+                        'right': '020',
+                        'bottom': '010',
+                        'left': '020'
+                    }
+                },
+                {
+                    'name': 'ground',
+                    'imgsrc': 'ground.png',
+                    'rotations': [0],
+                    'weight': 3,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'river',
+                    'imgsrc': 'river.png',
+                    'rotations': [0,1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '000',
+                        'bottom': '010',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'riverturn',
+                    'imgsrc': 'riverturn.png',
+                    'rotations': [0,1,2,3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '010',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'road',
+                    'imgsrc': 'road.png',
+                    'rotations': [0,1],
+                    'weight': 3,
+                    'socket': {
+                        'top': '020',
+                        'right': '000',
+                        'bottom': '020',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'roadturn',
+                    'imgsrc': 'roadturn.png',
+                    'rotations': [0,1,2,3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '020',
+                        'right': '020',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 't',
+                    'imgsrc': 't.png',
+                    'rotations': [0,1,2,3],
+                    'weight': 2,
+                    'socket': {
+                        'top': '000',
+                        'right': '020',
+                        'bottom': '020',
+                        'left': '020'
+                    }
+                },
+                {
+                    'name': 'tower',
+                    'imgsrc': 'tower.png',
+                    'rotations': [0],
+                    'weight': 0.5,
+                    'socket': {
+                        'top': '434',
+                        'right': '434',
+                        'bottom': '434',
+                        'left': '434'
+                    }
+                },
+                {
+                    'name': 'wall',
+                    'imgsrc': 'wall.png',
+                    'rotations': [0,1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '434',
+                        'right': '000',
+                        'bottom': '434',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'wallriver',
+                    'imgsrc': 'wallriver.png',
+                    'rotations': [0,1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '434',
+                        'right': '010',
+                        'bottom': '434',
+                        'left': '010'
+                    }
+                },
+                {
+                    'name': 'wallroad',
+                    'imgsrc': 'wallroad.png',
+                    'rotations': [0,1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '434',
+                        'right': '020',
+                        'bottom': '434',
+                        'left': '020'
+                    }
+                },
             ]
         };
+
+        /*
+        green = 0
+        blue = 1,
+        yellow = 2
+        grey = 3
+        black = 4
+        */
 
         this.pieces = tilePieces[this.tileName];
         this.sets = tileSets[this.tileName];

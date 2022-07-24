@@ -2,15 +2,15 @@
 class WFC {
     constructor(canvasId) {
         this.tileName = '';
-        this.tileScaleHeight = 40;
-        this.tileScaleWidth = 40;
+        this.tileScaleHeight = 30;
+        this.tileScaleWidth = 30;
         this.halfScaleHeight = this.tileScaleHeight / 2;
         this.halfScaleWidth = this.tileScaleWidth / 2;
         this.fast = true;
         this.runSpeed = 10;
         this.runLoop = 10;
-        this.tilesHeight = 30;
-        this.tilesWidth = 30;
+        this.tilesHeight = 20;
+        this.tilesWidth = 20;
         this.superImposed = 2;
         this.useMouse = false;
         this.pieces = [];
@@ -49,6 +49,7 @@ class WFC {
         });
     }
     async init() {
+        var _a, _b;
         console.clear();
         let ctx = this.ctx;
         let canvas = this.canvas;
@@ -58,9 +59,11 @@ class WFC {
         canvas.width = this.tilesWidth * this.tileScaleWidth;
         ctx.fillStyle = "transparent";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        //this.tileName = 'Knots';
-        this.tileName = 'Circuit';
-        this.set = 'all';
+        const queryParams = new URLSearchParams(window.location.search);
+        this.tileName = (_a = queryParams.get('tile')) !== null && _a !== void 0 ? _a : 'Knots';
+        //this.tileName = 'Circuit';
+        //this.tileName = 'Castle';
+        this.set = (_b = queryParams.get('set')) !== null && _b !== void 0 ? _b : 'all';
         let tileSets = {
             'Knots': {
                 all: {
@@ -96,6 +99,21 @@ class WFC {
                     "viad": {},
                     "vias": {},
                     "wire": {},
+                }
+            },
+            'Castle': {
+                all: {
+                    "bridge": {},
+                    "ground": {},
+                    "river": {},
+                    "riverturn": {},
+                    "road": {},
+                    "roadturn": {},
+                    "t": {},
+                    "tower": {},
+                    "wall": {},
+                    "wallriver": {},
+                    "wallroad": {},
                 }
             }
         };
@@ -331,8 +349,149 @@ class WFC {
                         'left': '010'
                     }
                 },
+            ],
+            'Castle': [
+                {
+                    'name': 'bridge',
+                    'imgsrc': 'bridge.png',
+                    'rotations': [0, 1],
+                    'weight': 2,
+                    'socket': {
+                        'top': '010',
+                        'right': '020',
+                        'bottom': '010',
+                        'left': '020'
+                    }
+                },
+                {
+                    'name': 'ground',
+                    'imgsrc': 'ground.png',
+                    'rotations': [0],
+                    'weight': 3,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'river',
+                    'imgsrc': 'river.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '000',
+                        'bottom': '010',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'riverturn',
+                    'imgsrc': 'riverturn.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '010',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'road',
+                    'imgsrc': 'road.png',
+                    'rotations': [0, 1],
+                    'weight': 3,
+                    'socket': {
+                        'top': '020',
+                        'right': '000',
+                        'bottom': '020',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'roadturn',
+                    'imgsrc': 'roadturn.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '020',
+                        'right': '020',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 't',
+                    'imgsrc': 't.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 2,
+                    'socket': {
+                        'top': '000',
+                        'right': '020',
+                        'bottom': '020',
+                        'left': '020'
+                    }
+                },
+                {
+                    'name': 'tower',
+                    'imgsrc': 'tower.png',
+                    'rotations': [0],
+                    'weight': 0.5,
+                    'socket': {
+                        'top': '434',
+                        'right': '434',
+                        'bottom': '434',
+                        'left': '434'
+                    }
+                },
+                {
+                    'name': 'wall',
+                    'imgsrc': 'wall.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '434',
+                        'right': '000',
+                        'bottom': '434',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'wallriver',
+                    'imgsrc': 'wallriver.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '434',
+                        'right': '010',
+                        'bottom': '434',
+                        'left': '010'
+                    }
+                },
+                {
+                    'name': 'wallroad',
+                    'imgsrc': 'wallroad.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '434',
+                        'right': '020',
+                        'bottom': '434',
+                        'left': '020'
+                    }
+                },
             ]
         };
+        /*
+        green = 0
+        blue = 1,
+        yellow = 2
+        grey = 3
+        black = 4
+        */
         this.pieces = tilePieces[this.tileName];
         this.sets = tileSets[this.tileName];
         this.currentSet = this.sets[this.set];
