@@ -9,8 +9,8 @@ class WFC {
     private halfScaleWidth = this.tileScaleWidth / 2;
 
     private fast: boolean = true;
-    private runSpeed: number = 10;
-    private runLoop: number = 10;
+    private runSpeed: number = 100;
+    private runLoop: number = 1;
 
     public tilesHeight = 20;
     public tilesWidth = 20;
@@ -40,7 +40,7 @@ class WFC {
     public currentSet: { [pieceName: string]: {} } = {} = {};
 
     public retryCount = 0;
-    public maxRetryCount = 50;
+    public maxRetryCount = 100;
     
     constructor(canvasId: string){
         this.canvas = <HTMLCanvasElement>document.getElementById(canvasId);
@@ -153,6 +153,9 @@ class WFC {
                         'right': '003',
                         'bottom': '333',
                         'left': '300'
+                    },
+                    'blacklist': {
+                        'bottom': {'connection':[2]},
                     }
                 },
                 {
@@ -451,12 +454,18 @@ class WFC {
                     'name': 'tower',
                     'imgsrc': 'tower.png',
                     'rotations': [0],
-                    'weight': 0.5,
+                    'weight': 1,
                     'socket': {
-                        'top': '434',
-                        'right': '434',
-                        'bottom': '434',
-                        'left': '434'
+                        'top': ['030','000'],
+                        'right': ['030','000'],
+                        'bottom': ['030','000'],
+                        'left': ['030','000']
+                    },
+                    "blacklist": {
+                        "bottom": {"tower": [0], "wall": [1,3]},
+                        "right": {"tower": [0], "wall": [0,2]},
+                        "top": {"tower": [0], "wall": [1,3]},
+                        "left": {"tower": [0], "wall": [0,2]},
                     }
                 },
                 {
@@ -465,10 +474,14 @@ class WFC {
                     'rotations': [0,1],
                     'weight': 1,
                     'socket': {
-                        'top': '434',
+                        'top': '030',
                         'right': '000',
-                        'bottom': '434',
+                        'bottom': '030',
                         'left': '000'
+                    },
+                    "blacklist": {
+                        "left": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]},
+                        "right": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]},
                     }
                 },
                 {
@@ -477,10 +490,14 @@ class WFC {
                     'rotations': [0,1],
                     'weight': 1,
                     'socket': {
-                        'top': '434',
+                        'top': '030',
                         'right': '010',
-                        'bottom': '434',
+                        'bottom': '030',
                         'left': '010'
+                    },
+                    "blacklist": {
+                        "left": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]},
+                        "right": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]},
                     }
                 },
                 {
@@ -489,10 +506,14 @@ class WFC {
                     'rotations': [0,1],
                     'weight': 1,
                     'socket': {
-                        'top': '434',
+                        'top': '030',
                         'right': '020',
-                        'bottom': '434',
+                        'bottom': '030',
                         'left': '020'
+                    },
+                    "blacklist": {
+                        "left": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]},
+                        "right": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]},
                     }
                 },
             ]
@@ -544,20 +565,66 @@ class WFC {
 
             let pieceSockets = piece.socket
             piece.socketmatching = {};
+            piece.blacklistedNeighbors = {};
+
             piece.rotations.forEach((rotation: number) => { 
                 let socketMatchObject: { [name: string]: any } = {};
+                let blacklistedNeighbors: { [name: string]: string[] } = {};
+
                 this.directionsMapIntToKey.forEach((direction: any, index) => {
                     let rotationMoved = (index - rotation) % this.directionsMapIntToKey.length;
                     if(rotationMoved < 0) rotationMoved += this.directionsMapIntToKey.length;
                     let newRotation = this.directionsMapIntToKey[rotationMoved];
                     let flipped = index >= (this.directionsMapIntToKey.length / 2);
+                    let sockets = pieceSockets[newRotation];
+                    if(!Array.isArray(sockets)) {
+                        sockets = [sockets];
+                    }
+                    sockets.forEach((socket: string) => {
+                        if(socketMatchObject[direction] == undefined) {
+                            socketMatchObject[direction] = [];
+                        }
+                        if(flipped) {
+                            socketMatchObject[direction].push(socket.split("").reverse().join(""));
+                        } else {
+                            socketMatchObject[direction].push(socket);
+                        }
+                    });
+                    //socketMatchObject[direction] = socketMatchObject[direction][0];
+
+/*
                     if(flipped) {
                         socketMatchObject[direction] = pieceSockets[newRotation].split("").reverse().join("");
                     } else {
                         socketMatchObject[direction] = pieceSockets[newRotation];
-                    }
-                    
+                    }*/
                 });
+
+
+                if(piece.blacklist) {
+                    Object.entries(piece.blacklist).forEach((blacklist: [string, any]) => {
+                        let blackListDirection = blacklist[0];
+                        let blackListValue = blacklist[1];
+                        let blackListIndex = this.directionsMapKeyToInt[blackListDirection];
+                        let rotationBlacklistingIndex = (blackListIndex + rotation) % this.directionsMapIntToKey.length;
+                        let rotationBlacklisting = this.directionsMapIntToKey[rotationBlacklistingIndex];
+                        Object.entries(blackListValue).forEach((blacklistPiece: [string, any]) => {
+                            let blackListPieceName = blacklistPiece[0];
+                            let blackListPieceRotations = blacklistPiece[1];
+                            blackListPieceRotations.forEach((blackListPieceRotation: number) => {
+                                let blackListPieceNameWithRotation = blackListPieceName + "_" + (blackListPieceRotation + rotation) % this.directionsMapIntToKey.length;
+                                if(blacklistedNeighbors[rotationBlacklisting] == undefined) {
+                                    blacklistedNeighbors[rotationBlacklisting] = [];
+                                }
+                                blacklistedNeighbors[rotationBlacklisting].push(blackListPieceNameWithRotation);
+                            });
+                            
+                        });
+
+                    });
+                }
+
+                piece.blacklistedNeighbors[rotation] = blacklistedNeighbors;
                 piece.socketmatching[rotation] = socketMatchObject;
             });
 
@@ -577,19 +644,24 @@ class WFC {
                     let socketMatch = socketMatchValue[1];
                     Object.entries(socketMatch).forEach((socket: [string, any]) => {
                         let socketDirectionInner: string = socket[0];
-                        let socketMatchInnerValue: string = socket[1];
+                        let socketMatchInnerValueArray: string[] = socket[1];
+                        //let socketMatchInnerValue: string = socket[1];
+                        console.log('socketMatchInnerValue', socketMatchInnerValueArray);
                         let socketDirectionInnerIndex = this.directionsMapKeyToInt[socketDirectionInner];
                         let socketDirectionPolarIndex = (socketDirectionInnerIndex + this.directionsMapIntToKey.length/2) % this.directionsMapIntToKey.length;
                         let socketDirectionPolar = this.directionsMapIntToKey[socketDirectionPolarIndex];
                         
-                        if(socketBuckets[socketMatchInnerValue] == undefined) {
-                            let innerObject: { [socket: string]: string[] } = {};
-                            socketBuckets[socketMatchInnerValue] = innerObject;
-                        }
-                        if(socketBuckets[socketMatchInnerValue][socketDirectionPolar] == undefined) {
-                            socketBuckets[socketMatchInnerValue][socketDirectionPolar] = [];
-                        }
-                        socketBuckets[socketMatchInnerValue][socketDirectionPolar].push(pieceName + "_" + socketDirection);
+                        socketMatchInnerValueArray.forEach((socketMatchInnerValue: string) => {
+                            if(socketBuckets[socketMatchInnerValue] == undefined) {
+                                let innerObject: { [socket: string]: string[] } = {};
+                                socketBuckets[socketMatchInnerValue] = innerObject;
+                            }
+                            if(socketBuckets[socketMatchInnerValue][socketDirectionPolar] == undefined) {
+                                socketBuckets[socketMatchInnerValue][socketDirectionPolar] = [];
+                            }
+                            socketBuckets[socketMatchInnerValue][socketDirectionPolar].push(pieceName + "_" + socketDirection);
+                        });
+                        
                     });     
                 });
             }
@@ -625,20 +697,21 @@ class WFC {
                         let socketMatch = piece.socketmatching[rotation];
                         Object.entries(socketMatch).forEach((socketPair: [string, any]) => {
                             let socketDirection = socketPair[0];
-                            let socket = socketPair[1];
-                            if(socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
-                                let validPiecesForSocket = socketBuckets[socket][socketDirection];
-                                validPiecesForSocket.forEach((validPiece: string) => {
-                                    if(!validNeighbors[socketDirection].includes(validPiece)) {
-                                        validNeighbors[socketDirection].push(validPiece);
-                                    }
-                                });
-                                    
-                            }
-                            
+                            let sockets = socketPair[1];
+                            console.log('socket', sockets);
+                            sockets.forEach((socket: string) => {
+                                if(socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
+                                    let validPiecesForSocket = socketBuckets[socket][socketDirection];
+                                    console.log(validPiecesForSocket, 'validPiecesForSocket');
+                                    validPiecesForSocket.forEach((validPiece: string) => {
+                                        let blackList = piece.blacklistedNeighbors[rotation][socketDirection] ?? [];
+                                        if(!validNeighbors[socketDirection].includes(validPiece) && !blackList.includes(validPiece)) {
+                                            validNeighbors[socketDirection].push(validPiece);
+                                        }
+                                    });
+                                }
+                            });
                         });
-                
-                        
                     }
                 }
                 
