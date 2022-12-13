@@ -1565,8 +1565,6 @@ class WFC {
             }
         });
 
-        console.log('currentSet', this.currentSet);
-
         Object.entries<any>(this.currentSet).forEach((value: [string, {weight: number, rotations: number[]}]) => {
             let pieceName = value[0];
             let properties = value[1];
@@ -1664,7 +1662,6 @@ class WFC {
                         let socketDirectionInner: string = socket[0];
                         let socketMatchInnerValueArray: string[] = socket[1];
                         //let socketMatchInnerValue: string = socket[1];
-                        console.log('socketMatchInnerValue', socketMatchInnerValueArray);
                         let socketDirectionInnerIndex = this.directionsMapKeyToInt[socketDirectionInner];
                         let socketDirectionPolarIndex = (socketDirectionInnerIndex + this.directionsMapIntToKey.length/2) % this.directionsMapIntToKey.length;
                         let socketDirectionPolar = this.directionsMapIntToKey[socketDirectionPolarIndex];
@@ -1685,9 +1682,6 @@ class WFC {
             }
             
         });
-        console.log('socketBuckets', socketBuckets);
-
-        console.log('mappedPieces',mappedPieces);
 
         this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair: any) => {
             let piece = piecePair[1];
@@ -1716,11 +1710,9 @@ class WFC {
                         Object.entries(socketMatch).forEach((socketPair: [string, any]) => {
                             let socketDirection = socketPair[0];
                             let sockets = socketPair[1];
-                            console.log('socket', sockets);
                             sockets.forEach((socket: string) => {
                                 if(socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
                                     let validPiecesForSocket = socketBuckets[socket][socketDirection];
-                                    console.log(validPiecesForSocket, 'validPiecesForSocket');
                                     validPiecesForSocket.forEach((validPiece: string) => {
                                         let blackList = piece.blacklistedNeighbors[rotation][socketDirection] ?? [];
                                         if(!validNeighbors[socketDirection].includes(validPiece) && !blackList.includes(validPiece)) {

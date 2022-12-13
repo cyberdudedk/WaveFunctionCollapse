@@ -1547,7 +1547,6 @@ class WFC {
                 img: await this.preloadImage('tiles/' + this.tileName + '/' + x.imgsrc)
             };
         });
-        console.log('currentSet', this.currentSet);
         Object.entries(this.currentSet).forEach((value) => {
             let pieceName = value[0];
             let properties = value[1];
@@ -1632,7 +1631,6 @@ class WFC {
                         let socketDirectionInner = socket[0];
                         let socketMatchInnerValueArray = socket[1];
                         //let socketMatchInnerValue: string = socket[1];
-                        console.log('socketMatchInnerValue', socketMatchInnerValueArray);
                         let socketDirectionInnerIndex = this.directionsMapKeyToInt[socketDirectionInner];
                         let socketDirectionPolarIndex = (socketDirectionInnerIndex + this.directionsMapIntToKey.length / 2) % this.directionsMapIntToKey.length;
                         let socketDirectionPolar = this.directionsMapIntToKey[socketDirectionPolarIndex];
@@ -1650,8 +1648,6 @@ class WFC {
                 });
             }
         });
-        console.log('socketBuckets', socketBuckets);
-        console.log('mappedPieces', mappedPieces);
         this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair) => {
             let piece = piecePair[1];
             if (this.currentSet[piece.name] == undefined) {
@@ -1676,11 +1672,9 @@ class WFC {
                         Object.entries(socketMatch).forEach((socketPair) => {
                             let socketDirection = socketPair[0];
                             let sockets = socketPair[1];
-                            console.log('socket', sockets);
                             sockets.forEach((socket) => {
                                 if (socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
                                     let validPiecesForSocket = socketBuckets[socket][socketDirection];
-                                    console.log(validPiecesForSocket, 'validPiecesForSocket');
                                     validPiecesForSocket.forEach((validPiece) => {
                                         var _a;
                                         let blackList = (_a = piece.blacklistedNeighbors[rotation][socketDirection]) !== null && _a !== void 0 ? _a : [];
