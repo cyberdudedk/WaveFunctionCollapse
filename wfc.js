@@ -1,18 +1,21 @@
 "use strict";
 class WFC {
     constructor(canvasId) {
-        this.tileName = '';
-        this.tileScaleHeight = 30;
-        this.tileScaleWidth = 30;
-        this.halfScaleHeight = this.tileScaleHeight / 2;
-        this.halfScaleWidth = this.tileScaleWidth / 2;
-        this.fast = true;
-        this.runSpeed = 100;
-        this.runLoop = 1;
-        this.tilesHeight = 20;
-        this.tilesWidth = 20;
+        this.maxRetryCount = 10;
+        this.maxDepth = 100;
+        this.tileScaleHeight = 40;
+        this.tileScaleWidth = 40;
+        this.fast = false;
+        this.runSpeed = 1;
+        this.runLoop = 10;
+        this.tilesHeight = 15;
+        this.tilesWidth = 15;
         this.superImposed = 2;
         this.useMouse = false;
+        this.tileName = 'Knots';
+        this.set = 'all';
+        this.halfScaleHeight = this.tileScaleHeight / 2;
+        this.halfScaleWidth = this.tileScaleWidth / 2;
         this.pieces = [];
         this.piecesMap = {};
         this.imagesMap = {};
@@ -30,10 +33,8 @@ class WFC {
             'left': 3
         };
         this.sets = {};
-        this.set = "all";
         this.currentSet = {} = {};
         this.retryCount = 0;
-        this.maxRetryCount = 100;
         this.stopRunning = true;
         this.wfcLoop = undefined;
         this.canvas = document.getElementById(canvasId);
@@ -60,10 +61,8 @@ class WFC {
         ctx.fillStyle = "transparent";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         const queryParams = new URLSearchParams(window.location.search);
-        this.tileName = (_a = queryParams.get('tile')) !== null && _a !== void 0 ? _a : 'Knots';
-        //this.tileName = 'Circuit';
-        //this.tileName = 'Castle';
-        this.set = (_b = queryParams.get('set')) !== null && _b !== void 0 ? _b : 'all';
+        this.tileName = (_a = queryParams.get('tile')) !== null && _a !== void 0 ? _a : this.tileName;
+        this.set = (_b = queryParams.get('set')) !== null && _b !== void 0 ? _b : this.set;
         let tileSets = {
             'Knots': {
                 all: {
@@ -82,6 +81,36 @@ class WFC {
                 cross: { "cross": {} },
                 crosst: { "cross": {}, "t": {} },
                 cornert: { "corner": {}, "t": {} }
+            },
+            'Circles': {
+                all: {
+                    "b_half": {},
+                    "b_i": {},
+                    "b_quarter": {},
+                    "b": {},
+                    "w_half": {},
+                    "w_i": {},
+                    "w_quarter": {},
+                    "w": {},
+                },
+                large: {
+                    "b_quarter": {},
+                    "w_quarter": {},
+                },
+                largeandsolid: {
+                    "b_quarter": {},
+                    "b": {},
+                    "w_quarter": {},
+                    "w": {},
+                },
+                nosolid: {
+                    "b_half": {},
+                    "b_i": {},
+                    "b_quarter": {},
+                    "w_half": {},
+                    "w_i": {},
+                    "w_quarter": {},
+                }
             },
             'Circuit': {
                 all: {
@@ -114,6 +143,85 @@ class WFC {
                     "wall": {},
                     "wallriver": {},
                     "wallroad": {},
+                }
+            },
+            'Rooms': {
+                all: {
+                    "bend": {},
+                    "corner": {},
+                    "corridor": {},
+                    "door": {},
+                    "empty": {},
+                    "side": {},
+                    "t": {},
+                    "turn": {},
+                    "wall": {},
+                }
+            },
+            'FloorPlan': {
+                all: {
+                    "div": {},
+                    "divt": {},
+                    "divturn": {},
+                    "door": {},
+                    "empty": {},
+                    "floor": {},
+                    "glass": {},
+                    "halfglass": {},
+                    "halfglass2": {},
+                    "in": {},
+                    "out": {},
+                    "stairs": {},
+                    "table": {},
+                    "vent": {},
+                    "w": {},
+                    "wall": {},
+                    "walldiv": {},
+                    "window": {},
+                }
+            },
+            'Summer': {
+                all: {
+                    "cliff 0": {},
+                    "cliff 1": {},
+                    "cliff 2": {},
+                    "cliff 3": {},
+                    "cliffcorner 0": {},
+                    "cliffcorner 1": {},
+                    "cliffcorner 2": {},
+                    "cliffcorner 3": {},
+                    "cliffturn 0": {},
+                    "cliffturn 1": {},
+                    "cliffturn 2": {},
+                    "cliffturn 3": {},
+                    "grass 0": {},
+                    "grasscorner 0": {},
+                    "grasscorner 1": {},
+                    "grasscorner 2": {},
+                    "grasscorner 3": {},
+                    "road 0": {},
+                    "road 1": {},
+                    "road 2": {},
+                    "road 3": {},
+                    "roadturn 0": {},
+                    "roadturn 1": {},
+                    "roadturn 2": {},
+                    "roadturn 3": {},
+                    "water_a 0": {},
+                    "water_b 0": {},
+                    "water_c 0": {},
+                    "watercorner 0": {},
+                    "watercorner 1": {},
+                    "watercorner 2": {},
+                    "watercorner 3": {},
+                    "waterside 0": {},
+                    "waterside 1": {},
+                    "waterside 2": {},
+                    "waterside 3": {},
+                    "waterturn 0": {},
+                    "waterturn 1": {},
+                    "waterturn 2": {},
+                    "waterturn 3": {},
                 }
             }
         };
@@ -441,19 +549,19 @@ class WFC {
                 {
                     'name': 'tower',
                     'imgsrc': 'tower.png',
-                    'rotations': [0],
+                    'rotations': [0, 1, 2, 3],
                     'weight': 1,
                     'socket': {
-                        'top': ['030', '000'],
-                        'right': ['030', '000'],
-                        'bottom': ['030', '000'],
-                        'left': ['030', '000']
+                        'top': ['030'],
+                        'right': ['030'],
+                        'bottom': ['000'],
+                        'left': ['000']
                     },
                     "blacklist": {
-                        "bottom": { "tower": [0], "wall": [1, 3] },
-                        "right": { "tower": [0], "wall": [0, 2] },
-                        "top": { "tower": [0], "wall": [1, 3] },
-                        "left": { "tower": [0], "wall": [0, 2] },
+                        "bottom": { "tower": [0, 1, 2, 3], "wall": [1, 3] },
+                        "right": { "tower": [0, 1, 2, 3], "wall": [0, 2] },
+                        "top": { "tower": [0, 1, 2, 3], "wall": [1, 3] },
+                        "left": { "tower": [0, 1, 2, 3], "wall": [0, 2] },
                     }
                 },
                 {
@@ -504,15 +612,921 @@ class WFC {
                         "right": { "wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3] },
                     }
                 },
+            ],
+            'Circles': [
+                {
+                    'name': 'b_half',
+                    'imgsrc': 'b_half.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '011',
+                        'bottom': '111',
+                        'left': '110'
+                    },
+                },
+                {
+                    'name': 'b_i',
+                    'imgsrc': 'b_i.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '010',
+                        'bottom': '000',
+                        'left': '010'
+                    },
+                },
+                {
+                    'name': 'b_quarter',
+                    'imgsrc': 'b_quarter.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '111',
+                        'left': '111'
+                    },
+                },
+                {
+                    'name': 'b',
+                    'imgsrc': 'b.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '000'
+                    },
+                },
+                {
+                    'name': 'w_half',
+                    'imgsrc': 'w_half.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '111',
+                        'right': '100',
+                        'bottom': '000',
+                        'left': '001'
+                    },
+                },
+                {
+                    'name': 'w_i',
+                    'imgsrc': 'w_i.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '111',
+                        'right': '101',
+                        'bottom': '111',
+                        'left': '101'
+                    },
+                },
+                {
+                    'name': 'w_quarter',
+                    'imgsrc': 'w_quarter.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '111',
+                        'right': '111',
+                        'bottom': '000',
+                        'left': '000'
+                    },
+                },
+                {
+                    'name': 'w',
+                    'imgsrc': 'w.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '111',
+                        'right': '111',
+                        'bottom': '111',
+                        'left': '111'
+                    },
+                },
+            ],
+            'Rooms': [
+                {
+                    'name': 'bend',
+                    'imgsrc': 'bend.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '100',
+                        'right': '001',
+                        'bottom': '111',
+                        'left': '111'
+                    }
+                },
+                {
+                    'name': 'corner',
+                    'imgsrc': 'corner.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '001',
+                        'right': '100',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'corridor',
+                    'imgsrc': 'corridor.png',
+                    'rotations': [0, 1],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '000',
+                        'bottom': '010',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'door',
+                    'imgsrc': 'door.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '111',
+                        'right': '100',
+                        'bottom': '010',
+                        'left': '100'
+                    }
+                },
+                {
+                    'name': 'empty',
+                    'imgsrc': 'empty.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '111',
+                        'right': '111',
+                        'bottom': '111',
+                        'left': '111'
+                    }
+                },
+                {
+                    'name': 'side',
+                    'imgsrc': 'side.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '001',
+                        'bottom': '111',
+                        'left': '100'
+                    }
+                },
+                {
+                    'name': 't',
+                    'imgsrc': 't.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '010',
+                        'bottom': '010',
+                        'left': '010'
+                    }
+                },
+                {
+                    'name': 'turn',
+                    'imgsrc': 'turn.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': 1,
+                    'socket': {
+                        'top': '010',
+                        'right': '010',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'wall',
+                    'imgsrc': 'wall.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+            ],
+            'FloorPlan': [
+                {
+                    'name': 'div',
+                    'imgsrc': 'div.png',
+                    'rotations': [0, 1],
+                    'weight': .5,
+                    'socket': {
+                        'top': '111',
+                        'right': '121',
+                        'bottom': '111',
+                        'left': '121'
+                    }
+                },
+                {
+                    'name': 'divt',
+                    'imgsrc': 'divt.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .5,
+                    'socket': {
+                        'top': '111',
+                        'right': '121',
+                        'bottom': '121',
+                        'left': '121'
+                    }
+                },
+                {
+                    'name': 'divturn',
+                    'imgsrc': 'divturn.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .5,
+                    'socket': {
+                        'top': '121',
+                        'right': '121',
+                        'bottom': '111',
+                        'left': '111'
+                    }
+                },
+                {
+                    'name': 'door',
+                    'imgsrc': 'door.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .2,
+                    'socket': {
+                        'top': '111',
+                        'right': '121',
+                        'bottom': '111',
+                        'left': '121'
+                    }
+                },
+                {
+                    'name': 'empty',
+                    'imgsrc': 'empty.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'floor',
+                    'imgsrc': 'floor.png',
+                    'rotations': [0],
+                    'weight': 3,
+                    'socket': {
+                        'top': '111',
+                        'right': '111',
+                        'bottom': '111',
+                        'left': '111'
+                    }
+                },
+                {
+                    'name': 'glass',
+                    'imgsrc': 'glass.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .1,
+                    'socket': {
+                        'top': '111',
+                        'right': '130',
+                        'bottom': '000',
+                        'left': '031'
+                    }
+                },
+                {
+                    'name': 'halfglass',
+                    'imgsrc': 'halfglass.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .3,
+                    'socket': {
+                        'top': '111',
+                        'right': '130',
+                        'bottom': '000',
+                        'left': '021'
+                    }
+                },
+                {
+                    'name': 'halfglass2',
+                    'imgsrc': 'halfglass2.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .3,
+                    'socket': {
+                        'top': '111',
+                        'right': '120',
+                        'bottom': '000',
+                        'left': '031'
+                    }
+                },
+                {
+                    'name': 'in',
+                    'imgsrc': 'in.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .1,
+                    'socket': {
+                        'top': '111',
+                        'right': '111',
+                        'bottom': '120',
+                        'left': '021'
+                    }
+                },
+                {
+                    'name': 'out',
+                    'imgsrc': 'out.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .1,
+                    'socket': {
+                        'top': '021',
+                        'right': '120',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'stairs',
+                    'imgsrc': 'stairs.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .2,
+                    'socket': {
+                        'top': '111',
+                        'right': '121',
+                        'bottom': '222',
+                        'left': '121'
+                    }
+                },
+                {
+                    'name': 'table',
+                    'imgsrc': 'table.png',
+                    'rotations': [0],
+                    'weight': .1,
+                    'socket': {
+                        'top': '111',
+                        'right': '111',
+                        'bottom': '111',
+                        'left': '111'
+                    }
+                },
+                {
+                    'name': 'vent',
+                    'imgsrc': 'vent.png',
+                    'rotations': [0],
+                    'weight': .1,
+                    'socket': {
+                        'top': '111',
+                        'right': '111',
+                        'bottom': '111',
+                        'left': '111'
+                    }
+                },
+                {
+                    'name': 'w',
+                    'imgsrc': 'w.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .1,
+                    'socket': {
+                        'top': '111',
+                        'right': '120',
+                        'bottom': '000',
+                        'left': '021'
+                    }
+                },
+                {
+                    'name': 'wall',
+                    'imgsrc': 'wall.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .25,
+                    'socket': {
+                        'top': '111',
+                        'right': '120',
+                        'bottom': '000',
+                        'left': '021'
+                    }
+                },
+                {
+                    'name': 'walldiv',
+                    'imgsrc': 'walldiv.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .25,
+                    'socket': {
+                        'top': '121',
+                        'right': '120',
+                        'bottom': '000',
+                        'left': '021'
+                    }
+                },
+                {
+                    'name': 'window',
+                    'imgsrc': 'window.png',
+                    'rotations': [0, 1, 2, 3],
+                    'weight': .05,
+                    'socket': {
+                        'top': '111',
+                        'right': '120',
+                        'bottom': '000',
+                        'left': '021'
+                    }
+                },
+            ],
+            //Grass = 0
+            //Road = 1
+            //Water = 2
+            //small Cliff = 3
+            //large Cliff = 4
+            'Summer': [
+                {
+                    'name': 'cliff 0',
+                    'imgsrc': 'cliff 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '040',
+                        'bottom': '000',
+                        'left': '040'
+                    }
+                },
+                {
+                    'name': 'cliff 1',
+                    'imgsrc': 'cliff 1.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '040',
+                        'right': '000',
+                        'bottom': '040',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'cliff 2',
+                    'imgsrc': 'cliff 2.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '030',
+                        'bottom': '000',
+                        'left': '030'
+                    }
+                },
+                {
+                    'name': 'cliff 3',
+                    'imgsrc': 'cliff 3.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '030',
+                        'right': '000',
+                        'bottom': '030',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'cliffcorner 0',
+                    'imgsrc': 'cliffcorner 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '030',
+                        'right': '030',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'cliffcorner 1',
+                    'imgsrc': 'cliffcorner 1.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '040',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '030'
+                    }
+                },
+                {
+                    'name': 'cliffcorner 2',
+                    'imgsrc': 'cliffcorner 2.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '030',
+                        'left': '040'
+                    }
+                },
+                {
+                    'name': 'cliffcorner 3',
+                    'imgsrc': 'cliffcorner 3.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '040',
+                        'bottom': '030',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'cliffturn 0',
+                    'imgsrc': 'cliffturn 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '040',
+                        'right': '040',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'cliffturn 1',
+                    'imgsrc': 'cliffturn 1.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '040',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '040'
+                    }
+                },
+                {
+                    'name': 'cliffturn 2',
+                    'imgsrc': 'cliffturn 2.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '030',
+                        'left': '030'
+                    }
+                },
+                {
+                    'name': 'cliffturn 3',
+                    'imgsrc': 'cliffturn 3.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '030',
+                        'bottom': '030',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'grass 0',
+                    'imgsrc': 'grass 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'grasscorner 0',
+                    'imgsrc': 'grasscorner 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '110',
+                        'right': '011',
+                        'bottom': '111',
+                        'left': '111'
+                    }
+                },
+                {
+                    'name': 'grasscorner 1',
+                    'imgsrc': 'grasscorner 1.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '011',
+                        'right': '111',
+                        'bottom': '111',
+                        'left': '110'
+                    }
+                },
+                {
+                    'name': 'grasscorner 2',
+                    'imgsrc': 'grasscorner 2.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '111',
+                        'right': '111',
+                        'bottom': '110',
+                        'left': '011'
+                    }
+                },
+                {
+                    'name': 'grasscorner 3',
+                    'imgsrc': 'grasscorner 3.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '111',
+                        'right': '110',
+                        'bottom': '011',
+                        'left': '111'
+                    }
+                },
+                {
+                    'name': 'road 0',
+                    'imgsrc': 'road 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '111',
+                        'right': '110',
+                        'bottom': '000',
+                        'left': '011'
+                    }
+                },
+                {
+                    'name': 'road 1',
+                    'imgsrc': 'road 1.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '110',
+                        'right': '000',
+                        'bottom': '011',
+                        'left': '111'
+                    }
+                },
+                {
+                    'name': 'road 2',
+                    'imgsrc': 'road 2.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '011',
+                        'bottom': '111',
+                        'left': '110'
+                    }
+                },
+                {
+                    'name': 'road 3',
+                    'imgsrc': 'road 3.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '011',
+                        'right': '111',
+                        'bottom': '110',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'roadturn 0',
+                    'imgsrc': 'roadturn 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '011',
+                        'right': '110',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'roadturn 1',
+                    'imgsrc': 'roadturn 1.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '110',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '011'
+                    }
+                },
+                {
+                    'name': 'roadturn 2',
+                    'imgsrc': 'roadturn 2.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '011',
+                        'left': '110'
+                    }
+                },
+                {
+                    'name': 'roadturn 3',
+                    'imgsrc': 'roadturn 3.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '011',
+                        'bottom': '110',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'water_a 0',
+                    'imgsrc': 'water_a 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '222',
+                        'right': '222',
+                        'bottom': '222',
+                        'left': '222'
+                    }
+                },
+                {
+                    'name': 'water_b 0',
+                    'imgsrc': 'water_b 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '222',
+                        'right': '222',
+                        'bottom': '222',
+                        'left': '222'
+                    }
+                },
+                {
+                    'name': 'water_c 0',
+                    'imgsrc': 'water_c 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '222',
+                        'right': '222',
+                        'bottom': '222',
+                        'left': '222'
+                    }
+                },
+                {
+                    'name': 'watercorner 0',
+                    'imgsrc': 'watercorner 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '032',
+                        'right': '230',
+                        'bottom': '000',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'watercorner 1',
+                    'imgsrc': 'watercorner 1.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '230',
+                        'right': '000',
+                        'bottom': '000',
+                        'left': '032'
+                    }
+                },
+                {
+                    'name': 'watercorner 2',
+                    'imgsrc': 'watercorner 2.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '000',
+                        'bottom': '032',
+                        'left': '230'
+                    }
+                },
+                {
+                    'name': 'watercorner 3',
+                    'imgsrc': 'watercorner 3.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '032',
+                        'bottom': '230',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'waterside 0',
+                    'imgsrc': 'waterside 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '222',
+                        'right': '230',
+                        'bottom': '000',
+                        'left': '032'
+                    }
+                },
+                {
+                    'name': 'waterside 1',
+                    'imgsrc': 'waterside 1.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '230',
+                        'right': '000',
+                        'bottom': '032',
+                        'left': '222'
+                    }
+                },
+                {
+                    'name': 'waterside 2',
+                    'imgsrc': 'waterside 2.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '000',
+                        'right': '032',
+                        'bottom': '222',
+                        'left': '230'
+                    }
+                },
+                {
+                    'name': 'waterside 3',
+                    'imgsrc': 'waterside 3.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '032',
+                        'right': '222',
+                        'bottom': '230',
+                        'left': '000'
+                    }
+                },
+                {
+                    'name': 'waterturn 0',
+                    'imgsrc': 'waterturn 0.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '222',
+                        'right': '222',
+                        'bottom': '230',
+                        'left': '032'
+                    }
+                },
+                {
+                    'name': 'waterturn 1',
+                    'imgsrc': 'waterturn 1.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '222',
+                        'right': '230',
+                        'bottom': '032',
+                        'left': '222'
+                    }
+                },
+                {
+                    'name': 'waterturn 2',
+                    'imgsrc': 'waterturn 2.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '230',
+                        'right': '032',
+                        'bottom': '222',
+                        'left': '222'
+                    }
+                },
+                {
+                    'name': 'waterturn 3',
+                    'imgsrc': 'waterturn 3.png',
+                    'rotations': [0],
+                    'weight': 1,
+                    'socket': {
+                        'top': '032',
+                        'right': '222',
+                        'bottom': '222',
+                        'left': '230'
+                    }
+                },
             ]
         };
-        /*
-        green = 0
-        blue = 1,
-        yellow = 2
-        grey = 3
-        black = 4
-        */
         this.pieces = tilePieces[this.tileName];
         this.sets = tileSets[this.tileName];
         this.currentSet = this.sets[this.set];
@@ -568,13 +1582,6 @@ class WFC {
                             socketMatchObject[direction].push(socket);
                         }
                     });
-                    //socketMatchObject[direction] = socketMatchObject[direction][0];
-                    /*
-                                        if(flipped) {
-                                            socketMatchObject[direction] = pieceSockets[newRotation].split("").reverse().join("");
-                                        } else {
-                                            socketMatchObject[direction] = pieceSockets[newRotation];
-                                        }*/
                 });
                 if (piece.blacklist) {
                     Object.entries(piece.blacklist).forEach((blacklist) => {
@@ -706,10 +1713,10 @@ class WFC {
         let startingTile = {
             validPieces: piecesKeys,
         };
-        this.tiles = Array.from({ length: this.tilesWidth }, () => {
-            return Array.from({ length: this.tilesHeight }, () => {
-                let k = Math.floor(Math.random() * 10);
+        this.tiles = Array.from({ length: this.tilesWidth }, (a, x) => {
+            return Array.from({ length: this.tilesHeight }, (b, y) => {
                 return {
+                    position: { x: x, y: y },
                     validPieces: [...startingTile.validPieces]
                 };
             });
@@ -771,7 +1778,10 @@ class WFC {
         }
     }
     runWFC3() {
-        for (var i = 0; i < this.runLoop; i++) {
+        for (var i = 0; (i < this.runLoop) || this.fast; i++) {
+            let stop = this.checkForStop();
+            if (stop)
+                return;
             if (this.stopRunning)
                 return;
             let entropyGroups = this.getTilePositionsAsEntropyGroups();
@@ -789,46 +1799,80 @@ class WFC {
             if (currentTile.validPieces != undefined) {
                 if (currentTile.validPieces.length == 0) {
                     this.noValidFound();
-                    break;
+                    return false;
                 }
                 let randomPiece = Math.floor(Math.random() * currentTile.validPieces.length);
                 let tileKey = this.getRandomElementFromArrayWeigted(currentTile.validPieces);
                 if (tileKey == null) {
                     this.noValidFound();
-                    break;
+                    return false;
                 }
                 let piece = this.piecesMap[tileKey];
                 this.tiles[x][y] = piece;
                 if (piece == undefined) {
                     console.log('piece', x, y, piece, tileKey, randomPiece, currentTile.validPieces);
                 }
-                let neighbors = [];
-                if (y != 0) {
-                    neighbors.push({ direction: 'top', tile: this.tiles[x][y - 1] });
+                let validation = this.runValidation(x, y, [piece]);
+                if (validation == null) {
+                    break;
                 }
-                if (x != this.tilesWidth - 1) {
-                    neighbors.push({ direction: 'right', tile: this.tiles[x + 1][y] });
-                }
-                if (y != this.tilesHeight - 1) {
-                    neighbors.push({ direction: 'bottom', tile: this.tiles[x][y + 1] });
-                }
-                if (x != 0) {
-                    neighbors.push({ direction: 'left', tile: this.tiles[x - 1][y] });
-                }
-                neighbors.forEach((neighbor) => {
-                    if (neighbor.tile.validPieces) {
-                        neighbor.tile.validPieces = neighbor.tile.validPieces
-                            .filter((validPieceToCheck) => {
-                            return piece.validNeighbors[neighbor.direction].includes(validPieceToCheck);
+                let depth = 0;
+                while (validation.length > 0 && depth < this.maxDepth) {
+                    let newValidations = [];
+                    if (validation.length > 0) {
+                        validation.forEach((v) => {
+                            let validationTile = this.tiles[v.x][v.y];
+                            let validationTilePieces = validationTile.validPieces;
+                            let pieces = validationTilePieces.map((tileKey) => {
+                                return this.piecesMap[tileKey];
+                            });
+                            let innerValidation = this.runValidation(v.x, v.y, pieces);
+                            newValidations.push(innerValidation);
                         });
                     }
-                });
+                    let newValidationsConcat = [].concat.apply([], newValidations);
+                    let newValidationsSet = Array.from(new Set(newValidationsConcat));
+                    depth += 1;
+                    validation = newValidationsSet;
+                }
             }
         }
-        let stop = this.checkForStop();
-        if (!stop && this.fast) {
-            this.runWFC3();
+    }
+    runValidation(x, y, pieces) {
+        let recheck = [];
+        let neighbors = [];
+        if (y != 0) {
+            neighbors.push({ direction: 'top', tile: this.tiles[x][y - 1] });
         }
+        if (x != this.tilesWidth - 1) {
+            neighbors.push({ direction: 'right', tile: this.tiles[x + 1][y] });
+        }
+        if (y != this.tilesHeight - 1) {
+            neighbors.push({ direction: 'bottom', tile: this.tiles[x][y + 1] });
+        }
+        if (x != 0) {
+            neighbors.push({ direction: 'left', tile: this.tiles[x - 1][y] });
+        }
+        neighbors.forEach((neighbor) => {
+            if (neighbor.tile.validPieces) {
+                let validBefore = neighbor.tile.validPieces.length;
+                let validArray = [];
+                pieces.forEach((piece) => {
+                    validArray.push(neighbor.tile.validPieces
+                        .filter((validPieceToCheck) => {
+                        return piece.validNeighbors[neighbor.direction].includes(validPieceToCheck);
+                    }));
+                });
+                let validArrayConcat = [].concat.apply([], validArray);
+                let uniquevalidArraySet = Array.from(new Set(validArrayConcat));
+                neighbor.tile.validPieces = uniquevalidArraySet;
+                var validAfter = neighbor.tile.validPieces.length;
+                if (validBefore != validAfter) {
+                    recheck.push(neighbor.tile.position);
+                }
+            }
+        });
+        return recheck;
     }
     checkForStop() {
         let stop = true;
@@ -844,9 +1888,12 @@ class WFC {
             }
         });
         if (stop) {
+            console.log('checkForStop', 'return true');
+            console.log('Found solution after ' + this.retryCount + ' retries');
             this.stopWFCLoop();
             return true;
         }
+        return stop;
     }
     startWFCLoop(interval) {
         this.stopRunning = false;
@@ -864,7 +1911,6 @@ class WFC {
                 },50);*/
     }
     stopWFCLoop() {
-        console.log('stopWFCLoop');
         this.stopRunning = true;
         clearInterval(this.wfcLoop);
     }
