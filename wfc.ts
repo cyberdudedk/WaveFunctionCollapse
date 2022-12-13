@@ -4,12 +4,12 @@ class WFC {
     public tileScaleHeight = 40;
     public tileScaleWidth = 40;
     private fast: boolean = false;
-    private runSpeed: number = 1;
-    private runLoop: number = 10;
+    private runSpeed: number = 10;
+    private runLoop: number = 30;
 
-    public tilesHeight = 15;
-    public tilesWidth = 15;
-    public superImposed = 2;
+    public tilesHeight = 30;
+    public tilesWidth = 30;
+    public superImposed = 1;
     public useMouse = false;
 
     public tileName: string = 'Knots';

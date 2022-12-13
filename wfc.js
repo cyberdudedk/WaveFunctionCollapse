@@ -6,11 +6,11 @@ class WFC {
         this.tileScaleHeight = 40;
         this.tileScaleWidth = 40;
         this.fast = false;
-        this.runSpeed = 1;
-        this.runLoop = 10;
-        this.tilesHeight = 15;
-        this.tilesWidth = 15;
-        this.superImposed = 2;
+        this.runSpeed = 10;
+        this.runLoop = 30;
+        this.tilesHeight = 30;
+        this.tilesWidth = 30;
+        this.superImposed = 1;
         this.useMouse = false;
         this.tileName = 'Knots';
         this.set = 'all';
