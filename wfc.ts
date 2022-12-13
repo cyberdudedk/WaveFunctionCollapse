@@ -63,16 +63,28 @@ class WFC {
         console.clear();
         let ctx = this.ctx;
         let canvas = this.canvas;
+
+        const queryParams = new URLSearchParams(window.location.search);
+        this.tileName = queryParams.get('tile') ?? this.tileName;
+        this.set = queryParams.get('set') ?? this.set;
+        this.maxRetryCount = parseInt((queryParams.get('maxRetryCount') ?? this.maxRetryCount) as string);
+        this.maxDepth =  parseInt((queryParams.get('maxDepth') ?? this.maxDepth) as string);
+        this.tileScaleHeight =  parseInt((queryParams.get('tileScale') ?? this.tileScaleHeight) as string);
+        this.tileScaleWidth =  parseInt((queryParams.get('tileScale') ?? this.tileScaleWidth) as string);
+        this.fast = !!parseInt((queryParams.get('fast') ?? this.fast) as string);
+        this.runSpeed =  parseInt((queryParams.get('runSpeed') ?? this.runSpeed) as string);
+        this.runLoop =  parseInt((queryParams.get('runLoop') ?? this.runLoop) as string);
+        this.tilesHeight =  parseInt((queryParams.get('tilesHeight') ?? this.tilesHeight) as string);
+        this.tilesWidth =  parseInt((queryParams.get('tilesWidth') ?? this.tilesWidth) as string);
+        this.superImposed =  parseInt((queryParams.get('superImposed') ?? this.superImposed) as string);
+        this.useMouse = !!parseInt((queryParams.get('useMouse') ?? this.useMouse) as string);
+
         this.halfScaleHeight = this.tileScaleHeight / 2;
         this.halfScaleWidth = this.tileScaleWidth / 2;
         canvas.height = this.tilesHeight * this.tileScaleHeight;
         canvas.width = this.tilesWidth * this.tileScaleWidth;
         ctx.fillStyle = "transparent";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        const queryParams = new URLSearchParams(window.location.search);
-        this.tileName = queryParams.get('tile') ?? this.tileName;
-        this.set = queryParams.get('set') ?? this.set;
-
 
         let tileSets: { [name: string]: any } = { 
             'Knots': {
@@ -1538,8 +1550,7 @@ class WFC {
                         'left': '230'
                     }
                 },
-
-
+            ]
         };
 
 
