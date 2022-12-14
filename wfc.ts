@@ -59,25 +59,25 @@ class WFC {
         });
     }
 
-    public async init() {
+    public async init(config: any) {
         console.clear();
+        console.log(config);
         let ctx = this.ctx;
         let canvas = this.canvas;
 
-        const queryParams = new URLSearchParams(window.location.search);
-        this.tileName = queryParams.get('tile') ?? this.tileName;
-        this.set = queryParams.get('set') ?? this.set;
-        this.maxRetryCount = parseInt((queryParams.get('maxRetryCount') ?? this.maxRetryCount) as string);
-        this.maxDepth =  parseInt((queryParams.get('maxDepth') ?? this.maxDepth) as string);
-        this.tileScaleHeight =  parseInt((queryParams.get('tileScale') ?? this.tileScaleHeight) as string);
-        this.tileScaleWidth =  parseInt((queryParams.get('tileScale') ?? this.tileScaleWidth) as string);
-        this.fast = !!parseInt((queryParams.get('fast') ?? this.fast) as string);
-        this.runSpeed =  parseInt((queryParams.get('runSpeed') ?? this.runSpeed) as string);
-        this.runLoop =  parseInt((queryParams.get('runLoop') ?? this.runLoop) as string);
-        this.tilesHeight =  parseInt((queryParams.get('tilesHeight') ?? this.tilesHeight) as string);
-        this.tilesWidth =  parseInt((queryParams.get('tilesWidth') ?? this.tilesWidth) as string);
-        this.superImposed =  parseInt((queryParams.get('superImposed') ?? this.superImposed) as string);
-        this.useMouse = !!parseInt((queryParams.get('useMouse') ?? this.useMouse) as string);
+        this.tileName = config.tileName;
+        this.set = config.set;
+        this.maxRetryCount = config.maxRetryCount;
+        this.maxDepth =  config.maxDepth;
+        this.tileScaleHeight =  config.tileScaleHeight;
+        this.tileScaleWidth =  config.tileScaleWidth;
+        this.fast = config.fast;
+        this.runSpeed =  config.runSpeed;
+        this.runLoop =  config.runLoop;
+        this.tilesHeight = config.tilesHeight;
+        this.tilesWidth =  config.tilesWidth;
+        this.superImposed =  config.superImposed;
+        this.useMouse = config.useMouse;
 
         this.halfScaleHeight = this.tileScaleHeight / 2;
         this.halfScaleWidth = this.tileScaleWidth / 2;

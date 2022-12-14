@@ -49,25 +49,24 @@ class WFC {
             return image;
         });
     }
-    async init() {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+    async init(config) {
         console.clear();
+        console.log(config);
         let ctx = this.ctx;
         let canvas = this.canvas;
-        const queryParams = new URLSearchParams(window.location.search);
-        this.tileName = (_a = queryParams.get('tile')) !== null && _a !== void 0 ? _a : this.tileName;
-        this.set = (_b = queryParams.get('set')) !== null && _b !== void 0 ? _b : this.set;
-        this.maxRetryCount = parseInt(((_c = queryParams.get('maxRetryCount')) !== null && _c !== void 0 ? _c : this.maxRetryCount));
-        this.maxDepth = parseInt(((_d = queryParams.get('maxDepth')) !== null && _d !== void 0 ? _d : this.maxDepth));
-        this.tileScaleHeight = parseInt(((_e = queryParams.get('tileScale')) !== null && _e !== void 0 ? _e : this.tileScaleHeight));
-        this.tileScaleWidth = parseInt(((_f = queryParams.get('tileScale')) !== null && _f !== void 0 ? _f : this.tileScaleWidth));
-        this.fast = !!parseInt(((_g = queryParams.get('fast')) !== null && _g !== void 0 ? _g : this.fast));
-        this.runSpeed = parseInt(((_h = queryParams.get('runSpeed')) !== null && _h !== void 0 ? _h : this.runSpeed));
-        this.runLoop = parseInt(((_j = queryParams.get('runLoop')) !== null && _j !== void 0 ? _j : this.runLoop));
-        this.tilesHeight = parseInt(((_k = queryParams.get('tilesHeight')) !== null && _k !== void 0 ? _k : this.tilesHeight));
-        this.tilesWidth = parseInt(((_l = queryParams.get('tilesWidth')) !== null && _l !== void 0 ? _l : this.tilesWidth));
-        this.superImposed = parseInt(((_m = queryParams.get('superImposed')) !== null && _m !== void 0 ? _m : this.superImposed));
-        this.useMouse = !!parseInt(((_o = queryParams.get('useMouse')) !== null && _o !== void 0 ? _o : this.useMouse));
+        this.tileName = config.tileName;
+        this.set = config.set;
+        this.maxRetryCount = config.maxRetryCount;
+        this.maxDepth = config.maxDepth;
+        this.tileScaleHeight = config.tileScaleHeight;
+        this.tileScaleWidth = config.tileScaleWidth;
+        this.fast = config.fast;
+        this.runSpeed = config.runSpeed;
+        this.runLoop = config.runLoop;
+        this.tilesHeight = config.tilesHeight;
+        this.tilesWidth = config.tilesWidth;
+        this.superImposed = config.superImposed;
+        this.useMouse = config.useMouse;
         this.halfScaleHeight = this.tileScaleHeight / 2;
         this.halfScaleWidth = this.tileScaleWidth / 2;
         canvas.height = this.tilesHeight * this.tileScaleHeight;

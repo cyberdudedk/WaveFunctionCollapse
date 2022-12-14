@@ -1,16 +1,115 @@
 <html>
     <head>
         <script src="wfc.js"></script>
+        <script>
+            var config = {
+                    
+            };
+            /*
+                public maxRetryCount = 10;
+    public maxDepth = 100;
+    public tileScaleHeight = 40;
+    public tileScaleWidth = 40;
+    public tilesHeight = 30;
+    public tilesWidth = 30;
+    private runSpeed: number = 10;
+    private runLoop: number = 30;
+
+    
+    private fast: boolean = false;
+    public superImposed = 1;
+    public useMouse = false;
+
+    public tileName: string = 'Knots';
+    public set: string = 'all';
+            */
+        function applyConfig() {
+            const queryParams = new URLSearchParams(window.location.search);
+            for(var configItem in config) {
+                var element = document.getElementById(configItem);
+                if(configItem == "tileName" || configItem == "set") {
+                    var value = element.value;
+                    queryParams.set(configItem, value);
+                } else {
+                    var value = parseInt(element.value);
+                    var min = parseInt(element.min);
+                    var max = parseInt(element.max);
+                    if(element.min && value < min) {
+                        value = min;
+                    }
+                    if(element.max && value > max) {
+                        
+                        value = max;
+                    }
+                    queryParams.set(configItem, value);
+                }
+            }
+
+            document.location = "?" + queryParams.toString();
+        }
+
+        function loadConfig() {
+            const queryParams = new URLSearchParams(window.location.search);
+            config.tileName = queryParams.get('tileName') ?? 'Summer';
+            config.set = queryParams.get('set') ?? 'all';
+            config.maxRetryCount = parseInt((queryParams.get('maxRetryCount') ?? 10));
+            config.maxDepth =  parseInt((queryParams.get('maxDepth') ?? 100));
+            config.tileScaleHeight =  parseInt((queryParams.get('tileScaleHeight') ?? 40));
+            config.tileScaleWidth =  parseInt((queryParams.get('tileScaleWidth') ?? 40));
+            //config.fast = !!parseInt((queryParams.get('fast') ?? 0));
+            config.fast = parseInt((queryParams.get('fast') ?? 0));
+            config.runSpeed =  parseInt((queryParams.get('runSpeed') ?? 10));
+            config.runLoop =  parseInt((queryParams.get('runLoop') ?? 30));
+            config.tilesHeight =  parseInt((queryParams.get('tilesHeight') ?? 30));
+            config.tilesWidth =  parseInt((queryParams.get('tilesWidth') ?? 30));
+            config.superImposed =  parseInt((queryParams.get('superImposed') ?? 1));
+            //config.useMouse = !!parseInt((queryParams.get('useMouse') ?? 0));
+            config.useMouse = parseInt((queryParams.get('useMouse') ?? 0));
+        }
+
+        function loadConfigControls(config) {
+            console.log('config', config);
+            for(var configItem in config) {
+                document.getElementById(configItem).value = config[configItem];
+            }
+        }
+
+        </script>
     </head>
     <body style="background-color: rgba(249, 249, 249, 0.84);">
+        <div>
+            Controlpanel
+            <div>
+                maxRetryCount: <input type="number" min="0" max="100" value="10" id="maxRetryCount"><br>
+                maxDepth: <input type="number" min="1" max="500" value="100" id="maxDepth"><br>
+                tileScaleHeight: <input type="number" min="1" max="200" value="40" id="tileScaleHeight"><br>
+                tileScaleWidth: <input type="number" min="1" max="200" value="40" id="tileScaleWidth"><br>
+                tilesHeight: <input type="number" min="0" max="200" value="30" id="tilesHeight"><br>
+                tilesWidth: <input type="number" min="0" max="200" value="30" id="tilesWidth"><br>
+                runSpeed: <input type="number" min="1" max="5000" value="10" id="runSpeed"><br>
+                runLoop: <input type="number" min="1" max="1000" value="30" id="runLoop"><br>
+                fast: <input type="number" min="0" max="1" value="0" id="fast"><br>
+                superImposed: <input type="number" min="1" max="2" value="1" id="superImposed"><br>
+                useMouse: <input type="number" min="0" max="1" value="0" id="useMouse"><br>
+                tileName: <input type="text" value="Knots" id="tileName"><br>
+                set: <input type="text" value="all" id="set"><br>
+                <button id="apply" onclick="applyConfig()" >Apply</button>
+            </div>
+        </div>
+        
         <canvas id="draw">
 
         </canvas>
         <script>
 
             window.addEventListener("load", function(){
-                var wfc = new WFC('draw');
-                wfc.init();
+                loadConfig();
+                loadConfigControls(config);
+                setTimeout(() => {
+                    var wfc = new WFC('draw');
+                    wfc.init(config);
+                }, 10);
+                
             });
         </script>
     </body>
