@@ -2,32 +2,19 @@
     <head>
         <script src="wfc.js"></script>
         <script>
+            var wfc = {};
             var config = {
                     
             };
-            /*
-                public maxRetryCount = 10;
-    public maxDepth = 100;
-    public tileScaleHeight = 40;
-    public tileScaleWidth = 40;
-    public tilesHeight = 30;
-    public tilesWidth = 30;
-    private runSpeed: number = 10;
-    private runLoop: number = 30;
-
-    
-    private fast: boolean = false;
-    public superImposed = 1;
-    public useMouse = false;
-
-    public tileName: string = 'Knots';
-    public set: string = 'all';
-            */
         function applyConfig() {
             const queryParams = new URLSearchParams(window.location.search);
             for(var configItem in config) {
                 var element = document.getElementById(configItem);
-                if(configItem == "tileName" || configItem == "set") {
+                
+                if(element.type == 'checkbox') {
+                    queryParams.set(configItem, element.checked ? 1 : 0);
+                }
+                else if(configItem == "tileName" || configItem == "set") {
                     var value = element.value;
                     queryParams.set(configItem, value);
                 } else {
@@ -44,33 +31,75 @@
                     queryParams.set(configItem, value);
                 }
             }
-
             document.location = "?" + queryParams.toString();
         }
 
         function loadConfig() {
             const queryParams = new URLSearchParams(window.location.search);
-            config.tileName = queryParams.get('tileName') ?? 'Summer';
+            config.tileName = queryParams.get('tileName') ?? 'Knots';
             config.set = queryParams.get('set') ?? 'all';
             config.maxRetryCount = parseInt((queryParams.get('maxRetryCount') ?? 10));
             config.maxDepth =  parseInt((queryParams.get('maxDepth') ?? 100));
-            config.tileScaleHeight =  parseInt((queryParams.get('tileScaleHeight') ?? 40));
-            config.tileScaleWidth =  parseInt((queryParams.get('tileScaleWidth') ?? 40));
-            //config.fast = !!parseInt((queryParams.get('fast') ?? 0));
+            config.tileScale =  parseInt((queryParams.get('tileScale') ?? 30));
             config.fast = parseInt((queryParams.get('fast') ?? 0));
-            config.runSpeed =  parseInt((queryParams.get('runSpeed') ?? 10));
-            config.runLoop =  parseInt((queryParams.get('runLoop') ?? 30));
-            config.tilesHeight =  parseInt((queryParams.get('tilesHeight') ?? 30));
-            config.tilesWidth =  parseInt((queryParams.get('tilesWidth') ?? 30));
-            config.superImposed =  parseInt((queryParams.get('superImposed') ?? 1));
-            //config.useMouse = !!parseInt((queryParams.get('useMouse') ?? 0));
+            config.runSpeed = parseInt((queryParams.get('runSpeed') ?? 10));
+            config.runLoop = parseInt((queryParams.get('runLoop') ?? 30));
+            config.tilesHeight = parseInt((queryParams.get('tilesHeight') ?? 15));
+            config.tilesWidth = parseInt((queryParams.get('tilesWidth') ?? 15));
+            config.superImposed = parseInt((queryParams.get('superImposed') ?? 1));
             config.useMouse = parseInt((queryParams.get('useMouse') ?? 0));
         }
 
         function loadConfigControls(config) {
-            console.log('config', config);
+            var tiles = wfc.getAvailableTiles();
+            var tileSelector = document.getElementById("tileName");
+            for (var tileIndex in tiles){
+                var tile = tiles[tileIndex];
+                var opt = document.createElement('option');
+                opt.value = tile;
+                opt.innerHTML = tile;
+                tileSelector.appendChild(opt);
+            }
+
+            var superImposedStates = wfc.getSuperImposedStates();
+            var superImposedSelector = document.getElementById("superImposed");
+            for (var superimposedIndex in superImposedStates){
+                var isValueProperty = Number(superimposedIndex) >= 0;
+                if (isValueProperty) {
+                    var superImposed = superImposedStates[superimposedIndex];
+                    var opt = document.createElement('option');
+                    opt.value = superimposedIndex;
+                    opt.innerHTML = superImposed;
+                    superImposedSelector.appendChild(opt);
+                }
+            }
+            
             for(var configItem in config) {
-                document.getElementById(configItem).value = config[configItem];
+                let type = document.getElementById(configItem).type;
+                if(type == 'checkbox') {
+                    let val = config[configItem];
+                    document.getElementById(configItem).checked = val;
+                } else {
+                    document.getElementById(configItem).value = config[configItem];
+                }
+                
+            }
+
+            selectTile(document.getElementById('tileName'));
+            document.getElementById('set').value = config['set'];
+            
+        }
+
+        function selectTile(obj) {
+            var sets = wfc.getAvailableSets(obj.value);
+            var setSelector = document.getElementById("set");
+            while (setSelector.options.length) setSelector.remove(0);
+            for (var setIndex in sets){
+                var set = sets[setIndex];
+                var opt = document.createElement('option');
+                opt.value = set;
+                opt.innerHTML = set;
+                setSelector.appendChild(opt);
             }
         }
 
@@ -80,20 +109,45 @@
         <div>
             Controlpanel
             <div>
-                maxRetryCount: <input type="number" min="0" max="100" value="10" id="maxRetryCount"><br>
-                maxDepth: <input type="number" min="1" max="500" value="100" id="maxDepth"><br>
-                tileScaleHeight: <input type="number" min="1" max="200" value="40" id="tileScaleHeight"><br>
-                tileScaleWidth: <input type="number" min="1" max="200" value="40" id="tileScaleWidth"><br>
-                tilesHeight: <input type="number" min="0" max="200" value="30" id="tilesHeight"><br>
-                tilesWidth: <input type="number" min="0" max="200" value="30" id="tilesWidth"><br>
-                runSpeed: <input type="number" min="1" max="5000" value="10" id="runSpeed"><br>
-                runLoop: <input type="number" min="1" max="1000" value="30" id="runLoop"><br>
-                fast: <input type="number" min="0" max="1" value="0" id="fast"><br>
-                superImposed: <input type="number" min="1" max="2" value="1" id="superImposed"><br>
-                useMouse: <input type="number" min="0" max="1" value="0" id="useMouse"><br>
-                tileName: <input type="text" value="Knots" id="tileName"><br>
-                set: <input type="text" value="all" id="set"><br>
-                <button id="apply" onclick="applyConfig()" >Apply</button>
+                <table>
+                    <tbody>
+                        <tr>
+                            <td>tileName</td><td><select id="tileName" onchange="selectTile(this)"></select></td>
+                            <td>set</td><td><select value="all" id="set"></select></td>
+                            <td>superImposed</td><td><select id="superImposed"></select></td>
+                        </tr>
+                        <tr>
+                            <td>tilesHeight</td><td><input type="number" min="0" max="200" id="tilesHeight"></td>
+                            <td>tilesWidth</td><td><input type="number" min="0" max="200" id="tilesWidth"></td>
+                            <td>tileScale</td><td><input type="number" min="1" max="200" id="tileScale"></td>
+                        </tr>
+                        <tr>
+                            <td>runSpeed</td><td><input type="number" min="1" max="5000" id="runSpeed"></td>
+                            <td>runLoop</td><td><input type="number" min="1" max="1000" id="runLoop"></td>
+                            <td>fast</td><td><input type="checkbox" id="fast" value="fast"></td>
+                        </tr>
+                        <tr>
+                            <td>maxRetryCount</td><td><input type="number" min="0" max="100" id="maxRetryCount"></td>
+                            <td>maxDepth</td><td><input type="number" min="1" max="500" id="maxDepth"></td>
+                            <td>useMouse</td><td><input type="checkbox" id="useMouse" value="useMouse"></td>
+                        </tr>
+                        <tr>
+                            <td><button id="apply" onclick="applyConfig()" >Apply</button></td><td></td>
+                            <td></td><td></td>
+                            <td></td><td></td>
+                            
+                        </tr>
+                    </tbody>
+                </table>
+                
+                
+                
+                
+                
+                
+                
+
+                
             </div>
         </div>
         
@@ -102,14 +156,14 @@
         </canvas>
         <script>
 
-            window.addEventListener("load", function(){
+            window.addEventListener("load", async function(){
                 loadConfig();
+                wfc = new WFC('draw');
+                wfc.init(config);
                 loadConfigControls(config);
-                setTimeout(() => {
-                    var wfc = new WFC('draw');
-                    wfc.init(config);
-                }, 10);
-                
+
+                await wfc.initTileData();
+                wfc.initDraw();
             });
         </script>
     </body>

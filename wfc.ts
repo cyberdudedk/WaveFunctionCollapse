@@ -1,3 +1,12 @@
+enum SuperImposedState {
+    None,
+    Layered,
+    LayeredSorted,
+    Grid,
+    GridScaled,
+    GridAlpha  
+}
+
 class WFC {
     public maxRetryCount = 10;
     public maxDepth = 100;
@@ -44,6 +53,9 @@ class WFC {
     public currentSet: { [pieceName: string]: {} } = {} = {};
     public retryCount = 0;
 
+    private tileSets: { [name: string]: any } = {};
+    private tilePieces: { [name: string]: any } = {};
+
     constructor(canvasId: string){
         this.canvas = <HTMLCanvasElement>document.getElementById(canvasId);
         this.ctx = <CanvasRenderingContext2D>this.canvas.getContext("2d");
@@ -59,9 +71,26 @@ class WFC {
         });
     }
 
+    public getAvailableTiles() {
+        return Object.keys(this.tileSets);
+    }
+
+    public getSuperImposedStates() {
+        return SuperImposedState;
+    }
+
+    public getAvailableSets(tileName: string) {
+        var sets = this.tileSets[tileName];
+        if(sets == null) return null;
+        return Object.keys(sets);
+    }
+
+    public getTileSets() : { [name: string]: any } {
+        return this.tileSets;
+    }
+
     public async init(config: any) {
         console.clear();
-        console.log(config);
         let ctx = this.ctx;
         let canvas = this.canvas;
 
@@ -69,8 +98,8 @@ class WFC {
         this.set = config.set;
         this.maxRetryCount = config.maxRetryCount;
         this.maxDepth =  config.maxDepth;
-        this.tileScaleHeight =  config.tileScaleHeight;
-        this.tileScaleWidth =  config.tileScaleWidth;
+        this.tileScaleHeight =  config.tileScale;
+        this.tileScaleWidth =  config.tileScale;
         this.fast = config.fast;
         this.runSpeed =  config.runSpeed;
         this.runLoop =  config.runLoop;
@@ -86,7 +115,7 @@ class WFC {
         ctx.fillStyle = "transparent";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        let tileSets: { [name: string]: any } = { 
+        this.tileSets = { 
             'Knots': {
                 all: {
                     "corner": { }, 
@@ -337,7 +366,7 @@ class WFC {
         };
 
 
-        let tilePieces: { [name: string]: any } = {
+        this.tilePieces = {
             'Circuit': [
                 {
                     'name': 'bridge',
@@ -1151,11 +1180,6 @@ class WFC {
                     }
                 },
             ],
-            //Grass = 0
-            //Road = 1
-            //Water = 2
-            //small Cliff = 3
-            //large Cliff = 4
             'Summer': [
                 {
                     'name': 'cliff 0',
@@ -1639,12 +1663,12 @@ class WFC {
                 },
             ]
         };
+    }
 
-
-        this.pieces = tilePieces[this.tileName];
-        this.sets = tileSets[this.tileName];
+    public async initTileData() {
+        this.pieces = this.tilePieces[this.tileName];
+        this.sets = this.tileSets[this.tileName];
         this.currentSet = this.sets[this.set];
-
         let loadImagesAsync = this.pieces.map(async (x: any) : Promise<{name: string, img: CanvasImageSource}> => {
             return {
                 name: x.name,
@@ -1662,8 +1686,6 @@ class WFC {
                 this.pieces.find(x => x.name == pieceName).weight = properties.weight;
             }
         });
-
-
 
         this.imagesMap = (await Promise.all(loadImagesAsync)).reduce((piecesMap, piece) => {
             piecesMap[piece.name] = piece.img;
@@ -1748,7 +1770,6 @@ class WFC {
                     Object.entries(socketMatch).forEach((socket: [string, any]) => {
                         let socketDirectionInner: string = socket[0];
                         let socketMatchInnerValueArray: string[] = socket[1];
-                        //let socketMatchInnerValue: string = socket[1];
                         let socketDirectionInnerIndex = this.directionsMapKeyToInt[socketDirectionInner];
                         let socketDirectionPolarIndex = (socketDirectionInnerIndex + this.directionsMapIntToKey.length/2) % this.directionsMapIntToKey.length;
                         let socketDirectionPolar = this.directionsMapIntToKey[socketDirectionPolarIndex];
@@ -1767,7 +1788,6 @@ class WFC {
                     });     
                 });
             }
-            
         });
 
         this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair: any) => {
@@ -1832,8 +1852,11 @@ class WFC {
             return piecesMap;
         }, <{ [name: string]: any }>{});
 
-        console.log('piecesMap', this.piecesMap);
+        return true;
+        
+    }
 
+    public initDraw() {
         this.startOver();
         this.startDrawingLoop();
     }
@@ -1848,6 +1871,7 @@ class WFC {
         this.ctx.fillStyle = "white";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         let piecesKeys = Object.keys(this.piecesMap);
+        console.log('this.piecesMap', this.piecesMap);
         let startingTile = {
             validPieces: piecesKeys,
         };
@@ -1861,6 +1885,8 @@ class WFC {
                 });
             }
         )
+
+        console.log('this.tiles', this.tiles);
     }
 
     private getTilePositionsAsEntropyGroups() {
@@ -2103,34 +2129,79 @@ class WFC {
         requestAnimationFrame(() => this.draw());
     }
 
-
     public drawTiles() {
         this.ctx.clearRect(0,0, this.canvas.width, this.canvas.height);
-        //this.ctx.fillStyle = "black";
-        //this.ctx.fillStyle = "transparent";
-        //this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        
         this.tiles.forEach((column, columnIndex) => {
             column.forEach((tile, rowIndex) => {
                 if(tile.validPieces) {
                     let validCount = tile.validPieces.length;
                     
                     if(tile.validPieces.length > 0) {
-                        if(this.superImposed == 1) {
+                        if(this.superImposed == SuperImposedState.Layered) {
                             //superimposed 1 - on top of each
                             tile.validPieces.forEach((key: string)=> {
                                 let piece = this.piecesMap[key];
                                 let tileImage = this.imagesMap[piece.name];
                                 this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
                             });
-                        } else if (this.superImposed == 2) {
+                        } else if (this.superImposed == SuperImposedState.GridScaled) {
                             //superimposed 2 - grid
                             let gridSize = Math.ceil(Math.sqrt(validCount));
                             tile.validPieces.forEach((key: string, index: number)=> {
                                 let piece = this.piecesMap[key];
                                 let tileImage = this.imagesMap[piece.name];
-                                this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount);
+                                this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
                             });
+                        } else if (this.superImposed == SuperImposedState.Grid) {
+                            //superimposed 3 - grid without scaling
+                            validCount = Object.keys(this.piecesMap).length;
+                            let gridSize = Math.ceil(Math.sqrt(validCount));
+                            tile.validPieces.forEach((key: string, index: number)=> {
+                                let piece = this.piecesMap[key];
+                                let tileImage = this.imagesMap[piece.name];
+                                this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
+                            });
+                        } else if (this.superImposed == SuperImposedState.None) {
+                            //superimposed 4 - none
+                        }  else if (this.superImposed == SuperImposedState.LayeredSorted) {
+                            //superimposed 5 - layered sorted
+                            let sortedValid = tile.validPieces.sort((a: string,b: string) =>{
+                                let pieceA = this.piecesMap[a];
+                                let pieceB = this.piecesMap[b];
+                                return  pieceB.weight - pieceA.weight;
+                            });
+                            sortedValid.forEach((key: string)=> {
+                                let piece = this.piecesMap[key];
+                                let tileImage = this.imagesMap[piece.name];
+                                this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
+                            });
+                            
+                        }  else if (this.superImposed == SuperImposedState.GridAlpha) {
+                            //superimposed 6 - grid scaled alpha
+                            let minWeight = 999;
+                            let maxWeight = 0;
+                            let sortedValid = tile.validPieces.sort((a: string,b: string) =>{
+                                let pieceA = this.piecesMap[a];
+                                let pieceB = this.piecesMap[b];
+                                let weight = pieceA.weight;
+                                if(minWeight > weight) {
+                                    minWeight = weight;
+                                }
+                                if(maxWeight < weight) {
+                                    maxWeight = weight;
+                                }
+                                return pieceB.weight - pieceA.weight;
+                            });
+                            sortedValid.forEach((key: string, index: number)=> {
+                                let piece = this.piecesMap[key];
+                                let tileImage = this.imagesMap[piece.name];
+                                let weight = piece.weight;
+                                let weightPercent = ((weight - minWeight)) / (maxWeight - minWeight)
+                                let adjustedAlpha = (weightPercent * (0.6 - 0.2)) + 0.2;
+                                let gridSize = Math.ceil(Math.sqrt(validCount));
+                                this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, adjustedAlpha);
+                            });
+                            
                         }
                     }
                 }
@@ -2158,15 +2229,19 @@ class WFC {
     }
 
     private drawSuperimposed(img: CanvasImageSource, x: number, y: number, rotation: number, possible: number) {
-        this.drawImgGrid(img, x, y, rotation, 0.8 / possible);
+        this.drawImgGrid(img, x, y, rotation, 0.9 / possible);
     }
 
-    private drawSuperimposedPartGrid(img: CanvasImageSource, x: number, y: number, gridSize: number, gridIndex: number, rotation: number, possible: number) {
+    private drawSuperimposedWeighted(img: CanvasImageSource, x: number, y: number, rotation: number, possible: number, alpha: number) {
+        this.drawImgGrid(img, x, y, rotation, alpha);
+    }
+
+    private drawSuperimposedPartGrid(img: CanvasImageSource, x: number, y: number, gridSize: number, gridIndex: number, rotation: number, possible: number, alpha: number) {
         let width = this.tileScaleWidth / gridSize;
         let height =this.tileScaleHeight / (gridSize);
         let newX = (this.tileScaleWidth*x) + ( (gridIndex % gridSize) * width);
         let newY = (this.tileScaleHeight*y) + ((Math.floor(gridIndex / gridSize)) * height);
-        this.drawImg(img, newX,newY, width, height, rotation, 0.4);
+        this.drawImg(img, newX,newY, width, height, rotation, alpha);
     }
 
     private drawImg(img: CanvasImageSource, x: number, y: number, width: number, height: number, rotation: number, alpha: number) {
