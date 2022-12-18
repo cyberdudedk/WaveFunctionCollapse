@@ -1,5 +1,23 @@
 <html>
     <head>
+        <style>
+            table tr td:nth-child(2n-1) {
+                width: 15%;
+
+            }
+            table tr td:nth-child(2n) {
+                width: 10%;
+                padding-right: 10px;
+            }
+
+            table input, table select {
+                width: 100%;
+            }
+
+            table input[type="checkbox"] {
+                width: auto;
+            }
+        </style>
         <script src="wfc.js"></script>
         <script>
             var wfc = {};
@@ -107,7 +125,7 @@
     </head>
     <body style="background-color: rgba(249, 249, 249, 0.84);">
         <div>
-            Controlpanel
+            <h3>Controlpanel</h3>
             <div>
                 <table>
                     <tbody>
@@ -150,7 +168,7 @@
                 
             </div>
         </div>
-        
+        <br>
         <canvas id="draw">
 
         </canvas>
