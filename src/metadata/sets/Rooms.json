@@ -1,0 +1,13 @@
+{
+    "all": {
+        "bend": { }, 
+        "corner": { }, 
+        "corridor": { }, 
+        "door": { }, 
+        "empty": { }, 
+        "side": { }, 
+        "t": { },
+        "turn": { },
+        "wall": { }
+    }
+}

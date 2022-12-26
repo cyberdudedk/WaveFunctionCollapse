@@ -1,0 +1,62 @@
+[
+    {
+        "name": "corner",
+        "imgsrc": "corner.png",
+        "rotations": [0,1,2,3],
+        "weight": 1,
+        "socket": {
+            "top": "010",
+            "right": "010",
+            "bottom": "000",
+            "left": "000"
+        }
+    },
+    {
+        "name": "cross",
+        "imgsrc": "cross.png",
+        "rotations": [0,1],
+        "weight": 1,
+        "socket": {
+            "top": "010",
+            "right": "010",
+            "bottom": "010",
+            "left": "010"
+        }
+    },
+    {
+        "name": "empty",
+        "imgsrc": "empty.png",
+        "rotations": [0],
+        "weight": 1,
+        "socket": {
+            "top": "000",
+            "right": "000",
+            "bottom": "000",
+            "left": "000"
+        }
+    },
+    {
+        "name": "line",
+        "imgsrc": "line.png",
+        "rotations": [0,1],
+        "weight": 1,
+        "socket": {
+            "top": "000",
+            "right": "010",
+            "bottom": "000",
+            "left": "010"
+        }
+    },
+    {
+        "name": "t",
+        "imgsrc": "t.png",
+        "rotations": [0,1,2,3],
+        "weight": 1,
+        "socket": {
+            "top": "000",
+            "right": "010",
+            "bottom": "010",
+            "left": "010"
+        }
+    }
+]

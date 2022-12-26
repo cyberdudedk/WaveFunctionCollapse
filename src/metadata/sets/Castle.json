@@ -1,0 +1,15 @@
+{
+    "all": {
+        "bridge": { }, 
+        "ground": { }, 
+        "river": { }, 
+        "riverturn": { }, 
+        "road": { }, 
+        "roadturn": { }, 
+        "t": { },
+        "tower": { },
+        "wall": { },
+        "wallriver": { },
+        "wallroad": { }
+    }
+}

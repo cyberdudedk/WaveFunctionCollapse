@@ -1,0 +1,18 @@
+{
+    "all": {
+        "corner": { }, 
+        "t": { }, 
+        "cross": { }, 
+        "line": { }, 
+        "empty": { }
+    },
+    "nonempty": {"corner": { }, "t": { }, "cross": { }, "line": { }},
+    "onlycorners": {"corner": { }},
+    "nocrossnoempty": {"corner": { }, "t": { }, "line": { }},
+    "nocross": {"corner": { }, "t": { }, "line": { }, "empty": { }},
+    "onlyt": {"t": { }},
+    "braided": {"line": { }, "cross": { }},
+    "cross": {"cross": { }},
+    "crosst": {"cross": { }, "t": { }},
+    "cornert": {"corner": { }, "t": { }}
+}

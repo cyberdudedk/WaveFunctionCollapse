@@ -1,0 +1,218 @@
+[
+    {
+        "name": "div",
+        "imgsrc": "div.png",
+        "rotations": [0,1],
+        "weight": 0.5,
+        "socket": {
+            "top": "111",
+            "right": "121",
+            "bottom": "111",
+            "left": "121"
+        }
+    },
+    {
+        "name": "divt",
+        "imgsrc": "divt.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.5,
+        "socket": {
+            "top": "111",
+            "right": "121",
+            "bottom": "121",
+            "left": "121"
+        }
+    },
+    {
+        "name": "divturn",
+        "imgsrc": "divturn.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.5,
+        "socket": {
+            "top": "121",
+            "right": "121",
+            "bottom": "111",
+            "left": "111"
+        }
+    },
+    {
+        "name": "door",
+        "imgsrc": "door.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.2,
+        "socket": {
+            "top": "111",
+            "right": "121",
+            "bottom": "111",
+            "left": "121"
+        }
+    },
+    {
+        "name": "empty",
+        "imgsrc": "empty.png",
+        "rotations": [0],
+        "weight": 1,
+        "socket": {
+            "top": "000",
+            "right": "000",
+            "bottom": "000",
+            "left": "000"
+        }
+    },
+    {
+        "name": "floor",
+        "imgsrc": "floor.png",
+        "rotations": [0],
+        "weight": 3,
+        "socket": {
+            "top": "111",
+            "right": "111",
+            "bottom": "111",
+            "left": "111"
+        }
+    },
+    {
+        "name": "glass",
+        "imgsrc": "glass.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.1,
+        "socket": {
+            "top": "111",
+            "right": "130",
+            "bottom": "000",
+            "left": "031"
+        }
+    },
+    {
+        "name": "halfglass",
+        "imgsrc": "halfglass.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.3,
+        "socket": {
+            "top": "111",
+            "right": "130",
+            "bottom": "000",
+            "left": "021"
+        }
+    },
+    {
+        "name": "halfglass2",
+        "imgsrc": "halfglass2.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.3,
+        "socket": {
+            "top": "111",
+            "right": "120",
+            "bottom": "000",
+            "left": "031"
+        }
+    },
+    {
+        "name": "in",
+        "imgsrc": "in.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.1,
+        "socket": {
+            "top": "111",
+            "right": "111",
+            "bottom": "120",
+            "left": "021"
+        }
+    },
+    {
+        "name": "out",
+        "imgsrc": "out.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.1,
+        "socket": {
+            "top": "021",
+            "right": "120",
+            "bottom": "000",
+            "left": "000"
+        }
+    },
+    {
+        "name": "stairs",
+        "imgsrc": "stairs.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.2,
+        "socket": {
+            "top": "111",
+            "right": "121",
+            "bottom": "222",
+            "left": "121"
+        }
+    },
+    {
+        "name": "table",
+        "imgsrc": "table.png",
+        "rotations": [0],
+        "weight": 0.1,
+        "socket": {
+            "top": "111",
+            "right": "111",
+            "bottom": "111",
+            "left": "111"
+        }
+    },
+    {
+        "name": "vent",
+        "imgsrc": "vent.png",
+        "rotations": [0],
+        "weight": 0.1,
+        "socket": {
+            "top": "111",
+            "right": "111",
+            "bottom": "111",
+            "left": "111"
+        }
+    },
+    {
+        "name": "w",
+        "imgsrc": "w.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.1,
+        "socket": {
+            "top": "111",
+            "right": "120",
+            "bottom": "000",
+            "left": "021"
+        }
+    },
+    {
+        "name": "wall",
+        "imgsrc": "wall.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.25,
+        "socket": {
+            "top": "111",
+            "right": "120",
+            "bottom": "000",
+            "left": "021"
+        }
+    },
+    {
+        "name": "walldiv",
+        "imgsrc": "walldiv.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.25,
+        "socket": {
+            "top": "121",
+            "right": "120",
+            "bottom": "000",
+            "left": "021"
+        }
+    },
+    {
+        "name": "window",
+        "imgsrc": "window.png",
+        "rotations": [0,1,2,3],
+        "weight": 0.05,
+        "socket": {
+            "top": "111",
+            "right": "120",
+            "bottom": "000",
+            "left": "021"
+        }
+    }
+]

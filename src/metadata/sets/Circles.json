@@ -1,0 +1,30 @@
+{
+    "all": {
+        "b_half": { }, 
+        "b_i": { }, 
+        "b_quarter": { }, 
+        "b": { }, 
+        "w_half": { }, 
+        "w_i": { }, 
+        "w_quarter": { },
+        "w": { }
+    },
+    "large": {
+        "b_quarter": { }, 
+        "w_quarter": { }
+    },
+    "largeandsolid": {
+        "b_quarter": { }, 
+        "b": { }, 
+        "w_quarter": { },
+        "w": { }
+    },
+    "nosolid": {
+        "b_half": { }, 
+        "b_i": { }, 
+        "b_quarter": { }, 
+        "w_half": { }, 
+        "w_i": { }, 
+        "w_quarter": { }
+    }
+}

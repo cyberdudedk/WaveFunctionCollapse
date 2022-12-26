@@ -1,0 +1,98 @@
+[
+    {
+        "name": "b_half",
+        "imgsrc": "b_half.png",
+        "rotations": [0,1,2,3],
+        "weight": 1,
+        "socket": {
+            "top": "000",
+            "right": "011",
+            "bottom": "111",
+            "left": "110"
+        }
+    },
+    {
+        "name": "b_i",
+        "imgsrc": "b_i.png",
+        "rotations": [0,1],
+        "weight": 1,
+        "socket": {
+            "top": "000",
+            "right": "010",
+            "bottom": "000",
+            "left": "010"
+        }
+    },
+    {
+        "name": "b_quarter",
+        "imgsrc": "b_quarter.png",
+        "rotations": [0,1,2,3],
+        "weight": 1,
+        "socket": {
+            "top": "000",
+            "right": "000",
+            "bottom": "111",
+            "left": "111"
+        }
+    },
+    {
+        "name": "b",
+        "imgsrc": "b.png",
+        "rotations": [0],
+        "weight": 1,
+        "socket": {
+            "top": "000",
+            "right": "000",
+            "bottom": "000",
+            "left": "000"
+        }
+    },
+    {
+        "name": "w_half",
+        "imgsrc": "w_half.png",
+        "rotations": [0,1,2,3],
+        "weight": 1,
+        "socket": {
+            "top": "111",
+            "right": "100",
+            "bottom": "000",
+            "left": "001"
+        }
+    },
+    {
+        "name": "w_i",
+        "imgsrc": "w_i.png",
+        "rotations": [0,1],
+        "weight": 1,
+        "socket": {
+            "top": "111",
+            "right": "101",
+            "bottom": "111",
+            "left": "101"
+        }
+    },
+    {
+        "name": "w_quarter",
+        "imgsrc": "w_quarter.png",
+        "rotations": [0,1,2,3],
+        "weight": 1,
+        "socket": {
+            "top": "111",
+            "right": "111",
+            "bottom": "000",
+            "left": "000"
+        }
+    },
+    {
+        "name": "w",
+        "imgsrc": "w.png",
+        "rotations": [0],
+        "weight": 1,
+        "socket": {
+            "top": "111",
+            "right": "111",
+            "bottom": "111",
+            "left": "111"
+        }
+    }
+]

@@ -1,0 +1,18 @@
+{
+    "all": {
+        "bridge": { }, 
+        "component": { }, 
+        "connection": { }, 
+        "corner": { }, 
+        "dskew": { }, 
+        "skew": { }, 
+        "substrate": { },
+        "t": { },
+        "track": { },
+        "transition": { },
+        "turn": { },
+        "viad": { },
+        "vias": { },
+        "wire": { }
+    }
+}

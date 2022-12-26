@@ -1,5 +1,6 @@
 <html>
     <head>
+        <script>var exports = {};</script>
         <style>
             table tr td:nth-child(2n-1) {
                 width: 15%;
@@ -18,8 +19,9 @@
                 width: auto;
             }
         </style>
-        <script src="wfc.js"></script>
+        <script type="module" src="/dist/bundle.js"></script>
         <script>
+             
             var wfc = {};
             var config = {
                     
@@ -121,6 +123,16 @@
             }
         }
 
+        window.addEventListener("load", async function(){
+                loadConfig();
+                wfc = getWFC('draw');
+                wfc.init(config);
+                loadConfigControls(config);
+
+                await wfc.initTileData();
+                wfc.initDraw();
+            });
+
         </script>
     </head>
     <body style="background-color: rgba(249, 249, 249, 0.84);">
@@ -172,17 +184,5 @@
         <canvas id="draw">
 
         </canvas>
-        <script>
-
-            window.addEventListener("load", async function(){
-                loadConfig();
-                wfc = new WFC('draw');
-                wfc.init(config);
-                loadConfigControls(config);
-
-                await wfc.initTileData();
-                wfc.initDraw();
-            });
-        </script>
     </body>
 </html>

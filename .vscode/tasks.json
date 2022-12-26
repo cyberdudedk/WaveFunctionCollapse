@@ -10,10 +10,8 @@
             "problemMatcher": [
                 "$tsc-watch"
             ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "group": "build",
+            "label": "tsc: watch - tsconfig.json"
         },
         {
             "type": "typescript",
@@ -22,6 +20,17 @@
                 "$tsc"
             ],
             "group": "build"
+        },
+        {
+            "type": "npm",
+            "script": "watch",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [],
+            "label": "npm: watch",
+            "detail": "webpack --watch"
         }
     ]
 }

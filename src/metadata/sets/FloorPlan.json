@@ -1,0 +1,22 @@
+{
+    "all": {
+        "div": {},
+        "divt": {},
+        "divturn": {},
+        "door": {},
+        "empty": {},
+        "floor": {},
+        "glass": {},
+        "halfglass": {},
+        "halfglass2": {},
+        "in": {},
+        "out": {},
+        "stairs": {},
+        "table": {},
+        "vent": {},
+        "w": {},
+        "wall": {},
+        "walldiv": {},
+        "window": {}
+    }
+}

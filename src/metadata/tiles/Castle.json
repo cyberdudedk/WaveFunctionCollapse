@@ -1,0 +1,152 @@
+[
+    {
+        "name": "bridge",
+        "imgsrc": "bridge.png",
+        "rotations": [0,1],
+        "weight": 2,
+        "socket": {
+            "top": "010",
+            "right": "020",
+            "bottom": "010",
+            "left": "020"
+        }
+    },
+    {
+        "name": "ground",
+        "imgsrc": "ground.png",
+        "rotations": [0],
+        "weight": 3,
+        "socket": {
+            "top": "000",
+            "right": "000",
+            "bottom": "000",
+            "left": "000"
+        }
+    },
+    {
+        "name": "river",
+        "imgsrc": "river.png",
+        "rotations": [0,1],
+        "weight": 1,
+        "socket": {
+            "top": "010",
+            "right": "000",
+            "bottom": "010",
+            "left": "000"
+        }
+    },
+    {
+        "name": "riverturn",
+        "imgsrc": "riverturn.png",
+        "rotations": [0,1,2,3],
+        "weight": 1,
+        "socket": {
+            "top": "010",
+            "right": "010",
+            "bottom": "000",
+            "left": "000"
+        }
+    },
+    {
+        "name": "road",
+        "imgsrc": "road.png",
+        "rotations": [0,1],
+        "weight": 3,
+        "socket": {
+            "top": "020",
+            "right": "000",
+            "bottom": "020",
+            "left": "000"
+        }
+    },
+    {
+        "name": "roadturn",
+        "imgsrc": "roadturn.png",
+        "rotations": [0,1,2,3],
+        "weight": 1,
+        "socket": {
+            "top": "020",
+            "right": "020",
+            "bottom": "000",
+            "left": "000"
+        }
+    },
+    {
+        "name": "t",
+        "imgsrc": "t.png",
+        "rotations": [0,1,2,3],
+        "weight": 2,
+        "socket": {
+            "top": "000",
+            "right": "020",
+            "bottom": "020",
+            "left": "020"
+        }
+    },
+    {
+        "name": "tower",
+        "imgsrc": "tower.png",
+        "rotations": [0, 1, 2, 3],
+        "weight": 1,
+        "socket": {
+            "top": ["030"],
+            "right": ["030"],
+            "bottom": ["000"],
+            "left": ["000"]
+        },
+        "blacklist": {
+            "bottom": {"tower": [0, 1, 2, 3], "wall": [1,3]},
+            "right": {"tower": [0, 1, 2, 3], "wall": [0,2]},
+            "top": {"tower": [0, 1, 2, 3], "wall": [1,3]},
+            "left": {"tower": [0, 1, 2, 3], "wall": [0,2]}
+        }
+    },
+    {
+        "name": "wall",
+        "imgsrc": "wall.png",
+        "rotations": [0,1],
+        "weight": 1,
+        "socket": {
+            "top": "030",
+            "right": "000",
+            "bottom": "030",
+            "left": "000"
+        },
+        "blacklist": {
+            "left": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]},
+            "right": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]}
+        }
+    },
+    {
+        "name": "wallriver",
+        "imgsrc": "wallriver.png",
+        "rotations": [0,1],
+        "weight": 1,
+        "socket": {
+            "top": "030",
+            "right": "010",
+            "bottom": "030",
+            "left": "010"
+        },
+        "blacklist": {
+            "left": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]},
+            "right": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]}
+        }
+    },
+    {
+        "name": "wallroad",
+        "imgsrc": "wallroad.png",
+        "rotations": [0,1],
+        "weight": 1,
+        "socket": {
+            "top": "030",
+            "right": "020",
+            "bottom": "030",
+            "left": "020"
+        },
+        "blacklist": {
+            "left": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]},
+            "right": {"wall": [0], "wallriver": [0], "wallroad": [0], "tower": [0, 1, 2, 3]}
+        }
+    }
+]
