@@ -294,7 +294,6 @@ export class WFC {
                     weight = weight[rotation] ?? 1;
                 }
                 
-                
                 piecesMap[pieceName] = {
                     key: piece.name + "_" + rotation,
                     name: piece.name, 
@@ -310,7 +309,6 @@ export class WFC {
         }, <{ [name: string]: any }>{});
 
         return true;
-        
     }
 
     public initDraw() {

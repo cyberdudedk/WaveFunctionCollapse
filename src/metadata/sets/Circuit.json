@@ -14,5 +14,37 @@
         "viad": { },
         "vias": { },
         "wire": { }
+    },
+    "noic": {
+        "bridge": { "weight": 0.4 }, 
+        "component": { "weight": 0.0 }, 
+        "connection": { "weight": 0.0 }, 
+        "corner": { "weight": 0.0 }, 
+        "dskew": { "weight": 0.3 }, 
+        "skew": { "weight": 0.3 }, 
+        "substrate": { "weight": 5.0 },
+        "t": { "weight": 1.0 },
+        "track": { "weight": 1.0 },
+        "transition": { "weight": 0.3 },
+        "turn": { "weight": 1.0 },
+        "viad": { "weight": 0.01 },
+        "vias": { "weight": 0.1 },
+        "wire": { "weight": 0.0 }
+    },
+    "iconly": {
+        "bridge": { "weight": 0.0 }, 
+        "component": { "weight": 2.0 }, 
+        "connection": { "weight": 1.0 }, 
+        "corner": { "weight": 1.0 }, 
+        "dskew": { "weight": 0.5 }, 
+        "skew": { "weight": 0.5 }, 
+        "substrate": { "weight": 10.0 },
+        "t": { "weight": 0.5 },
+        "track": { "weight": 0.7 },
+        "transition": { "weight": 0.0 },
+        "turn": { "weight": 0.6 },
+        "viad": { "weight": 0.0 },
+        "vias": { "weight": 0.1 },
+        "wire": { "weight": 0.0 }
     }
 }

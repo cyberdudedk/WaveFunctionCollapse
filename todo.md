@@ -1,7 +1,6 @@
 # Todo
 
 # 1.1 Ideas
-- More sets on the tilesets
 - Support for edge blacklist
 - Support for wrap-around
 - Support for defining edge as a "socket"
@@ -15,6 +14,5 @@
   - Tiles with minimum has to be set randomly on board on start, and maximum has to be calculated usage during run.
 - Extend size and continue run => ever expanding.
 - Split code to classes, cleanup, refactor.
-- Tilesets and sets in json object/files.
-- 
+ 
 

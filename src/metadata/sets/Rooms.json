@@ -9,5 +9,16 @@
         "t": { },
         "turn": { },
         "wall": { }
+    },
+    "areas": {
+        "bend": { "weight":0.1 },
+        "corner": { "weight":0.1 }, 
+        "corridor": {"weight":1 }, 
+        "door": { "weight":1 }, 
+        "empty": { "weight":10 }, 
+        "side": { "weight":0.1 }, 
+        "t": { "weight":0.1 },
+        "turn": { "weight":0.1 },
+        "wall": {"weight":10.0 }
     }
 }

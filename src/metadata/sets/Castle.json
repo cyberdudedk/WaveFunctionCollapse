@@ -11,5 +11,14 @@
         "wall": { },
         "wallriver": { },
         "wallroad": { }
+    },
+    "grassytower": {
+        "ground": { "weight": 5.0}, 
+        "road": { "weight": 0.1}, 
+        "roadturn": { "weight": 0.1}, 
+        "t": { "weight": 0.01},
+        "tower": {"weight": 0.1 },
+        "wall": { },
+        "wallroad": { "weight": 0.1}
     }
 }

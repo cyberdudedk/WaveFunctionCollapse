@@ -18,5 +18,16 @@
         "wall": {},
         "walldiv": {},
         "window": {}
+    },
+    "nooutdoor": {
+        "div": { "weight": 0.1 },
+        "divt": { "weight": 0.1 },
+        "divturn": { "weight": 1 },
+        "door": { "weight": 0.1 },
+        "empty": { "weight": 1 },
+        "floor": { "weight": 5 },
+        "stairs": { "weight": 0.1 },
+        "table": { "weight": 0.1 },
+        "vent": { "weight": 0.1 }
     }
 }
