@@ -20,8 +20,7 @@
         </style>
         <script type="module" src="/dist/bundle.js"></script>
         <script>
-             
-            var wfc = {};
+            var wfcRender = {};
             var config = {
                     
             };
@@ -70,7 +69,7 @@
         }
 
         function loadConfigControls(config) {
-            var tiles = wfc.getAvailableTiles();
+            var tiles = wfcRender.getAvailableTiles();
             var tileSelector = document.getElementById("tileName");
             for (var tileIndex in tiles){
                 var tile = tiles[tileIndex];
@@ -80,7 +79,7 @@
                 tileSelector.appendChild(opt);
             }
 
-            var superImposedStates = wfc.getSuperImposedStates();
+            var superImposedStates = wfcRender.getSuperImposedStates();
             var superImposedSelector = document.getElementById("superImposed");
             for (var superimposedIndex in superImposedStates){
                 var isValueProperty = Number(superimposedIndex) >= 0;
@@ -110,7 +109,7 @@
         }
 
         function selectTile(obj) {
-            var sets = wfc.getAvailableSets(obj.value);
+            var sets = wfcRender.getAvailableSets(obj.value);
             var setSelector = document.getElementById("set");
             while (setSelector.options.length) setSelector.remove(0);
             for (var setIndex in sets){
@@ -124,12 +123,12 @@
 
         window.addEventListener("load", async function(){
                 loadConfig();
-                wfc = getWFC('draw');
-                wfc.init(config);
+                wfcRender = getWFCRender('draw');
+                await wfcRender.init(config);
                 loadConfigControls(config);
 
-                await wfc.initTileData();
-                wfc.initDraw();
+                await wfcRender.getWFC().initTileData();
+                wfcRender.initDraw();
             });
 
         </script>
