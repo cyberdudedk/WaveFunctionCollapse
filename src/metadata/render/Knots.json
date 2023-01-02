@@ -1,0 +1,22 @@
+[
+    {
+        "name": "corner",
+        "imgsrc": "corner.png"
+    },
+    {
+        "name": "cross",
+        "imgsrc": "cross.png"
+    },
+    {
+        "name": "empty",
+        "imgsrc": "empty.png"
+    },
+    {
+        "name": "line",
+        "imgsrc": "line.png"
+    },
+    {
+        "name": "t",
+        "imgsrc": "t.png"
+    }
+]

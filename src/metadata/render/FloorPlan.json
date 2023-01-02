@@ -1,0 +1,74 @@
+[
+    {
+        "name": "div",
+        "imgsrc": "div.png"
+    },
+    {
+        "name": "divt",
+        "imgsrc": "divt.png"
+    },
+    {
+        "name": "divturn",
+        "imgsrc": "divturn.png"
+    },
+    {
+        "name": "door",
+        "imgsrc": "door.png"
+    },
+    {
+        "name": "empty",
+        "imgsrc": "empty.png"
+    },
+    {
+        "name": "floor",
+        "imgsrc": "floor.png"
+    },
+    {
+        "name": "glass",
+        "imgsrc": "glass.png"
+    },
+    {
+        "name": "halfglass",
+        "imgsrc": "halfglass.png"
+    },
+    {
+        "name": "halfglass2",
+        "imgsrc": "halfglass2.png"
+    },
+    {
+        "name": "in",
+        "imgsrc": "in.png"
+    },
+    {
+        "name": "out",
+        "imgsrc": "out.png"
+    },
+    {
+        "name": "stairs",
+        "imgsrc": "stairs.png"
+    },
+    {
+        "name": "table",
+        "imgsrc": "table.png"
+    },
+    {
+        "name": "vent",
+        "imgsrc": "vent.png"
+    },
+    {
+        "name": "w",
+        "imgsrc": "w.png"
+    },
+    {
+        "name": "wall",
+        "imgsrc": "wall.png"
+    },
+    {
+        "name": "walldiv",
+        "imgsrc": "walldiv.png"
+    },
+    {
+        "name": "window",
+        "imgsrc": "window.png"
+    }
+]

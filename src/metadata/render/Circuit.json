@@ -1,0 +1,58 @@
+[
+    {
+        "name": "bridge",
+        "imgsrc": "bridge.png"
+    },
+    {
+        "name": "connection",
+        "imgsrc": "connection.png"
+    },
+    {
+        "name": "dskew",
+        "imgsrc": "dskew.png"
+    },
+    {
+        "name": "skew",
+        "imgsrc": "skew.png"
+    },
+    {
+        "name": "substrate",
+        "imgsrc": "substrate.png"
+    },
+    {
+        "name": "t",
+        "imgsrc": "t.png"
+    },
+    {
+        "name": "track",
+        "imgsrc": "track.png"
+    },
+    {
+        "name": "transition",
+        "imgsrc": "transition.png"
+    },
+    {
+        "name": "turn",
+        "imgsrc": "turn.png"
+    },
+    {
+        "name": "viad",
+        "imgsrc": "viad.png"
+    },
+    {
+        "name": "vias",
+        "imgsrc": "vias.png"
+    },
+    {
+        "name": "wire",
+        "imgsrc": "wire.png"
+    },
+    {
+        "name": "component",
+        "imgsrc": "component.png"
+    },
+    {
+        "name": "corner",
+        "imgsrc": "corner.png"
+    }
+]

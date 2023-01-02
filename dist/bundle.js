@@ -1,6 +1,53 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/Direction.ts":
+/*!**************************!*\
+  !*** ./src/Direction.ts ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Direction": () => (/* binding */ Direction)
+/* harmony export */ });
+var Direction;
+(function (Direction) {
+    Direction[Direction["top"] = 0] = "top";
+    Direction[Direction["right"] = 1] = "right";
+    Direction[Direction["bottom"] = 2] = "bottom";
+    Direction[Direction["left"] = 3] = "left";
+})(Direction || (Direction = {}));
+
+
+/***/ }),
+
+/***/ "./src/PieceObject.ts":
+/*!****************************!*\
+  !*** ./src/PieceObject.ts ***!
+  \****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "PieceObject": () => (/* binding */ PieceObject)
+/* harmony export */ });
+class PieceObject {
+    constructor(key, name, rotation, validNeighbors, newValid, weight) {
+        this.key = key;
+        this.name = name;
+        this.rotation = rotation;
+        this.validNeighbors = validNeighbors;
+        this.newValid = newValid;
+        this.weight = weight;
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/SuperImposedState.ts":
 /*!**********************************!*\
   !*** ./src/SuperImposedState.ts ***!
@@ -25,9 +72,9 @@ var SuperImposedState;
 
 /***/ }),
 
-/***/ "./src/wfc.ts":
+/***/ "./src/WFC.ts":
 /*!********************!*\
-  !*** ./src/wfc.ts ***!
+  !*** ./src/WFC.ts ***!
   \********************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -36,136 +83,53 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "WFC": () => (/* binding */ WFC)
 /* harmony export */ });
-/* harmony import */ var _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./SuperImposedState */ "./src/SuperImposedState.ts");
+/* harmony import */ var _Direction__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Direction */ "./src/Direction.ts");
+/* harmony import */ var _PieceObject__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./PieceObject */ "./src/PieceObject.ts");
+/* harmony import */ var _WFCConfig__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCConfig */ "./src/WFCConfig.ts");
+/* harmony import */ var _WFCData__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCData */ "./src/WFCData.ts");
+
+
+
 
 class WFC {
-    constructor(canvasId) {
-        this.maxRetryCount = 10;
-        this.maxDepth = 100;
-        this.tileScaleHeight = 40;
-        this.tileScaleWidth = 40;
-        this.fast = false;
-        this.runSpeed = 10;
-        this.runLoop = 30;
-        this.tilesHeight = 30;
-        this.tilesWidth = 30;
-        this.superImposed = 1;
-        this.useMouse = false;
-        this.tileName = 'Knots';
-        this.set = 'all';
-        this.halfScaleHeight = this.tileScaleHeight / 2;
-        this.halfScaleWidth = this.tileScaleWidth / 2;
-        this.pieces = [];
+    constructor() {
+        this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
+        this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_2__.WFCConfig();
         this.piecesMap = {};
-        this.imagesMap = {};
         this.tiles = [];
-        this.directionsMapIntToKey = [
-            'top',
-            'right',
-            'bottom',
-            'left'
-        ];
-        this.directionsMapKeyToInt = {
-            'top': 0,
-            'right': 1,
-            'bottom': 2,
-            'left': 3
-        };
-        this.sets = {};
-        this.currentSet = {} = {};
-        this.retryCount = 0;
-        this.tileSets = {};
-        this.tilePieces = {};
-        this.stopRunning = true;
-        this.wfcLoop = undefined;
-        this.canvas = document.getElementById(canvasId);
-        this.ctx = this.canvas.getContext("2d");
-    }
-    preloadImage(src) {
-        return new Promise((resolve, reject) => {
-            const image = new Image();
-            image.onload = (event) => resolve(image);
-            image.onerror = (event) => reject();
-            image.src = src;
-            return image;
-        });
-    }
-    getAvailableTiles() {
-        return Object.keys(this.tileSets);
-    }
-    getSuperImposedStates() {
-        return _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState;
-    }
-    getAvailableSets(tileName) {
-        var sets = this.tileSets[tileName];
-        if (sets == null)
-            return null;
-        return Object.keys(sets);
-    }
-    getTileSets() {
-        return this.tileSets;
-    }
-    loadTiles() {
-        this.tilePieces = {};
-        this.tileSets = {};
-        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms", "Summer"];
-        for (let tileIndex in tileNames) {
-            const tile = tileNames[tileIndex];
-            this.tilePieces[tile] = __webpack_require__("./src/metadata/tiles sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
-            this.tileSets[tile] = __webpack_require__("./src/metadata/sets sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
-        }
     }
     async init(config) {
         console.clear();
-        let ctx = this.ctx;
-        let canvas = this.canvas;
-        this.tileName = config.tileName;
-        this.set = config.set;
-        this.maxRetryCount = config.maxRetryCount;
-        this.maxDepth = config.maxDepth;
-        this.tileScaleHeight = config.tileScale;
-        this.tileScaleWidth = config.tileScale;
-        this.fast = config.fast;
-        this.runSpeed = config.runSpeed;
-        this.runLoop = config.runLoop;
-        this.tilesHeight = config.tilesHeight;
-        this.tilesWidth = config.tilesWidth;
-        this.superImposed = config.superImposed;
-        this.useMouse = config.useMouse;
-        this.halfScaleHeight = this.tileScaleHeight / 2;
-        this.halfScaleWidth = this.tileScaleWidth / 2;
-        canvas.height = this.tilesHeight * this.tileScaleHeight;
-        canvas.width = this.tilesWidth * this.tileScaleWidth;
-        ctx.fillStyle = "transparent";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        this.config = config;
         this.loadTiles();
     }
+    loadTiles() {
+        this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
+        this.wfcData.tilePieces = {};
+        this.wfcData.tileSets = {};
+        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms", "Summer"];
+        for (let tileIndex in tileNames) {
+            const tile = tileNames[tileIndex];
+            this.wfcData.tilePieces[tile] = __webpack_require__("./src/metadata/tiles sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
+            this.wfcData.tileSets[tile] = __webpack_require__("./src/metadata/sets sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
+        }
+    }
     async initTileData() {
-        this.pieces = this.tilePieces[this.tileName];
-        this.sets = this.tileSets[this.tileName];
-        this.currentSet = this.sets[this.set];
-        let loadImagesAsync = this.pieces.map(async (x) => {
-            return {
-                name: x.name,
-                img: await this.preloadImage('tiles/' + this.tileName + '/' + x.imgsrc)
-            };
-        });
-        Object.entries(this.currentSet).forEach((value) => {
+        let pieces = this.wfcData.tilePieces[this.config.tileName];
+        let sets = this.wfcData.tileSets[this.config.tileName];
+        let currentSet = sets[this.config.set];
+        Object.entries(currentSet).forEach((value) => {
             let pieceName = value[0];
             let properties = value[1];
             if (properties.rotations != undefined) {
-                this.pieces.find(x => x.name == pieceName).rotations = properties.rotations;
+                pieces.find(x => x.name == pieceName).rotations = properties.rotations;
             }
             if (properties.weight != undefined) {
-                this.pieces.find(x => x.name == pieceName).weight = properties.weight;
+                pieces.find(x => x.name == pieceName).weight = properties.weight;
             }
         });
-        this.imagesMap = (await Promise.all(loadImagesAsync)).reduce((piecesMap, piece) => {
-            piecesMap[piece.name] = piece.img;
-            return piecesMap;
-        }, {});
-        let mappedPieces = this.pieces.reduce((piecesMap, piece) => {
-            if (this.currentSet[piece.name] == undefined) {
+        let mappedPieces = pieces.reduce((piecesMap, piece) => {
+            if (currentSet[piece.name] == undefined) {
                 return piecesMap;
             }
             let pieceSockets = piece.socket;
@@ -174,40 +138,30 @@ class WFC {
             piece.rotations.forEach((rotation) => {
                 let socketMatchObject = {};
                 let blacklistedNeighbors = {};
-                this.directionsMapIntToKey.forEach((direction, index) => {
-                    let rotationMoved = (index - rotation) % this.directionsMapIntToKey.length;
-                    if (rotationMoved < 0)
-                        rotationMoved += this.directionsMapIntToKey.length;
-                    let newRotation = this.directionsMapIntToKey[rotationMoved];
-                    let flipped = index >= (this.directionsMapIntToKey.length / 2);
-                    let sockets = pieceSockets[newRotation];
-                    if (!Array.isArray(sockets)) {
-                        sockets = [sockets];
-                    }
-                    sockets.forEach((socket) => {
-                        if (socketMatchObject[direction] == undefined) {
-                            socketMatchObject[direction] = [];
-                        }
-                        if (flipped) {
-                            socketMatchObject[direction].push(socket.split("").reverse().join(""));
-                        }
-                        else {
-                            socketMatchObject[direction].push(socket);
-                        }
+                Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).forEach((direction, index) => {
+                    if (!isNaN(Number(direction)))
+                        return;
+                    let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
+                    let rotationMoved = (index - rotation + directionsCount) % directionsCount;
+                    let flipped = index >= (directionsCount / 2);
+                    let sockets = pieceSockets[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved]];
+                    (Array.isArray(sockets) ? sockets : [sockets]).forEach((socket) => {
+                        (socketMatchObject[direction] || (socketMatchObject[direction] = [])).push(flipped ? socket.split("").reverse().join("") : socket);
                     });
                 });
                 if (piece.blacklist) {
                     Object.entries(piece.blacklist).forEach((blacklist) => {
                         let blackListDirection = blacklist[0];
                         let blackListValue = blacklist[1];
-                        let blackListIndex = this.directionsMapKeyToInt[blackListDirection];
-                        let rotationBlacklistingIndex = (blackListIndex + rotation) % this.directionsMapIntToKey.length;
-                        let rotationBlacklisting = this.directionsMapIntToKey[rotationBlacklistingIndex];
+                        let blackListIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[blackListDirection];
+                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
+                        let rotationBlacklistingIndex = (blackListIndex + rotation) % directionsCount;
+                        let rotationBlacklisting = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationBlacklistingIndex];
                         Object.entries(blackListValue).forEach((blacklistPiece) => {
                             let blackListPieceName = blacklistPiece[0];
                             let blackListPieceRotations = blacklistPiece[1];
                             blackListPieceRotations.forEach((blackListPieceRotation) => {
-                                let blackListPieceNameWithRotation = blackListPieceName + "_" + (blackListPieceRotation + rotation) % this.directionsMapIntToKey.length;
+                                let blackListPieceNameWithRotation = blackListPieceName + "_" + (blackListPieceRotation + rotation) % directionsCount;
                                 if (blacklistedNeighbors[rotationBlacklisting] == undefined) {
                                     blacklistedNeighbors[rotationBlacklisting] = [];
                                 }
@@ -233,9 +187,10 @@ class WFC {
                     Object.entries(socketMatch).forEach((socket) => {
                         let socketDirectionInner = socket[0];
                         let socketMatchInnerValueArray = socket[1];
-                        let socketDirectionInnerIndex = this.directionsMapKeyToInt[socketDirectionInner];
-                        let socketDirectionPolarIndex = (socketDirectionInnerIndex + this.directionsMapIntToKey.length / 2) % this.directionsMapIntToKey.length;
-                        let socketDirectionPolar = this.directionsMapIntToKey[socketDirectionPolarIndex];
+                        let socketDirectionInnerIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[socketDirectionInner];
+                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
+                        let socketDirectionPolarIndex = (socketDirectionInnerIndex + directionsCount / 2) % directionsCount;
+                        let socketDirectionPolar = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[socketDirectionPolarIndex];
                         socketMatchInnerValueArray.forEach((socketMatchInnerValue) => {
                             if (socketBuckets[socketMatchInnerValue] == undefined) {
                                 let innerObject = {};
@@ -252,7 +207,7 @@ class WFC {
         });
         this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair) => {
             let piece = piecePair[1];
-            if (this.currentSet[piece.name] == undefined) {
+            if (currentSet[piece.name] == undefined) {
                 return piecesMap;
             }
             if (piece.rotations == undefined) {
@@ -269,7 +224,6 @@ class WFC {
                 };
                 if (piece.socketmatching != undefined) {
                     if (piece.socketmatching[rotation] != undefined) {
-                        let rotationDirection = this.directionsMapIntToKey[rotation];
                         let socketMatch = piece.socketmatching[rotation];
                         Object.entries(socketMatch).forEach((socketPair) => {
                             let socketDirection = socketPair[0];
@@ -293,49 +247,355 @@ class WFC {
                 if (Array.isArray(piece.weight)) {
                     weight = (_b = weight[rotation]) !== null && _b !== void 0 ? _b : 1;
                 }
-                piecesMap[pieceName] = {
-                    key: piece.name + "_" + rotation,
-                    name: piece.name,
-                    rotation: rotation,
-                    validNeighbors: validNeighbors,
-                    newValid: piece.newValid,
-                    weight: weight,
-                };
+                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, piece.newValid, weight);
             });
             return piecesMap;
         }, {});
         return true;
     }
-    initDraw() {
-        this.startOver();
-        this.startDrawingLoop();
-    }
-    startOver() {
-        this.reset();
-        this.startWFCLoop(this.runSpeed);
-    }
     reset() {
-        //this.ctx.fillStyle = "black";
-        this.ctx.fillStyle = "white";
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         let piecesKeys = Object.keys(this.piecesMap);
-        console.log('this.piecesMap', this.piecesMap);
         let startingTile = {
             validPieces: piecesKeys,
         };
-        this.tiles = Array.from({ length: this.tilesWidth }, (a, x) => {
-            return Array.from({ length: this.tilesHeight }, (b, y) => {
+        this.tiles = Array.from({ length: this.config.tilesWidth }, (a, x) => {
+            return Array.from({ length: this.config.tilesHeight }, (b, y) => {
                 return {
                     position: { x: x, y: y },
                     validPieces: [...startingTile.validPieces]
                 };
             });
         });
-        console.log('this.tiles', this.tiles);
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/WFCConfig.ts":
+/*!**************************!*\
+  !*** ./src/WFCConfig.ts ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "WFCConfig": () => (/* binding */ WFCConfig)
+/* harmony export */ });
+class WFCConfig {
+    constructor() {
+        this.maxRetryCount = 10;
+        this.maxDepth = 100;
+        this.tileScale = 40;
+        this.fast = false;
+        this.runSpeed = 10;
+        this.runLoop = 30;
+        this.tilesHeight = 30;
+        this.tilesWidth = 30;
+        this.superImposed = 1;
+        this.useMouse = false;
+        this.tileName = 'Knots';
+        this.set = 'all';
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/WFCData.ts":
+/*!************************!*\
+  !*** ./src/WFCData.ts ***!
+  \************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "WFCData": () => (/* binding */ WFCData)
+/* harmony export */ });
+class WFCData {
+    constructor() {
+        this.tileSets = {};
+        this.tilePieces = {};
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/WFCRender.ts":
+/*!**************************!*\
+  !*** ./src/WFCRender.ts ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "WFCRender": () => (/* binding */ WFCRender)
+/* harmony export */ });
+/* harmony import */ var _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./SuperImposedState */ "./src/SuperImposedState.ts");
+/* harmony import */ var _WFCConfig__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./WFCConfig */ "./src/WFCConfig.ts");
+/* harmony import */ var _WFCRunner__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCRunner */ "./src/WFCRunner.ts");
+/* harmony import */ var _wfc__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./wfc */ "./src/wfc.ts");
+
+
+
+
+class WFCRender {
+    constructor(canvasId) {
+        this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_1__.WFCConfig();
+        this.wfc = new _wfc__WEBPACK_IMPORTED_MODULE_3__.WFC();
+        this.halfScaleHeight = this.config.tileScale / 2;
+        this.halfScaleWidth = this.config.tileScale / 2;
+        this.imagesMap = {};
+        this.wfcCallback = () => {
+            this.draw();
+        };
+        this.canvas = document.getElementById(canvasId);
+        this.ctx = this.canvas.getContext("2d");
+    }
+    preloadImage(src) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = (event) => resolve(image);
+            image.onerror = (event) => reject();
+            image.src = src;
+            return image;
+        });
+    }
+    getAvailableTiles() {
+        return Object.keys(this.wfc.wfcData.tileSets);
+    }
+    getSuperImposedStates() {
+        return _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState;
+    }
+    getAvailableSets(tileName) {
+        var sets = this.wfc.wfcData.tileSets[tileName];
+        if (sets == null)
+            return null;
+        return Object.keys(sets);
+    }
+    getTileSets() {
+        return this.wfc.wfcData.tileSets;
+    }
+    getWFCData() {
+        return this.wfc.wfcData;
+    }
+    getWFC() {
+        return this.wfc;
+    }
+    async init(config) {
+        console.clear();
+        this.config = config;
+        this.wfc = new _wfc__WEBPACK_IMPORTED_MODULE_3__.WFC();
+        this.wfc.init(config);
+        this.wfcRunner = new _WFCRunner__WEBPACK_IMPORTED_MODULE_2__.WFCRunner(config, this.wfc, this.wfcCallback);
+        await this.initImageData();
+        let ctx = this.ctx;
+        let canvas = this.canvas;
+        this.halfScaleHeight = this.config.tileScale / 2;
+        this.halfScaleWidth = this.config.tileScale / 2;
+        canvas.height = this.config.tilesHeight * this.config.tileScale;
+        canvas.width = this.config.tilesWidth * this.config.tileScale;
+        ctx.fillStyle = "transparent";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    async initImageData() {
+        let pieces = this.wfc.wfcData.tilePieces[this.config.tileName];
+        let tileImages = __webpack_require__("./src/metadata/render sync recursive ^\\.\\/.*\\.json$")("./" + this.config.tileName + ".json");
+        let tileImageMap = tileImages.reduce((tileMap, tileImage) => {
+            tileMap[tileImage.name] = tileImage.imgsrc;
+            return tileMap;
+        }, {});
+        let loadImagesAsync = pieces.map(async (x) => {
+            return {
+                name: x.name,
+                img: await this.preloadImage('tiles/' + this.config.tileName + '/' + tileImageMap[x.name])
+            };
+        });
+        this.imagesMap = (await Promise.all(loadImagesAsync)).reduce((piecesMap, piece) => {
+            piecesMap[piece.name] = piece.img;
+            return piecesMap;
+        }, {});
+    }
+    initDraw() {
+        this.startOver();
+    }
+    startOver() {
+        this.wfc.reset();
+        this.reset();
+        this.startWFCLoop(this.config.runSpeed);
+    }
+    reset() {
+        this.ctx.fillStyle = "white";
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    startWFCLoop(interval) {
+        if (this.config.useMouse) {
+            document.body.addEventListener('click', () => this.wfcRunner.runWFC(), true);
+        }
+        this.draw();
+        this.wfcRunner.startWFCLoop(interval);
+    }
+    draw() {
+        this.ctx.save();
+        this.drawTiles();
+        this.ctx.restore();
+    }
+    drawTiles() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.wfc.tiles.forEach((column, columnIndex) => {
+            column.forEach((tile, rowIndex) => {
+                if (!this.config.fast) {
+                    if (tile.validPieces) {
+                        let validCount = tile.validPieces.length;
+                        if (tile.validPieces.length > 0) {
+                            if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Layered) {
+                                //superimposed 1 - on top of each
+                                tile.validPieces.forEach((key) => {
+                                    let piece = this.wfc.piecesMap[key];
+                                    let tileImage = this.imagesMap[piece.name];
+                                    this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
+                                });
+                            }
+                            else if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridScaled) {
+                                //superimposed 2 - grid
+                                let gridSize = Math.ceil(Math.sqrt(validCount));
+                                tile.validPieces.forEach((key, index) => {
+                                    let piece = this.wfc.piecesMap[key];
+                                    let tileImage = this.imagesMap[piece.name];
+                                    this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
+                                });
+                            }
+                            else if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Grid) {
+                                //superimposed 3 - grid without scaling
+                                validCount = Object.keys(this.wfc.piecesMap).length;
+                                let gridSize = Math.ceil(Math.sqrt(validCount));
+                                tile.validPieces.forEach((key, index) => {
+                                    let piece = this.wfc.piecesMap[key];
+                                    let tileImage = this.imagesMap[piece.name];
+                                    this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
+                                });
+                            }
+                            else if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.None) {
+                                //superimposed 4 - none
+                            }
+                            else if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.LayeredSorted) {
+                                //superimposed 5 - layered sorted
+                                let sortedValid = tile.validPieces.sort((a, b) => {
+                                    let pieceA = this.wfc.piecesMap[a];
+                                    let pieceB = this.wfc.piecesMap[b];
+                                    return pieceB.weight - pieceA.weight;
+                                });
+                                sortedValid.forEach((key) => {
+                                    let piece = this.wfc.piecesMap[key];
+                                    let tileImage = this.imagesMap[piece.name];
+                                    this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
+                                });
+                            }
+                            else if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridAlpha) {
+                                //superimposed 6 - grid scaled alpha
+                                let minWeight = 999;
+                                let maxWeight = 0;
+                                let sortedValid = tile.validPieces.sort((a, b) => {
+                                    let pieceA = this.wfc.piecesMap[a];
+                                    let pieceB = this.wfc.piecesMap[b];
+                                    let weight = pieceA.weight;
+                                    if (minWeight > weight) {
+                                        minWeight = weight;
+                                    }
+                                    if (maxWeight < weight) {
+                                        maxWeight = weight;
+                                    }
+                                    return pieceB.weight - pieceA.weight;
+                                });
+                                sortedValid.forEach((key, index) => {
+                                    let piece = this.wfc.piecesMap[key];
+                                    let tileImage = this.imagesMap[piece.name];
+                                    let weight = piece.weight;
+                                    let weightPercent = ((weight - minWeight)) / (maxWeight - minWeight);
+                                    let adjustedAlpha = (weightPercent * (0.6 - 0.2)) + 0.2;
+                                    let gridSize = Math.ceil(Math.sqrt(validCount));
+                                    this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, adjustedAlpha);
+                                });
+                            }
+                        }
+                    }
+                }
+                if (tile.key != undefined) {
+                    let key = tile.key;
+                    let piece = this.wfc.piecesMap[key];
+                    let tileImage = this.imagesMap[piece.name];
+                    this.drawTile(tileImage, columnIndex, rowIndex, tile.rotation);
+                }
+            });
+        });
+    }
+    drawImgGrid(img, x, y, rotation, alpha) {
+        this.ctx.save();
+        this.ctx.globalAlpha = alpha;
+        this.ctx.translate((this.config.tileScale * x) + this.halfScaleWidth, (this.config.tileScale * y) + this.halfScaleHeight);
+        this.ctx.rotate((rotation * 90) * (Math.PI / 180));
+        this.ctx.drawImage(img, -this.halfScaleWidth, -this.halfScaleHeight, this.config.tileScale, this.config.tileScale);
+        this.ctx.restore();
+    }
+    drawTile(img, x, y, rotation) {
+        this.drawImgGrid(img, x, y, rotation, 1);
+    }
+    drawSuperimposed(img, x, y, rotation, possible) {
+        this.drawImgGrid(img, x, y, rotation, 0.9 / possible);
+    }
+    drawSuperimposedWeighted(img, x, y, rotation, possible, alpha) {
+        this.drawImgGrid(img, x, y, rotation, alpha);
+    }
+    drawSuperimposedPartGrid(img, x, y, gridSize, gridIndex, rotation, possible, alpha) {
+        let width = this.config.tileScale / gridSize;
+        let height = this.config.tileScale / (gridSize);
+        let newX = (this.config.tileScale * x) + ((gridIndex % gridSize) * width);
+        let newY = (this.config.tileScale * y) + ((Math.floor(gridIndex / gridSize)) * height);
+        this.drawImg(img, newX, newY, width, height, rotation, alpha);
+    }
+    drawImg(img, x, y, width, height, rotation, alpha) {
+        this.ctx.save();
+        this.ctx.globalAlpha = alpha;
+        this.ctx.translate(x + (width / 2), y + (height / 2));
+        this.ctx.rotate((rotation * 90) * (Math.PI / 180));
+        this.ctx.drawImage(img, -(width / 2), -(height / 2), width, height);
+        this.ctx.restore();
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/WFCRunner.ts":
+/*!**************************!*\
+  !*** ./src/WFCRunner.ts ***!
+  \**************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "WFCRunner": () => (/* binding */ WFCRunner)
+/* harmony export */ });
+class WFCRunner {
+    constructor(config, wfc, callback) {
+        this.retryCount = 0;
+        this.stopRunning = true;
+        this.wfcLoop = undefined;
+        this.hasRunWFC = () => {
+            this.callback();
+        };
+        this.config = config;
+        this.wfc = wfc;
+        this.callback = callback;
     }
     getTilePositionsAsEntropyGroups() {
         let entropyGroups = {};
-        this.tiles.forEach((column, x) => {
+        this.wfc.tiles.forEach((column, x) => {
             column.forEach((tile, y) => {
                 if (tile.validPieces) {
                     let entropy = tile.validPieces.length;
@@ -348,51 +608,23 @@ class WFC {
         });
         return entropyGroups;
     }
-    getRandomElementFromArray(array) {
-        return array[Math.floor(Math.random() * array.length)];
-    }
-    getRandomElementFromArrayWeigted(array) {
-        let summed = [];
-        let sumCount = 0;
-        let lastSum = 0;
-        array.forEach((x, i) => {
-            let weight = this.piecesMap[x].weight;
-            if (weight > 0) {
-                lastSum = sumCount;
-                sumCount += weight;
-                summed.push({
-                    'key': x,
-                    'minsum': lastSum,
-                    'maxsum': sumCount
-                });
-            }
-        });
-        if (summed.length == 0)
-            return null;
-        let rnd = Math.random() * sumCount;
-        let selected = summed.find((x) => {
-            return x.minsum <= rnd && x.maxsum > rnd;
-        });
-        if (selected == undefined) {
-            console.log('summed', summed);
-        }
-        return selected.key;
-    }
     noValidFound() {
         this.retryCount++;
         this.stopWFCLoop();
-        if (this.retryCount <= this.maxRetryCount) {
+        if (this.retryCount <= this.config.maxRetryCount) {
             this.startOver();
         }
         else {
-            console.log('not possible to solve within ' + this.maxRetryCount + ' retries');
+            console.log('not possible to solve within ' + this.config.maxRetryCount + ' retries');
         }
     }
-    runWFC3() {
-        for (var i = 0; (i < this.runLoop) || this.fast; i++) {
+    runWFC() {
+        for (var i = 0; (i < this.config.runLoop) || this.config.fast; i++) {
             let stop = this.checkForStop();
-            if (stop)
+            if (stop) {
+                this.hasRunWFC();
                 return;
+            }
             if (this.stopRunning)
                 return;
             let entropyGroups = this.getTilePositionsAsEntropyGroups();
@@ -406,7 +638,7 @@ class WFC {
             let randomPositionFromLowestEntropyGroup = this.getRandomElementFromArray(lowestEntroyGroup);
             let x = randomPositionFromLowestEntropyGroup.x;
             let y = randomPositionFromLowestEntropyGroup.y;
-            let currentTile = this.tiles[x][y];
+            let currentTile = this.wfc.tiles[x][y];
             if (currentTile.validPieces != undefined) {
                 if (currentTile.validPieces.length == 0) {
                     this.noValidFound();
@@ -418,8 +650,8 @@ class WFC {
                     this.noValidFound();
                     return false;
                 }
-                let piece = this.piecesMap[tileKey];
-                this.tiles[x][y] = piece;
+                let piece = this.wfc.piecesMap[tileKey];
+                this.wfc.tiles[x][y] = piece;
                 if (piece == undefined) {
                     console.log('piece', x, y, piece, tileKey, randomPiece, currentTile.validPieces);
                 }
@@ -428,14 +660,14 @@ class WFC {
                     break;
                 }
                 let depth = 0;
-                while (validation.length > 0 && depth < this.maxDepth) {
+                while (validation.length > 0 && depth < this.config.maxDepth) {
                     let newValidations = [];
                     if (validation.length > 0) {
                         validation.forEach((v) => {
-                            let validationTile = this.tiles[v.x][v.y];
+                            let validationTile = this.wfc.tiles[v.x][v.y];
                             let validationTilePieces = validationTile.validPieces;
                             let pieces = validationTilePieces.map((tileKey) => {
-                                return this.piecesMap[tileKey];
+                                return this.wfc.piecesMap[tileKey];
                             });
                             let innerValidation = this.runValidation(v.x, v.y, pieces);
                             newValidations.push(innerValidation);
@@ -448,21 +680,22 @@ class WFC {
                 }
             }
         }
+        this.hasRunWFC();
     }
     runValidation(x, y, pieces) {
         let recheck = [];
         let neighbors = [];
         if (y != 0) {
-            neighbors.push({ direction: 'top', tile: this.tiles[x][y - 1] });
+            neighbors.push({ direction: 'top', tile: this.wfc.tiles[x][y - 1] });
         }
-        if (x != this.tilesWidth - 1) {
-            neighbors.push({ direction: 'right', tile: this.tiles[x + 1][y] });
+        if (x != this.config.tilesWidth - 1) {
+            neighbors.push({ direction: 'right', tile: this.wfc.tiles[x + 1][y] });
         }
-        if (y != this.tilesHeight - 1) {
-            neighbors.push({ direction: 'bottom', tile: this.tiles[x][y + 1] });
+        if (y != this.config.tilesHeight - 1) {
+            neighbors.push({ direction: 'bottom', tile: this.wfc.tiles[x][y + 1] });
         }
         if (x != 0) {
-            neighbors.push({ direction: 'left', tile: this.tiles[x - 1][y] });
+            neighbors.push({ direction: 'left', tile: this.wfc.tiles[x - 1][y] });
         }
         neighbors.forEach((neighbor) => {
             if (neighbor.tile.validPieces) {
@@ -487,7 +720,7 @@ class WFC {
     }
     checkForStop() {
         let stop = true;
-        this.tiles.forEach((column, columnIndex) => {
+        this.wfc.tiles.forEach((column, columnIndex) => {
             column.forEach((tile, rowIndex) => {
                 if (tile.key == undefined) {
                     stop = false;
@@ -506,153 +739,294 @@ class WFC {
         }
         return stop;
     }
-    startWFCLoop(interval) {
-        this.stopRunning = false;
-        if (this.useMouse) {
-            document.body.addEventListener('click', () => this.runWFC3(), true);
-        }
-        else {
-            this.wfcLoop = setInterval(() => {
-                this.runWFC3();
-            }, interval);
-        }
-    }
     stopWFCLoop() {
         this.stopRunning = true;
         clearInterval(this.wfcLoop);
     }
-    startDrawingLoop() {
-        requestAnimationFrame(() => this.draw());
+    startOver() {
+        this.wfc.reset();
+        this.startWFCLoop(this.config.runSpeed);
     }
-    stopDrawingLoop() {
+    startWFCLoop(interval) {
+        this.stopRunning = false;
+        if (this.config.useMouse) {
+        }
+        else {
+            this.wfcLoop = setInterval(() => {
+                this.runWFC();
+            }, interval);
+        }
     }
-    draw() {
-        this.ctx.save();
-        this.drawTiles();
-        this.ctx.restore();
-        requestAnimationFrame(() => this.draw());
+    getRandomElementFromArray(array) {
+        return array[Math.floor(Math.random() * array.length)];
     }
-    drawTiles() {
-        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.tiles.forEach((column, columnIndex) => {
-            column.forEach((tile, rowIndex) => {
-                if (tile.validPieces) {
-                    let validCount = tile.validPieces.length;
-                    if (tile.validPieces.length > 0) {
-                        if (this.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Layered) {
-                            //superimposed 1 - on top of each
-                            tile.validPieces.forEach((key) => {
-                                let piece = this.piecesMap[key];
-                                let tileImage = this.imagesMap[piece.name];
-                                this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
-                            });
-                        }
-                        else if (this.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridScaled) {
-                            //superimposed 2 - grid
-                            let gridSize = Math.ceil(Math.sqrt(validCount));
-                            tile.validPieces.forEach((key, index) => {
-                                let piece = this.piecesMap[key];
-                                let tileImage = this.imagesMap[piece.name];
-                                this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
-                            });
-                        }
-                        else if (this.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Grid) {
-                            //superimposed 3 - grid without scaling
-                            validCount = Object.keys(this.piecesMap).length;
-                            let gridSize = Math.ceil(Math.sqrt(validCount));
-                            tile.validPieces.forEach((key, index) => {
-                                let piece = this.piecesMap[key];
-                                let tileImage = this.imagesMap[piece.name];
-                                this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
-                            });
-                        }
-                        else if (this.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.None) {
-                            //superimposed 4 - none
-                        }
-                        else if (this.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.LayeredSorted) {
-                            //superimposed 5 - layered sorted
-                            let sortedValid = tile.validPieces.sort((a, b) => {
-                                let pieceA = this.piecesMap[a];
-                                let pieceB = this.piecesMap[b];
-                                return pieceB.weight - pieceA.weight;
-                            });
-                            sortedValid.forEach((key) => {
-                                let piece = this.piecesMap[key];
-                                let tileImage = this.imagesMap[piece.name];
-                                this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
-                            });
-                        }
-                        else if (this.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridAlpha) {
-                            //superimposed 6 - grid scaled alpha
-                            let minWeight = 999;
-                            let maxWeight = 0;
-                            let sortedValid = tile.validPieces.sort((a, b) => {
-                                let pieceA = this.piecesMap[a];
-                                let pieceB = this.piecesMap[b];
-                                let weight = pieceA.weight;
-                                if (minWeight > weight) {
-                                    minWeight = weight;
-                                }
-                                if (maxWeight < weight) {
-                                    maxWeight = weight;
-                                }
-                                return pieceB.weight - pieceA.weight;
-                            });
-                            sortedValid.forEach((key, index) => {
-                                let piece = this.piecesMap[key];
-                                let tileImage = this.imagesMap[piece.name];
-                                let weight = piece.weight;
-                                let weightPercent = ((weight - minWeight)) / (maxWeight - minWeight);
-                                let adjustedAlpha = (weightPercent * (0.6 - 0.2)) + 0.2;
-                                let gridSize = Math.ceil(Math.sqrt(validCount));
-                                this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, adjustedAlpha);
-                            });
-                        }
-                    }
-                }
-                if (tile.key != undefined) {
-                    let key = tile.key;
-                    let piece = this.piecesMap[key];
-                    let tileImage = this.imagesMap[piece.name];
-                    this.drawTile(tileImage, columnIndex, rowIndex, tile.rotation);
-                }
-            });
+    getRandomElementFromArrayWeigted(array) {
+        let summed = [];
+        let sumCount = 0;
+        let lastSum = 0;
+        array.forEach((x, i) => {
+            let weight = this.wfc.piecesMap[x].weight;
+            if (weight > 0) {
+                lastSum = sumCount;
+                sumCount += weight;
+                summed.push({
+                    'key': x,
+                    'minsum': lastSum,
+                    'maxsum': sumCount
+                });
+            }
         });
-    }
-    drawImgGrid(img, x, y, rotation, alpha) {
-        this.ctx.save();
-        this.ctx.globalAlpha = alpha;
-        this.ctx.translate((this.tileScaleWidth * x) + this.halfScaleWidth, (this.tileScaleHeight * y) + this.halfScaleHeight);
-        this.ctx.rotate((rotation * 90) * (Math.PI / 180));
-        this.ctx.drawImage(img, -this.halfScaleWidth, -this.halfScaleHeight, this.tileScaleWidth, this.tileScaleHeight);
-        this.ctx.restore();
-    }
-    drawTile(img, x, y, rotation) {
-        this.drawImgGrid(img, x, y, rotation, 1);
-    }
-    drawSuperimposed(img, x, y, rotation, possible) {
-        this.drawImgGrid(img, x, y, rotation, 0.9 / possible);
-    }
-    drawSuperimposedWeighted(img, x, y, rotation, possible, alpha) {
-        this.drawImgGrid(img, x, y, rotation, alpha);
-    }
-    drawSuperimposedPartGrid(img, x, y, gridSize, gridIndex, rotation, possible, alpha) {
-        let width = this.tileScaleWidth / gridSize;
-        let height = this.tileScaleHeight / (gridSize);
-        let newX = (this.tileScaleWidth * x) + ((gridIndex % gridSize) * width);
-        let newY = (this.tileScaleHeight * y) + ((Math.floor(gridIndex / gridSize)) * height);
-        this.drawImg(img, newX, newY, width, height, rotation, alpha);
-    }
-    drawImg(img, x, y, width, height, rotation, alpha) {
-        this.ctx.save();
-        this.ctx.globalAlpha = alpha;
-        this.ctx.translate(x + (width / 2), y + (height / 2));
-        this.ctx.rotate((rotation * 90) * (Math.PI / 180));
-        this.ctx.drawImage(img, -(width / 2), -(height / 2), width, height);
-        this.ctx.restore();
+        if (summed.length == 0)
+            return null;
+        let rnd = Math.random() * sumCount;
+        let selected = summed.find((x) => {
+            return x.minsum <= rnd && x.maxsum > rnd;
+        });
+        if (selected == undefined) {
+            console.log('summed', summed);
+        }
+        return selected.key;
     }
 }
 
+
+/***/ }),
+
+/***/ "./src/wfc.ts":
+/*!********************!*\
+  !*** ./src/wfc.ts ***!
+  \********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "WFC": () => (/* binding */ WFC)
+/* harmony export */ });
+/* harmony import */ var _Direction__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Direction */ "./src/Direction.ts");
+/* harmony import */ var _PieceObject__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./PieceObject */ "./src/PieceObject.ts");
+/* harmony import */ var _WFCConfig__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCConfig */ "./src/WFCConfig.ts");
+/* harmony import */ var _WFCData__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCData */ "./src/WFCData.ts");
+
+
+
+
+class WFC {
+    constructor() {
+        this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
+        this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_2__.WFCConfig();
+        this.piecesMap = {};
+        this.tiles = [];
+    }
+    async init(config) {
+        console.clear();
+        this.config = config;
+        this.loadTiles();
+    }
+    loadTiles() {
+        this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
+        this.wfcData.tilePieces = {};
+        this.wfcData.tileSets = {};
+        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms", "Summer"];
+        for (let tileIndex in tileNames) {
+            const tile = tileNames[tileIndex];
+            this.wfcData.tilePieces[tile] = __webpack_require__("./src/metadata/tiles sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
+            this.wfcData.tileSets[tile] = __webpack_require__("./src/metadata/sets sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
+        }
+    }
+    async initTileData() {
+        let pieces = this.wfcData.tilePieces[this.config.tileName];
+        let sets = this.wfcData.tileSets[this.config.tileName];
+        let currentSet = sets[this.config.set];
+        Object.entries(currentSet).forEach((value) => {
+            let pieceName = value[0];
+            let properties = value[1];
+            if (properties.rotations != undefined) {
+                pieces.find(x => x.name == pieceName).rotations = properties.rotations;
+            }
+            if (properties.weight != undefined) {
+                pieces.find(x => x.name == pieceName).weight = properties.weight;
+            }
+        });
+        let mappedPieces = pieces.reduce((piecesMap, piece) => {
+            if (currentSet[piece.name] == undefined) {
+                return piecesMap;
+            }
+            let pieceSockets = piece.socket;
+            piece.socketmatching = {};
+            piece.blacklistedNeighbors = {};
+            piece.rotations.forEach((rotation) => {
+                let socketMatchObject = {};
+                let blacklistedNeighbors = {};
+                Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).forEach((direction, index) => {
+                    if (!isNaN(Number(direction)))
+                        return;
+                    let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
+                    let rotationMoved = (index - rotation + directionsCount) % directionsCount;
+                    let flipped = index >= (directionsCount / 2);
+                    let sockets = pieceSockets[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved]];
+                    (Array.isArray(sockets) ? sockets : [sockets]).forEach((socket) => {
+                        (socketMatchObject[direction] || (socketMatchObject[direction] = [])).push(flipped ? socket.split("").reverse().join("") : socket);
+                    });
+                });
+                if (piece.blacklist) {
+                    Object.entries(piece.blacklist).forEach((blacklist) => {
+                        let blackListDirection = blacklist[0];
+                        let blackListValue = blacklist[1];
+                        let blackListIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[blackListDirection];
+                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
+                        let rotationBlacklistingIndex = (blackListIndex + rotation) % directionsCount;
+                        let rotationBlacklisting = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationBlacklistingIndex];
+                        Object.entries(blackListValue).forEach((blacklistPiece) => {
+                            let blackListPieceName = blacklistPiece[0];
+                            let blackListPieceRotations = blacklistPiece[1];
+                            blackListPieceRotations.forEach((blackListPieceRotation) => {
+                                let blackListPieceNameWithRotation = blackListPieceName + "_" + (blackListPieceRotation + rotation) % directionsCount;
+                                if (blacklistedNeighbors[rotationBlacklisting] == undefined) {
+                                    blacklistedNeighbors[rotationBlacklisting] = [];
+                                }
+                                blacklistedNeighbors[rotationBlacklisting].push(blackListPieceNameWithRotation);
+                            });
+                        });
+                    });
+                }
+                piece.blacklistedNeighbors[rotation] = blacklistedNeighbors;
+                piece.socketmatching[rotation] = socketMatchObject;
+            });
+            piecesMap[piece.name] = piece;
+            return piecesMap;
+        }, {});
+        let socketBuckets = {};
+        Object.entries(mappedPieces).forEach((mappedPieceValue) => {
+            let pieceName = mappedPieceValue[0];
+            let piece = mappedPieceValue[1];
+            if (piece.socketmatching != undefined) {
+                Object.entries(piece.socketmatching).forEach((socketMatchValue) => {
+                    let socketDirection = parseInt(socketMatchValue[0]);
+                    let socketMatch = socketMatchValue[1];
+                    Object.entries(socketMatch).forEach((socket) => {
+                        let socketDirectionInner = socket[0];
+                        let socketMatchInnerValueArray = socket[1];
+                        let socketDirectionInnerIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[socketDirectionInner];
+                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
+                        let socketDirectionPolarIndex = (socketDirectionInnerIndex + directionsCount / 2) % directionsCount;
+                        let socketDirectionPolar = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[socketDirectionPolarIndex];
+                        socketMatchInnerValueArray.forEach((socketMatchInnerValue) => {
+                            if (socketBuckets[socketMatchInnerValue] == undefined) {
+                                let innerObject = {};
+                                socketBuckets[socketMatchInnerValue] = innerObject;
+                            }
+                            if (socketBuckets[socketMatchInnerValue][socketDirectionPolar] == undefined) {
+                                socketBuckets[socketMatchInnerValue][socketDirectionPolar] = [];
+                            }
+                            socketBuckets[socketMatchInnerValue][socketDirectionPolar].push(pieceName + "_" + socketDirection);
+                        });
+                    });
+                });
+            }
+        });
+        this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair) => {
+            let piece = piecePair[1];
+            if (currentSet[piece.name] == undefined) {
+                return piecesMap;
+            }
+            if (piece.rotations == undefined) {
+                piece.rotations = [0];
+            }
+            piece.rotations.forEach((rotation) => {
+                var _a, _b;
+                let pieceName = piece.name + "_" + rotation;
+                let validNeighbors = {
+                    top: [],
+                    right: [],
+                    bottom: [],
+                    left: []
+                };
+                if (piece.socketmatching != undefined) {
+                    if (piece.socketmatching[rotation] != undefined) {
+                        let socketMatch = piece.socketmatching[rotation];
+                        Object.entries(socketMatch).forEach((socketPair) => {
+                            let socketDirection = socketPair[0];
+                            let sockets = socketPair[1];
+                            sockets.forEach((socket) => {
+                                if (socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
+                                    let validPiecesForSocket = socketBuckets[socket][socketDirection];
+                                    validPiecesForSocket.forEach((validPiece) => {
+                                        var _a;
+                                        let blackList = (_a = piece.blacklistedNeighbors[rotation][socketDirection]) !== null && _a !== void 0 ? _a : [];
+                                        if (!validNeighbors[socketDirection].includes(validPiece) && !blackList.includes(validPiece)) {
+                                            validNeighbors[socketDirection].push(validPiece);
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                    }
+                }
+                let weight = (_a = piece.weight) !== null && _a !== void 0 ? _a : 1;
+                if (Array.isArray(piece.weight)) {
+                    weight = (_b = weight[rotation]) !== null && _b !== void 0 ? _b : 1;
+                }
+                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, piece.newValid, weight);
+            });
+            return piecesMap;
+        }, {});
+        return true;
+    }
+    reset() {
+        let piecesKeys = Object.keys(this.piecesMap);
+        let startingTile = {
+            validPieces: piecesKeys,
+        };
+        this.tiles = Array.from({ length: this.config.tilesWidth }, (a, x) => {
+            return Array.from({ length: this.config.tilesHeight }, (b, y) => {
+                return {
+                    position: { x: x, y: y },
+                    validPieces: [...startingTile.validPieces]
+                };
+            });
+        });
+    }
+}
+
+
+/***/ }),
+
+/***/ "./src/metadata/render sync recursive ^\\.\\/.*\\.json$":
+/*!**************************************************!*\
+  !*** ./src/metadata/render/ sync ^\.\/.*\.json$ ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var map = {
+	"./Castle.json": "./src/metadata/render/Castle.json",
+	"./Circles.json": "./src/metadata/render/Circles.json",
+	"./Circuit.json": "./src/metadata/render/Circuit.json",
+	"./FloorPlan.json": "./src/metadata/render/FloorPlan.json",
+	"./Knots.json": "./src/metadata/render/Knots.json",
+	"./Rooms.json": "./src/metadata/render/Rooms.json",
+	"./Summer.json": "./src/metadata/render/Summer.json"
+};
+
+
+function webpackContext(req) {
+	var id = webpackContextResolve(req);
+	return __webpack_require__(id);
+}
+function webpackContextResolve(req) {
+	if(!__webpack_require__.o(map, req)) {
+		var e = new Error("Cannot find module '" + req + "'");
+		e.code = 'MODULE_NOT_FOUND';
+		throw e;
+	}
+	return map[req];
+}
+webpackContext.keys = function webpackContextKeys() {
+	return Object.keys(map);
+};
+webpackContext.resolve = webpackContextResolve;
+module.exports = webpackContext;
+webpackContext.id = "./src/metadata/render sync recursive ^\\.\\/.*\\.json$";
 
 /***/ }),
 
@@ -729,6 +1103,83 @@ webpackContext.keys = function webpackContextKeys() {
 webpackContext.resolve = webpackContextResolve;
 module.exports = webpackContext;
 webpackContext.id = "./src/metadata/tiles sync recursive ^\\.\\/.*\\.json$";
+
+/***/ }),
+
+/***/ "./src/metadata/render/Castle.json":
+/*!*****************************************!*\
+  !*** ./src/metadata/render/Castle.json ***!
+  \*****************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png"},{"name":"ground","imgsrc":"ground.png"},{"name":"river","imgsrc":"river.png"},{"name":"riverturn","imgsrc":"riverturn.png"},{"name":"road","imgsrc":"road.png"},{"name":"roadturn","imgsrc":"roadturn.png"},{"name":"t","imgsrc":"t.png"},{"name":"tower","imgsrc":"tower.png"},{"name":"wall","imgsrc":"wall.png"},{"name":"wallriver","imgsrc":"wallriver.png"},{"name":"wallroad","imgsrc":"wallroad.png"}]');
+
+/***/ }),
+
+/***/ "./src/metadata/render/Circles.json":
+/*!******************************************!*\
+  !*** ./src/metadata/render/Circles.json ***!
+  \******************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('[{"name":"b_half","imgsrc":"b_half.png"},{"name":"b_i","imgsrc":"b_i.png"},{"name":"b_quarter","imgsrc":"b_quarter.png"},{"name":"b","imgsrc":"b.png"},{"name":"w_half","imgsrc":"w_half.png"},{"name":"w_i","imgsrc":"w_i.png"},{"name":"w_quarter","imgsrc":"w_quarter.png"},{"name":"w","imgsrc":"w.png"}]');
+
+/***/ }),
+
+/***/ "./src/metadata/render/Circuit.json":
+/*!******************************************!*\
+  !*** ./src/metadata/render/Circuit.json ***!
+  \******************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png"},{"name":"connection","imgsrc":"connection.png"},{"name":"dskew","imgsrc":"dskew.png"},{"name":"skew","imgsrc":"skew.png"},{"name":"substrate","imgsrc":"substrate.png"},{"name":"t","imgsrc":"t.png"},{"name":"track","imgsrc":"track.png"},{"name":"transition","imgsrc":"transition.png"},{"name":"turn","imgsrc":"turn.png"},{"name":"viad","imgsrc":"viad.png"},{"name":"vias","imgsrc":"vias.png"},{"name":"wire","imgsrc":"wire.png"},{"name":"component","imgsrc":"component.png"},{"name":"corner","imgsrc":"corner.png"}]');
+
+/***/ }),
+
+/***/ "./src/metadata/render/FloorPlan.json":
+/*!********************************************!*\
+  !*** ./src/metadata/render/FloorPlan.json ***!
+  \********************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('[{"name":"div","imgsrc":"div.png"},{"name":"divt","imgsrc":"divt.png"},{"name":"divturn","imgsrc":"divturn.png"},{"name":"door","imgsrc":"door.png"},{"name":"empty","imgsrc":"empty.png"},{"name":"floor","imgsrc":"floor.png"},{"name":"glass","imgsrc":"glass.png"},{"name":"halfglass","imgsrc":"halfglass.png"},{"name":"halfglass2","imgsrc":"halfglass2.png"},{"name":"in","imgsrc":"in.png"},{"name":"out","imgsrc":"out.png"},{"name":"stairs","imgsrc":"stairs.png"},{"name":"table","imgsrc":"table.png"},{"name":"vent","imgsrc":"vent.png"},{"name":"w","imgsrc":"w.png"},{"name":"wall","imgsrc":"wall.png"},{"name":"walldiv","imgsrc":"walldiv.png"},{"name":"window","imgsrc":"window.png"}]');
+
+/***/ }),
+
+/***/ "./src/metadata/render/Knots.json":
+/*!****************************************!*\
+  !*** ./src/metadata/render/Knots.json ***!
+  \****************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('[{"name":"corner","imgsrc":"corner.png"},{"name":"cross","imgsrc":"cross.png"},{"name":"empty","imgsrc":"empty.png"},{"name":"line","imgsrc":"line.png"},{"name":"t","imgsrc":"t.png"}]');
+
+/***/ }),
+
+/***/ "./src/metadata/render/Rooms.json":
+/*!****************************************!*\
+  !*** ./src/metadata/render/Rooms.json ***!
+  \****************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('[{"name":"bend","imgsrc":"bend.png"},{"name":"corner","imgsrc":"corner.png"},{"name":"corridor","imgsrc":"corridor.png"},{"name":"door","imgsrc":"door.png"},{"name":"empty","imgsrc":"empty.png"},{"name":"side","imgsrc":"side.png"},{"name":"t","imgsrc":"t.png"},{"name":"turn","imgsrc":"turn.png"},{"name":"wall","imgsrc":"wall.png"}]');
+
+/***/ }),
+
+/***/ "./src/metadata/render/Summer.json":
+/*!*****************************************!*\
+  !*** ./src/metadata/render/Summer.json ***!
+  \*****************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('[{"name":"cliff 0","imgsrc":"cliff 0.png"},{"name":"cliff 1","imgsrc":"cliff 1.png"},{"name":"cliff 2","imgsrc":"cliff 2.png"},{"name":"cliff 3","imgsrc":"cliff 3.png"},{"name":"cliffcorner 0","imgsrc":"cliffcorner 0.png"},{"name":"cliffcorner 1","imgsrc":"cliffcorner 1.png"},{"name":"cliffcorner 2","imgsrc":"cliffcorner 2.png"},{"name":"cliffcorner 3","imgsrc":"cliffcorner 3.png"},{"name":"cliffturn 0","imgsrc":"cliffturn 0.png"},{"name":"cliffturn 1","imgsrc":"cliffturn 1.png"},{"name":"cliffturn 2","imgsrc":"cliffturn 2.png"},{"name":"cliffturn 3","imgsrc":"cliffturn 3.png"},{"name":"grass 0","imgsrc":"grass 0.png"},{"name":"grasscorner 0","imgsrc":"grasscorner 0.png"},{"name":"grasscorner 1","imgsrc":"grasscorner 1.png"},{"name":"grasscorner 2","imgsrc":"grasscorner 2.png"},{"name":"grasscorner 3","imgsrc":"grasscorner 3.png"},{"name":"road 0","imgsrc":"road 0.png"},{"name":"road 1","imgsrc":"road 1.png"},{"name":"road 2","imgsrc":"road 2.png"},{"name":"road 3","imgsrc":"road 3.png"},{"name":"roadturn 0","imgsrc":"roadturn 0.png"},{"name":"roadturn 1","imgsrc":"roadturn 1.png"},{"name":"roadturn 2","imgsrc":"roadturn 2.png"},{"name":"roadturn 3","imgsrc":"roadturn 3.png"},{"name":"water_a 0","imgsrc":"water_a 0.png"},{"name":"water_b 0","imgsrc":"water_b 0.png"},{"name":"water_c 0","imgsrc":"water_c 0.png"},{"name":"watercorner 0","imgsrc":"watercorner 0.png"},{"name":"watercorner 1","imgsrc":"watercorner 1.png"},{"name":"watercorner 2","imgsrc":"watercorner 2.png"},{"name":"watercorner 3","imgsrc":"watercorner 3.png"},{"name":"waterside 0","imgsrc":"waterside 0.png"},{"name":"waterside 1","imgsrc":"waterside 1.png"},{"name":"waterside 2","imgsrc":"waterside 2.png"},{"name":"waterside 3","imgsrc":"waterside 3.png"},{"name":"waterturn 0","imgsrc":"waterturn 0.png"},{"name":"waterturn 1","imgsrc":"waterturn 1.png"},{"name":"waterturn 2","imgsrc":"waterturn 2.png"},{"name":"waterturn 3","imgsrc":"waterturn 3.png"}]');
 
 /***/ }),
 
@@ -950,14 +1401,15 @@ var __webpack_exports__ = {};
   !*** ./src/index.ts ***!
   \**********************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
-/* harmony export */ });
-/* harmony import */ var _wfc__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./wfc */ "./src/wfc.ts");
+/* harmony import */ var _WFC__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./WFC */ "./src/WFC.ts");
+/* harmony import */ var _WFCRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./WFCRender */ "./src/WFCRender.ts");
 
-/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_wfc__WEBPACK_IMPORTED_MODULE_0__.WFC);
-window.getWFC = function getWFC(canvasId) {
-    return new _wfc__WEBPACK_IMPORTED_MODULE_0__.WFC(canvasId);
+
+window.getWFCRender = function getWFCRender(canvasId) {
+    return new _WFCRender__WEBPACK_IMPORTED_MODULE_1__.WFCRender(canvasId);
+};
+window.getWFC = function getWFC() {
+    return new _WFC__WEBPACK_IMPORTED_MODULE_0__.WFC();
 };
 
 })();

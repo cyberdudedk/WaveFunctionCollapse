@@ -1,0 +1,46 @@
+[
+    {
+        "name": "bridge",
+        "imgsrc": "bridge.png"
+    },
+    {
+        "name": "ground",
+        "imgsrc": "ground.png"
+    },
+    {
+        "name": "river",
+        "imgsrc": "river.png"
+    },
+    {
+        "name": "riverturn",
+        "imgsrc": "riverturn.png"
+    },
+    {
+        "name": "road",
+        "imgsrc": "road.png"
+    },
+    {
+        "name": "roadturn",
+        "imgsrc": "roadturn.png"
+    },
+    {
+        "name": "t",
+        "imgsrc": "t.png"
+    },
+    {
+        "name": "tower",
+        "imgsrc": "tower.png"
+    },
+    {
+        "name": "wall",
+        "imgsrc": "wall.png"
+    },
+    {
+        "name": "wallriver",
+        "imgsrc": "wallriver.png"
+    },
+    {
+        "name": "wallroad",
+        "imgsrc": "wallroad.png"
+    }
+]

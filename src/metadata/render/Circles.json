@@ -1,0 +1,34 @@
+[
+    {
+        "name": "b_half",
+        "imgsrc": "b_half.png"
+    },
+    {
+        "name": "b_i",
+        "imgsrc": "b_i.png"
+    },
+    {
+        "name": "b_quarter",
+        "imgsrc": "b_quarter.png"
+    },
+    {
+        "name": "b",
+        "imgsrc": "b.png"
+    },
+    {
+        "name": "w_half",
+        "imgsrc": "w_half.png"
+    },
+    {
+        "name": "w_i",
+        "imgsrc": "w_i.png"
+    },
+    {
+        "name": "w_quarter",
+        "imgsrc": "w_quarter.png"
+    },
+    {
+        "name": "w",
+        "imgsrc": "w.png"
+    }
+]

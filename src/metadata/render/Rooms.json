@@ -1,0 +1,38 @@
+[
+    {
+        "name": "bend",
+        "imgsrc": "bend.png"
+    },
+    {
+        "name": "corner",
+        "imgsrc": "corner.png"
+    },
+    {
+        "name": "corridor",
+        "imgsrc": "corridor.png"
+    },
+    {
+        "name": "door",
+        "imgsrc": "door.png"
+    },
+    {
+        "name": "empty",
+        "imgsrc": "empty.png"
+    },
+    {
+        "name": "side",
+        "imgsrc": "side.png"
+    },
+    {
+        "name": "t",
+        "imgsrc": "t.png"
+    },
+    {
+        "name": "turn",
+        "imgsrc": "turn.png"
+    },
+    {
+        "name": "wall",
+        "imgsrc": "wall.png"
+    }
+]

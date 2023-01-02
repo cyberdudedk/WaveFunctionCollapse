@@ -1,0 +1,162 @@
+[
+    {
+        "name": "cliff 0",
+        "imgsrc": "cliff 0.png"
+    },
+    {
+        "name": "cliff 1",
+        "imgsrc": "cliff 1.png"
+    },
+    {
+        "name": "cliff 2",
+        "imgsrc": "cliff 2.png"
+    },
+    {
+        "name": "cliff 3",
+        "imgsrc": "cliff 3.png"
+    },            
+    {
+        "name": "cliffcorner 0",
+        "imgsrc": "cliffcorner 0.png"
+    },
+    {
+        "name": "cliffcorner 1",
+        "imgsrc": "cliffcorner 1.png"
+    },
+    {
+        "name": "cliffcorner 2",
+        "imgsrc": "cliffcorner 2.png"
+    },
+    {
+        "name": "cliffcorner 3",
+        "imgsrc": "cliffcorner 3.png"
+    },
+    {
+        "name": "cliffturn 0",
+        "imgsrc": "cliffturn 0.png"
+    },
+    {
+        "name": "cliffturn 1",
+        "imgsrc": "cliffturn 1.png"
+    },
+    {
+        "name": "cliffturn 2",
+        "imgsrc": "cliffturn 2.png"
+    },
+    {
+        "name": "cliffturn 3",
+        "imgsrc": "cliffturn 3.png"
+    },
+    {
+        "name": "grass 0",
+        "imgsrc": "grass 0.png"
+    },
+    {
+        "name": "grasscorner 0",
+        "imgsrc": "grasscorner 0.png"
+    },
+    {
+        "name": "grasscorner 1",
+        "imgsrc": "grasscorner 1.png"
+    },
+    {
+        "name": "grasscorner 2",
+        "imgsrc": "grasscorner 2.png"
+    },
+    {
+        "name": "grasscorner 3",
+        "imgsrc": "grasscorner 3.png"
+    },
+    {
+        "name": "road 0",
+        "imgsrc": "road 0.png"
+    },
+    {
+        "name": "road 1",
+        "imgsrc": "road 1.png"
+    },
+    {
+        "name": "road 2",
+        "imgsrc": "road 2.png"
+    },
+    {
+        "name": "road 3",
+        "imgsrc": "road 3.png"
+    },
+    {
+        "name": "roadturn 0",
+        "imgsrc": "roadturn 0.png"
+    },
+    {
+        "name": "roadturn 1",
+        "imgsrc": "roadturn 1.png"
+    },
+    {
+        "name": "roadturn 2",
+        "imgsrc": "roadturn 2.png"
+    },
+    {
+        "name": "roadturn 3",
+        "imgsrc": "roadturn 3.png"
+    },
+    {
+        "name": "water_a 0",
+        "imgsrc": "water_a 0.png"
+    },
+    {
+        "name": "water_b 0",
+        "imgsrc": "water_b 0.png"
+    },
+    {
+        "name": "water_c 0",
+        "imgsrc": "water_c 0.png"
+    },
+    {
+        "name": "watercorner 0",
+        "imgsrc": "watercorner 0.png"
+    },
+    {
+        "name": "watercorner 1",
+        "imgsrc": "watercorner 1.png"
+    },
+    {
+        "name": "watercorner 2",
+        "imgsrc": "watercorner 2.png"
+    },
+    {
+        "name": "watercorner 3",
+        "imgsrc": "watercorner 3.png"
+    },
+    {
+        "name": "waterside 0",
+        "imgsrc": "waterside 0.png"
+    },
+    {
+        "name": "waterside 1",
+        "imgsrc": "waterside 1.png"
+    },
+    {
+        "name": "waterside 2",
+        "imgsrc": "waterside 2.png"
+    },
+    {
+        "name": "waterside 3",
+        "imgsrc": "waterside 3.png"
+    },
+    {
+        "name": "waterturn 0",
+        "imgsrc": "waterturn 0.png"
+    },
+    {
+        "name": "waterturn 1",
+        "imgsrc": "waterturn 1.png"
+    },
+    {
+        "name": "waterturn 2",
+        "imgsrc": "waterturn 2.png"
+    },
+    {
+        "name": "waterturn 3",
+        "imgsrc": "waterturn 3.png"
+    }
+]

@@ -1,7 +1,10 @@
-import { WFC } from './wfc';
+import { WFC } from './WFC';
+import { WFCRender } from "./WFCRender";
 
-export default WFC;
+(<any>window).getWFCRender = function getWFCRender(canvasId: string) {
+    return new WFCRender(canvasId);
+};
 
-(<any>window).getWFC = function getWFC(canvasId: string) {
-    return new WFC(canvasId);
-}
+(<any>window).getWFC = function getWFC() {
+    return new WFC();
+};
