@@ -2,12 +2,12 @@ import { SuperImposedState } from './SuperImposedState';
 import { WFCConfig } from './WFCConfig';
 import { WFCData } from './WFCData';
 import { WFCRunner } from './WFCRunner';
-import { WFC } from './WFC';
+import { WFCTiles } from './WFCTiles';
 
 
 export class WFCRender {
     public config: WFCConfig = new WFCConfig();
-    public wfc: WFC = new WFC();
+    public wfc: WFCTiles = new WFCTiles();
     public wfcRunner!: WFCRunner;
 
     //Rendering stuff

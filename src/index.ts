@@ -1,4 +1,4 @@
-import { WFC } from './WFC';
+import { WFCTiles } from './WFCTiles';
 import { WFCRender } from "./WFCRender";
 
 (<any>window).getWFCRender = function getWFCRender(canvasId: string) {
@@ -6,5 +6,5 @@ import { WFCRender } from "./WFCRender";
 };
 
 (<any>window).getWFC = function getWFC() {
-    return new WFC();
+    return new WFCTiles();
 };

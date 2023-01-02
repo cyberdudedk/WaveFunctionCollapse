@@ -142,8 +142,9 @@ class WFC {
                     if (!isNaN(Number(direction)))
                         return;
                     let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
-                    let rotationMoved = (index - rotation + directionsCount) % directionsCount;
-                    let flipped = index >= (directionsCount / 2);
+                    let directionIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[direction];
+                    let rotationMoved = (directionIndex - rotation + directionsCount) % directionsCount;
+                    let flipped = directionIndex >= (directionsCount / 2);
                     let sockets = pieceSockets[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved]];
                     (Array.isArray(sockets) ? sockets : [sockets]).forEach((socket) => {
                         (socketMatchObject[direction] || (socketMatchObject[direction] = [])).push(flipped ? socket.split("").reverse().join("") : socket);
@@ -205,6 +206,7 @@ class WFC {
                 });
             }
         });
+        console.log('mappedPieces', mappedPieces);
         this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair) => {
             let piece = piecePair[1];
             if (currentSet[piece.name] == undefined) {
@@ -247,10 +249,12 @@ class WFC {
                 if (Array.isArray(piece.weight)) {
                     weight = (_b = weight[rotation]) !== null && _b !== void 0 ? _b : 1;
                 }
+                console.log('newValid', piece.newValid);
                 piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, piece.newValid, weight);
             });
             return piecesMap;
         }, {});
+        console.log(this.piecesMap);
         return true;
     }
     reset() {
@@ -338,7 +342,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./SuperImposedState */ "./src/SuperImposedState.ts");
 /* harmony import */ var _WFCConfig__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./WFCConfig */ "./src/WFCConfig.ts");
 /* harmony import */ var _WFCRunner__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCRunner */ "./src/WFCRunner.ts");
-/* harmony import */ var _wfc__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./wfc */ "./src/wfc.ts");
+/* harmony import */ var _WFC__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFC */ "./src/WFC.ts");
 
 
 
@@ -346,7 +350,7 @@ __webpack_require__.r(__webpack_exports__);
 class WFCRender {
     constructor(canvasId) {
         this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_1__.WFCConfig();
-        this.wfc = new _wfc__WEBPACK_IMPORTED_MODULE_3__.WFC();
+        this.wfc = new _WFC__WEBPACK_IMPORTED_MODULE_3__.WFC();
         this.halfScaleHeight = this.config.tileScale / 2;
         this.halfScaleWidth = this.config.tileScale / 2;
         this.imagesMap = {};
@@ -389,7 +393,7 @@ class WFCRender {
     async init(config) {
         console.clear();
         this.config = config;
-        this.wfc = new _wfc__WEBPACK_IMPORTED_MODULE_3__.WFC();
+        this.wfc = new _WFC__WEBPACK_IMPORTED_MODULE_3__.WFC();
         this.wfc.init(config);
         this.wfcRunner = new _WFCRunner__WEBPACK_IMPORTED_MODULE_2__.WFCRunner(config, this.wfc, this.wfcCallback);
         await this.initImageData();
@@ -792,206 +796,6 @@ class WFCRunner {
 
 /***/ }),
 
-/***/ "./src/wfc.ts":
-/*!********************!*\
-  !*** ./src/wfc.ts ***!
-  \********************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "WFC": () => (/* binding */ WFC)
-/* harmony export */ });
-/* harmony import */ var _Direction__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Direction */ "./src/Direction.ts");
-/* harmony import */ var _PieceObject__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./PieceObject */ "./src/PieceObject.ts");
-/* harmony import */ var _WFCConfig__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCConfig */ "./src/WFCConfig.ts");
-/* harmony import */ var _WFCData__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCData */ "./src/WFCData.ts");
-
-
-
-
-class WFC {
-    constructor() {
-        this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
-        this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_2__.WFCConfig();
-        this.piecesMap = {};
-        this.tiles = [];
-    }
-    async init(config) {
-        console.clear();
-        this.config = config;
-        this.loadTiles();
-    }
-    loadTiles() {
-        this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
-        this.wfcData.tilePieces = {};
-        this.wfcData.tileSets = {};
-        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms", "Summer"];
-        for (let tileIndex in tileNames) {
-            const tile = tileNames[tileIndex];
-            this.wfcData.tilePieces[tile] = __webpack_require__("./src/metadata/tiles sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
-            this.wfcData.tileSets[tile] = __webpack_require__("./src/metadata/sets sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
-        }
-    }
-    async initTileData() {
-        let pieces = this.wfcData.tilePieces[this.config.tileName];
-        let sets = this.wfcData.tileSets[this.config.tileName];
-        let currentSet = sets[this.config.set];
-        Object.entries(currentSet).forEach((value) => {
-            let pieceName = value[0];
-            let properties = value[1];
-            if (properties.rotations != undefined) {
-                pieces.find(x => x.name == pieceName).rotations = properties.rotations;
-            }
-            if (properties.weight != undefined) {
-                pieces.find(x => x.name == pieceName).weight = properties.weight;
-            }
-        });
-        let mappedPieces = pieces.reduce((piecesMap, piece) => {
-            if (currentSet[piece.name] == undefined) {
-                return piecesMap;
-            }
-            let pieceSockets = piece.socket;
-            piece.socketmatching = {};
-            piece.blacklistedNeighbors = {};
-            piece.rotations.forEach((rotation) => {
-                let socketMatchObject = {};
-                let blacklistedNeighbors = {};
-                Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).forEach((direction, index) => {
-                    if (!isNaN(Number(direction)))
-                        return;
-                    let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
-                    let rotationMoved = (index - rotation + directionsCount) % directionsCount;
-                    let flipped = index >= (directionsCount / 2);
-                    let sockets = pieceSockets[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved]];
-                    (Array.isArray(sockets) ? sockets : [sockets]).forEach((socket) => {
-                        (socketMatchObject[direction] || (socketMatchObject[direction] = [])).push(flipped ? socket.split("").reverse().join("") : socket);
-                    });
-                });
-                if (piece.blacklist) {
-                    Object.entries(piece.blacklist).forEach((blacklist) => {
-                        let blackListDirection = blacklist[0];
-                        let blackListValue = blacklist[1];
-                        let blackListIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[blackListDirection];
-                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
-                        let rotationBlacklistingIndex = (blackListIndex + rotation) % directionsCount;
-                        let rotationBlacklisting = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationBlacklistingIndex];
-                        Object.entries(blackListValue).forEach((blacklistPiece) => {
-                            let blackListPieceName = blacklistPiece[0];
-                            let blackListPieceRotations = blacklistPiece[1];
-                            blackListPieceRotations.forEach((blackListPieceRotation) => {
-                                let blackListPieceNameWithRotation = blackListPieceName + "_" + (blackListPieceRotation + rotation) % directionsCount;
-                                if (blacklistedNeighbors[rotationBlacklisting] == undefined) {
-                                    blacklistedNeighbors[rotationBlacklisting] = [];
-                                }
-                                blacklistedNeighbors[rotationBlacklisting].push(blackListPieceNameWithRotation);
-                            });
-                        });
-                    });
-                }
-                piece.blacklistedNeighbors[rotation] = blacklistedNeighbors;
-                piece.socketmatching[rotation] = socketMatchObject;
-            });
-            piecesMap[piece.name] = piece;
-            return piecesMap;
-        }, {});
-        let socketBuckets = {};
-        Object.entries(mappedPieces).forEach((mappedPieceValue) => {
-            let pieceName = mappedPieceValue[0];
-            let piece = mappedPieceValue[1];
-            if (piece.socketmatching != undefined) {
-                Object.entries(piece.socketmatching).forEach((socketMatchValue) => {
-                    let socketDirection = parseInt(socketMatchValue[0]);
-                    let socketMatch = socketMatchValue[1];
-                    Object.entries(socketMatch).forEach((socket) => {
-                        let socketDirectionInner = socket[0];
-                        let socketMatchInnerValueArray = socket[1];
-                        let socketDirectionInnerIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[socketDirectionInner];
-                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
-                        let socketDirectionPolarIndex = (socketDirectionInnerIndex + directionsCount / 2) % directionsCount;
-                        let socketDirectionPolar = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[socketDirectionPolarIndex];
-                        socketMatchInnerValueArray.forEach((socketMatchInnerValue) => {
-                            if (socketBuckets[socketMatchInnerValue] == undefined) {
-                                let innerObject = {};
-                                socketBuckets[socketMatchInnerValue] = innerObject;
-                            }
-                            if (socketBuckets[socketMatchInnerValue][socketDirectionPolar] == undefined) {
-                                socketBuckets[socketMatchInnerValue][socketDirectionPolar] = [];
-                            }
-                            socketBuckets[socketMatchInnerValue][socketDirectionPolar].push(pieceName + "_" + socketDirection);
-                        });
-                    });
-                });
-            }
-        });
-        this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair) => {
-            let piece = piecePair[1];
-            if (currentSet[piece.name] == undefined) {
-                return piecesMap;
-            }
-            if (piece.rotations == undefined) {
-                piece.rotations = [0];
-            }
-            piece.rotations.forEach((rotation) => {
-                var _a, _b;
-                let pieceName = piece.name + "_" + rotation;
-                let validNeighbors = {
-                    top: [],
-                    right: [],
-                    bottom: [],
-                    left: []
-                };
-                if (piece.socketmatching != undefined) {
-                    if (piece.socketmatching[rotation] != undefined) {
-                        let socketMatch = piece.socketmatching[rotation];
-                        Object.entries(socketMatch).forEach((socketPair) => {
-                            let socketDirection = socketPair[0];
-                            let sockets = socketPair[1];
-                            sockets.forEach((socket) => {
-                                if (socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
-                                    let validPiecesForSocket = socketBuckets[socket][socketDirection];
-                                    validPiecesForSocket.forEach((validPiece) => {
-                                        var _a;
-                                        let blackList = (_a = piece.blacklistedNeighbors[rotation][socketDirection]) !== null && _a !== void 0 ? _a : [];
-                                        if (!validNeighbors[socketDirection].includes(validPiece) && !blackList.includes(validPiece)) {
-                                            validNeighbors[socketDirection].push(validPiece);
-                                        }
-                                    });
-                                }
-                            });
-                        });
-                    }
-                }
-                let weight = (_a = piece.weight) !== null && _a !== void 0 ? _a : 1;
-                if (Array.isArray(piece.weight)) {
-                    weight = (_b = weight[rotation]) !== null && _b !== void 0 ? _b : 1;
-                }
-                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, piece.newValid, weight);
-            });
-            return piecesMap;
-        }, {});
-        return true;
-    }
-    reset() {
-        let piecesKeys = Object.keys(this.piecesMap);
-        let startingTile = {
-            validPieces: piecesKeys,
-        };
-        this.tiles = Array.from({ length: this.config.tilesWidth }, (a, x) => {
-            return Array.from({ length: this.config.tilesHeight }, (b, y) => {
-                return {
-                    position: { x: x, y: y },
-                    validPieces: [...startingTile.validPieces]
-                };
-            });
-        });
-    }
-}
-
-
-/***/ }),
-
 /***/ "./src/metadata/render sync recursive ^\\.\\/.*\\.json$":
 /*!**************************************************!*\
   !*** ./src/metadata/render/ sync ^\.\/.*\.json$ ***!
@@ -1267,7 +1071,7 @@ module.exports = JSON.parse('{"all":{"cliff 0":{},"cliff 1":{},"cliff 2":{},"cli
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png","rotations":[0,1],"weight":2,"socket":{"top":"010","right":"020","bottom":"010","left":"020"}},{"name":"ground","imgsrc":"ground.png","rotations":[0],"weight":3,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"river","imgsrc":"river.png","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"riverturn","imgsrc":"riverturn.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"road","imgsrc":"road.png","rotations":[0,1],"weight":3,"socket":{"top":"020","right":"000","bottom":"020","left":"000"}},{"name":"roadturn","imgsrc":"roadturn.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"020","right":"020","bottom":"000","left":"000"}},{"name":"t","imgsrc":"t.png","rotations":[0,1,2,3],"weight":2,"socket":{"top":"000","right":"020","bottom":"020","left":"020"}},{"name":"tower","imgsrc":"tower.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":["030"],"right":["030"],"bottom":["000"],"left":["000"]},"blacklist":{"bottom":{"tower":[0,1,2,3],"wall":[1,3]},"right":{"tower":[0,1,2,3],"wall":[0,2]},"top":{"tower":[0,1,2,3],"wall":[1,3]},"left":{"tower":[0,1,2,3],"wall":[0,2]}}},{"name":"wall","imgsrc":"wall.png","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"000","bottom":"030","left":"000"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}},{"name":"wallriver","imgsrc":"wallriver.png","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"010","bottom":"030","left":"010"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}},{"name":"wallroad","imgsrc":"wallroad.png","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"020","bottom":"030","left":"020"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}}]');
+module.exports = JSON.parse('[{"name":"bridge","rotations":[0,1],"weight":2,"socket":{"top":"010","right":"020","bottom":"010","left":"020"}},{"name":"ground","rotations":[0],"weight":3,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"river","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"riverturn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"road","rotations":[0,1],"weight":3,"socket":{"top":"020","right":"000","bottom":"020","left":"000"}},{"name":"roadturn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"020","right":"020","bottom":"000","left":"000"}},{"name":"t","rotations":[0,1,2,3],"weight":2,"socket":{"top":"000","right":"020","bottom":"020","left":"020"}},{"name":"tower","rotations":[0,1,2,3],"weight":1,"socket":{"top":["030"],"right":["030"],"bottom":["000"],"left":["000"]},"blacklist":{"bottom":{"tower":[0,1,2,3],"wall":[1,3]},"right":{"tower":[0,1,2,3],"wall":[0,2]},"top":{"tower":[0,1,2,3],"wall":[1,3]},"left":{"tower":[0,1,2,3],"wall":[0,2]}}},{"name":"wall","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"000","bottom":"030","left":"000"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}},{"name":"wallriver","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"010","bottom":"030","left":"010"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}},{"name":"wallroad","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"020","bottom":"030","left":"020"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}}]');
 
 /***/ }),
 
@@ -1278,7 +1082,7 @@ module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png","rotations"
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"b_half","imgsrc":"b_half.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"011","bottom":"111","left":"110"}},{"name":"b_i","imgsrc":"b_i.png","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"b_quarter","imgsrc":"b_quarter.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"000","bottom":"111","left":"111"}},{"name":"b","imgsrc":"b.png","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"w_half","imgsrc":"w_half.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"100","bottom":"000","left":"001"}},{"name":"w_i","imgsrc":"w_i.png","rotations":[0,1],"weight":1,"socket":{"top":"111","right":"101","bottom":"111","left":"101"}},{"name":"w_quarter","imgsrc":"w_quarter.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"111","bottom":"000","left":"000"}},{"name":"w","imgsrc":"w.png","rotations":[0],"weight":1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}}]');
+module.exports = JSON.parse('[{"name":"b_half","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"011","bottom":"111","left":"110"}},{"name":"b_i","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"b_quarter","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"000","bottom":"111","left":"111"}},{"name":"b","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"w_half","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"100","bottom":"000","left":"001"}},{"name":"w_i","rotations":[0,1],"weight":1,"socket":{"top":"111","right":"101","bottom":"111","left":"101"}},{"name":"w_quarter","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"111","bottom":"000","left":"000"}},{"name":"w","rotations":[0],"weight":1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}}]');
 
 /***/ }),
 
@@ -1289,7 +1093,7 @@ module.exports = JSON.parse('[{"name":"b_half","imgsrc":"b_half.png","rotations"
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"020","bottom":"010","left":"020"}},{"name":"connection","imgsrc":"connection.png","rotations":[0,1,2,3],"weight":3,"socket":{"top":"010","right":"003","bottom":"333","left":"300"},"blacklist":{"bottom":{"connection":[2]}}},{"name":"dskew","imgsrc":"dskew.png","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"skew","imgsrc":"skew.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"substrate","imgsrc":"substrate.png","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"t","imgsrc":"t.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}},{"name":"track","imgsrc":"track.png","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"transition","imgsrc":"transition.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"020","right":"000","bottom":"010","left":"000"}},{"name":"turn","imgsrc":"turn.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"viad","imgsrc":"viad.png","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"vias","imgsrc":"vias.png","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"000","left":"000"}},{"name":"wire","imgsrc":"wire.png","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"020","bottom":"000","left":"020"}},{"name":"component","imgsrc":"component.png","rotations":[0],"weight":1,"socket":{"top":"333","right":"333","bottom":"333","left":"333"}},{"name":"corner","imgsrc":"corner.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"000","bottom":"003","left":"300"}}]');
+module.exports = JSON.parse('[{"name":"bridge","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"020","bottom":"010","left":"020"}},{"name":"connection","rotations":[0,1,2,3],"weight":3,"socket":{"top":"010","right":"003","bottom":"333","left":"300"},"blacklist":{"bottom":{"connection":[2]}}},{"name":"dskew","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"skew","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"substrate","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}},{"name":"track","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"transition","rotations":[0,1,2,3],"weight":1,"socket":{"top":"020","right":"000","bottom":"010","left":"000"}},{"name":"turn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"viad","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"vias","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"000","left":"000"}},{"name":"wire","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"020","bottom":"000","left":"020"}},{"name":"component","rotations":[0],"weight":1,"socket":{"top":"333","right":"333","bottom":"333","left":"333"}},{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"000","bottom":"003","left":"300"}}]');
 
 /***/ }),
 
@@ -1300,7 +1104,7 @@ module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png","rotations"
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"div","imgsrc":"div.png","rotations":[0,1],"weight":0.5,"socket":{"top":"111","right":"121","bottom":"111","left":"121"}},{"name":"divt","imgsrc":"divt.png","rotations":[0,1,2,3],"weight":0.5,"socket":{"top":"111","right":"121","bottom":"121","left":"121"}},{"name":"divturn","imgsrc":"divturn.png","rotations":[0,1,2,3],"weight":0.5,"socket":{"top":"121","right":"121","bottom":"111","left":"111"}},{"name":"door","imgsrc":"door.png","rotations":[0,1,2,3],"weight":0.2,"socket":{"top":"111","right":"121","bottom":"111","left":"121"}},{"name":"empty","imgsrc":"empty.png","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"floor","imgsrc":"floor.png","rotations":[0],"weight":3,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"glass","imgsrc":"glass.png","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"130","bottom":"000","left":"031"}},{"name":"halfglass","imgsrc":"halfglass.png","rotations":[0,1,2,3],"weight":0.3,"socket":{"top":"111","right":"130","bottom":"000","left":"021"}},{"name":"halfglass2","imgsrc":"halfglass2.png","rotations":[0,1,2,3],"weight":0.3,"socket":{"top":"111","right":"120","bottom":"000","left":"031"}},{"name":"in","imgsrc":"in.png","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"120","left":"021"}},{"name":"out","imgsrc":"out.png","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"021","right":"120","bottom":"000","left":"000"}},{"name":"stairs","imgsrc":"stairs.png","rotations":[0,1,2,3],"weight":0.2,"socket":{"top":"111","right":"121","bottom":"222","left":"121"}},{"name":"table","imgsrc":"table.png","rotations":[0],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"vent","imgsrc":"vent.png","rotations":[0],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"w","imgsrc":"w.png","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}},{"name":"wall","imgsrc":"wall.png","rotations":[0,1,2,3],"weight":0.25,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}},{"name":"walldiv","imgsrc":"walldiv.png","rotations":[0,1,2,3],"weight":0.25,"socket":{"top":"121","right":"120","bottom":"000","left":"021"}},{"name":"window","imgsrc":"window.png","rotations":[0,1,2,3],"weight":0.05,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}}]');
+module.exports = JSON.parse('[{"name":"div","rotations":[0,1],"weight":0.5,"socket":{"top":"111","right":"121","bottom":"111","left":"121"}},{"name":"divt","rotations":[0,1,2,3],"weight":0.5,"socket":{"top":"111","right":"121","bottom":"121","left":"121"}},{"name":"divturn","rotations":[0,1,2,3],"weight":0.5,"socket":{"top":"121","right":"121","bottom":"111","left":"111"}},{"name":"door","rotations":[0,1,2,3],"weight":0.2,"socket":{"top":"111","right":"121","bottom":"111","left":"121"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"floor","rotations":[0],"weight":3,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"glass","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"130","bottom":"000","left":"031"}},{"name":"halfglass","rotations":[0,1,2,3],"weight":0.3,"socket":{"top":"111","right":"130","bottom":"000","left":"021"}},{"name":"halfglass2","rotations":[0,1,2,3],"weight":0.3,"socket":{"top":"111","right":"120","bottom":"000","left":"031"}},{"name":"in","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"120","left":"021"}},{"name":"out","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"021","right":"120","bottom":"000","left":"000"}},{"name":"stairs","rotations":[0,1,2,3],"weight":0.2,"socket":{"top":"111","right":"121","bottom":"222","left":"121"}},{"name":"table","rotations":[0],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"vent","rotations":[0],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"w","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}},{"name":"wall","rotations":[0,1,2,3],"weight":0.25,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}},{"name":"walldiv","rotations":[0,1,2,3],"weight":0.25,"socket":{"top":"121","right":"120","bottom":"000","left":"021"}},{"name":"window","rotations":[0,1,2,3],"weight":0.05,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}}]');
 
 /***/ }),
 
@@ -1311,7 +1115,7 @@ module.exports = JSON.parse('[{"name":"div","imgsrc":"div.png","rotations":[0,1]
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"corner","imgsrc":"corner.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"cross","imgsrc":"cross.png","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"empty","imgsrc":"empty.png","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"line","imgsrc":"line.png","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"t","imgsrc":"t.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}}]');
+module.exports = JSON.parse('[{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"cross","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"line","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}}]');
 
 /***/ }),
 
@@ -1322,7 +1126,7 @@ module.exports = JSON.parse('[{"name":"corner","imgsrc":"corner.png","rotations"
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"bend","imgsrc":"bend.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"100","right":"001","bottom":"111","left":"111"}},{"name":"corner","imgsrc":"corner.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"001","right":"100","bottom":"000","left":"000"}},{"name":"corridor","imgsrc":"corridor.png","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"door","imgsrc":"door.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"100","bottom":"010","left":"001"}},{"name":"empty","imgsrc":"empty.png","rotations":[0],"weight":1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"side","imgsrc":"side.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"001","bottom":"111","left":"100"}},{"name":"t","imgsrc":"t.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}},{"name":"turn","imgsrc":"turn.png","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"wall","imgsrc":"wall.png","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}}]');
+module.exports = JSON.parse('[{"name":"bend","rotations":[0,1,2,3],"weight":1,"socket":{"top":"100","right":"001","bottom":"111","left":"111"}},{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"001","right":"100","bottom":"000","left":"000"}},{"name":"corridor","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"door","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"100","bottom":"010","left":"001"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"side","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"001","bottom":"111","left":"100"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}},{"name":"turn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"wall","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}}]');
 
 /***/ }),
 
@@ -1333,7 +1137,7 @@ module.exports = JSON.parse('[{"name":"bend","imgsrc":"bend.png","rotations":[0,
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"cliff 0","imgsrc":"cliff 0.png","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"040","bottom":"000","left":"040"}},{"name":"cliff 1","imgsrc":"cliff 1.png","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"040","left":"000"}},{"name":"cliff 2","imgsrc":"cliff 2.png","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"030","bottom":"000","left":"030"}},{"name":"cliff 3","imgsrc":"cliff 3.png","rotations":[0],"weight":0.1,"socket":{"top":"030","right":"000","bottom":"030","left":"000"}},{"name":"cliffcorner 0","imgsrc":"cliffcorner 0.png","rotations":[0],"weight":0.1,"socket":{"top":"030","right":"030","bottom":"000","left":"000"}},{"name":"cliffcorner 1","imgsrc":"cliffcorner 1.png","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"000","left":"030"}},{"name":"cliffcorner 2","imgsrc":"cliffcorner 2.png","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"000","bottom":"030","left":"040"}},{"name":"cliffcorner 3","imgsrc":"cliffcorner 3.png","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"040","bottom":"040","left":"000"}},{"name":"cliffturn 0","imgsrc":"cliffturn 0.png","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"040","bottom":"000","left":"000"}},{"name":"cliffturn 1","imgsrc":"cliffturn 1.png","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"000","left":"040"}},{"name":"cliffturn 2","imgsrc":"cliffturn 2.png","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"000","bottom":"030","left":"030"}},{"name":"cliffturn 3","imgsrc":"cliffturn 3.png","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"030","bottom":"030","left":"000"}},{"name":"grass 0","imgsrc":"grass 0.png","rotations":[0],"weight":2,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"grasscorner 0","imgsrc":"grasscorner 0.png","rotations":[0],"weight":0.4,"socket":{"top":"110","right":"011","bottom":"111","left":"111"}},{"name":"grasscorner 1","imgsrc":"grasscorner 1.png","rotations":[0],"weight":0.4,"socket":{"top":"011","right":"111","bottom":"111","left":"110"}},{"name":"grasscorner 2","imgsrc":"grasscorner 2.png","rotations":[0],"weight":0.4,"socket":{"top":"111","right":"111","bottom":"110","left":"011"}},{"name":"grasscorner 3","imgsrc":"grasscorner 3.png","rotations":[0],"weight":0.4,"socket":{"top":"111","right":"110","bottom":"011","left":"111"}},{"name":"road 0","imgsrc":"road 0.png","rotations":[0],"weight":0.7,"socket":{"top":"111","right":"110","bottom":"000","left":"011"}},{"name":"road 1","imgsrc":"road 1.png","rotations":[0],"weight":0.7,"socket":{"top":"110","right":"000","bottom":"011","left":"111"}},{"name":"road 2","imgsrc":"road 2.png","rotations":[0],"weight":0.7,"socket":{"top":"000","right":"011","bottom":"111","left":"110"}},{"name":"road 3","imgsrc":"road 3.png","rotations":[0],"weight":0.7,"socket":{"top":"011","right":"111","bottom":"110","left":"000"}},{"name":"roadturn 0","imgsrc":"roadturn 0.png","rotations":[0],"weight":0.2,"socket":{"top":"011","right":"110","bottom":"000","left":"000"}},{"name":"roadturn 1","imgsrc":"roadturn 1.png","rotations":[0],"weight":0.2,"socket":{"top":"110","right":"000","bottom":"000","left":"011"}},{"name":"roadturn 2","imgsrc":"roadturn 2.png","rotations":[0],"weight":0.2,"socket":{"top":"000","right":"000","bottom":"011","left":"110"}},{"name":"roadturn 3","imgsrc":"roadturn 3.png","rotations":[0],"weight":0.2,"socket":{"top":"000","right":"011","bottom":"110","left":"000"}},{"name":"water_a 0","imgsrc":"water_a 0.png","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"water_b 0","imgsrc":"water_b 0.png","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"water_c 0","imgsrc":"water_c 0.png","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"watercorner 0","imgsrc":"watercorner 0.png","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"230","bottom":"000","left":"000"}},{"name":"watercorner 1","imgsrc":"watercorner 1.png","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"000","bottom":"000","left":"032"}},{"name":"watercorner 2","imgsrc":"watercorner 2.png","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"000","bottom":"032","left":"230"}},{"name":"watercorner 3","imgsrc":"watercorner 3.png","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"032","bottom":"230","left":"000"}},{"name":"waterside 0","imgsrc":"waterside 0.png","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"230","bottom":"000","left":"032"}},{"name":"waterside 1","imgsrc":"waterside 1.png","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"000","bottom":"032","left":"222"}},{"name":"waterside 2","imgsrc":"waterside 2.png","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"032","bottom":"222","left":"230"}},{"name":"waterside 3","imgsrc":"waterside 3.png","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"222","bottom":"230","left":"000"}},{"name":"waterturn 0","imgsrc":"waterturn 0.png","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"230","left":"032"}},{"name":"waterturn 1","imgsrc":"waterturn 1.png","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"230","bottom":"032","left":"222"}},{"name":"waterturn 2","imgsrc":"waterturn 2.png","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"032","bottom":"222","left":"222"}},{"name":"waterturn 3","imgsrc":"waterturn 3.png","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"222","bottom":"222","left":"230"}}]');
+module.exports = JSON.parse('[{"name":"cliff 0","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"040","bottom":"000","left":"040"}},{"name":"cliff 1","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"040","left":"000"}},{"name":"cliff 2","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"030","bottom":"000","left":"030"}},{"name":"cliff 3","rotations":[0],"weight":0.1,"socket":{"top":"030","right":"000","bottom":"030","left":"000"}},{"name":"cliffcorner 0","rotations":[0],"weight":0.1,"socket":{"top":"030","right":"030","bottom":"000","left":"000"}},{"name":"cliffcorner 1","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"000","left":"030"}},{"name":"cliffcorner 2","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"000","bottom":"030","left":"040"}},{"name":"cliffcorner 3","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"040","bottom":"040","left":"000"}},{"name":"cliffturn 0","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"040","bottom":"000","left":"000"}},{"name":"cliffturn 1","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"000","left":"040"}},{"name":"cliffturn 2","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"000","bottom":"030","left":"030"}},{"name":"cliffturn 3","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"030","bottom":"030","left":"000"}},{"name":"grass 0","rotations":[0],"weight":2,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"grasscorner 0","rotations":[0],"weight":0.4,"socket":{"top":"110","right":"011","bottom":"111","left":"111"}},{"name":"grasscorner 1","rotations":[0],"weight":0.4,"socket":{"top":"011","right":"111","bottom":"111","left":"110"}},{"name":"grasscorner 2","rotations":[0],"weight":0.4,"socket":{"top":"111","right":"111","bottom":"110","left":"011"}},{"name":"grasscorner 3","rotations":[0],"weight":0.4,"socket":{"top":"111","right":"110","bottom":"011","left":"111"}},{"name":"road 0","rotations":[0],"weight":0.7,"socket":{"top":"111","right":"110","bottom":"000","left":"011"}},{"name":"road 1","rotations":[0],"weight":0.7,"socket":{"top":"110","right":"000","bottom":"011","left":"111"}},{"name":"road 2","rotations":[0],"weight":0.7,"socket":{"top":"000","right":"011","bottom":"111","left":"110"}},{"name":"road 3","rotations":[0],"weight":0.7,"socket":{"top":"011","right":"111","bottom":"110","left":"000"}},{"name":"roadturn 0","rotations":[0],"weight":0.2,"socket":{"top":"011","right":"110","bottom":"000","left":"000"}},{"name":"roadturn 1","rotations":[0],"weight":0.2,"socket":{"top":"110","right":"000","bottom":"000","left":"011"}},{"name":"roadturn 2","rotations":[0],"weight":0.2,"socket":{"top":"000","right":"000","bottom":"011","left":"110"}},{"name":"roadturn 3","rotations":[0],"weight":0.2,"socket":{"top":"000","right":"011","bottom":"110","left":"000"}},{"name":"water_a 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"water_b 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"water_c 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"watercorner 0","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"230","bottom":"000","left":"000"}},{"name":"watercorner 1","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"000","bottom":"000","left":"032"}},{"name":"watercorner 2","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"000","bottom":"032","left":"230"}},{"name":"watercorner 3","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"032","bottom":"230","left":"000"}},{"name":"waterside 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"230","bottom":"000","left":"032"}},{"name":"waterside 1","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"000","bottom":"032","left":"222"}},{"name":"waterside 2","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"032","bottom":"222","left":"230"}},{"name":"waterside 3","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"222","bottom":"230","left":"000"}},{"name":"waterturn 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"230","left":"032"}},{"name":"waterturn 1","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"230","bottom":"032","left":"222"}},{"name":"waterturn 2","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"032","bottom":"222","left":"222"}},{"name":"waterturn 3","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"222","bottom":"222","left":"230"}}]');
 
 /***/ })
 

@@ -1,10 +1,10 @@
 import { WFCConfig } from './WFCConfig';
-import { WFC } from './WFC';
+import { WFCTiles } from './WFCTiles';
 
 
 export class WFCRunner {
     public config: WFCConfig;
-    public wfc: WFC;
+    public wfc: WFCTiles;
 
     public retryCount = 0;
     public stopRunning = true;

@@ -3,7 +3,7 @@ import { PieceObject } from './PieceObject';
 import { WFCConfig } from './WFCConfig';
 import { WFCData } from './WFCData';
 
-export class WFC {
+export class WFCTiles {
     public wfcData: WFCData = new WFCData();
     public config: WFCConfig = new WFCConfig();
 
@@ -66,8 +66,9 @@ export class WFC {
                 Object.keys(Direction).forEach((direction: string, index: number) =>{
                     if (!isNaN(Number(direction))) return;
                     let directionsCount = (Object.keys(Direction).length / 2);
-                    let rotationMoved = (index - rotation + directionsCount) % directionsCount;
-                    let flipped = index >= (directionsCount / 2);
+                    let directionIndex = Direction[direction as keyof typeof Direction];
+                    let rotationMoved = (directionIndex - rotation + directionsCount) % directionsCount;
+                    let flipped = directionIndex >= (directionsCount / 2);
                     let sockets = pieceSockets[Direction[rotationMoved]];
                     (Array.isArray(sockets) ? sockets : [sockets]).forEach((socket: string) => {
                         (socketMatchObject[direction] ||= []).push(flipped ? socket.split("").reverse().join("") : socket);
@@ -139,7 +140,7 @@ export class WFC {
                 });
             }
         });
-
+        
         this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap: { [name: string]: PieceObject }, piecePair: any) => {
             let piece = piecePair[1];
             if(currentSet[piece.name] == undefined) {
@@ -184,7 +185,7 @@ export class WFC {
                 if(Array.isArray(piece.weight)) {
                     weight = weight[rotation] ?? 1;
                 }
-                
+
                 piecesMap[pieceName] = new PieceObject(
                     piece.name + "_" + rotation,
                     piece.name, 
