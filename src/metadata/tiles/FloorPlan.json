@@ -1,7 +1,6 @@
 [
     {
         "name": "div",
-        "imgsrc": "div.png",
         "rotations": [0,1],
         "weight": 0.5,
         "socket": {
@@ -13,7 +12,6 @@
     },
     {
         "name": "divt",
-        "imgsrc": "divt.png",
         "rotations": [0,1,2,3],
         "weight": 0.5,
         "socket": {
@@ -25,7 +23,6 @@
     },
     {
         "name": "divturn",
-        "imgsrc": "divturn.png",
         "rotations": [0,1,2,3],
         "weight": 0.5,
         "socket": {
@@ -37,7 +34,6 @@
     },
     {
         "name": "door",
-        "imgsrc": "door.png",
         "rotations": [0,1,2,3],
         "weight": 0.2,
         "socket": {
@@ -49,7 +45,6 @@
     },
     {
         "name": "empty",
-        "imgsrc": "empty.png",
         "rotations": [0],
         "weight": 1,
         "socket": {
@@ -61,7 +56,6 @@
     },
     {
         "name": "floor",
-        "imgsrc": "floor.png",
         "rotations": [0],
         "weight": 3,
         "socket": {
@@ -73,7 +67,6 @@
     },
     {
         "name": "glass",
-        "imgsrc": "glass.png",
         "rotations": [0,1,2,3],
         "weight": 0.1,
         "socket": {
@@ -85,7 +78,6 @@
     },
     {
         "name": "halfglass",
-        "imgsrc": "halfglass.png",
         "rotations": [0,1,2,3],
         "weight": 0.3,
         "socket": {
@@ -97,7 +89,6 @@
     },
     {
         "name": "halfglass2",
-        "imgsrc": "halfglass2.png",
         "rotations": [0,1,2,3],
         "weight": 0.3,
         "socket": {
@@ -109,7 +100,6 @@
     },
     {
         "name": "in",
-        "imgsrc": "in.png",
         "rotations": [0,1,2,3],
         "weight": 0.1,
         "socket": {
@@ -121,7 +111,6 @@
     },
     {
         "name": "out",
-        "imgsrc": "out.png",
         "rotations": [0,1,2,3],
         "weight": 0.1,
         "socket": {
@@ -133,7 +122,6 @@
     },
     {
         "name": "stairs",
-        "imgsrc": "stairs.png",
         "rotations": [0,1,2,3],
         "weight": 0.2,
         "socket": {
@@ -145,7 +133,6 @@
     },
     {
         "name": "table",
-        "imgsrc": "table.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -157,7 +144,6 @@
     },
     {
         "name": "vent",
-        "imgsrc": "vent.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -169,7 +155,6 @@
     },
     {
         "name": "w",
-        "imgsrc": "w.png",
         "rotations": [0,1,2,3],
         "weight": 0.1,
         "socket": {
@@ -181,7 +166,6 @@
     },
     {
         "name": "wall",
-        "imgsrc": "wall.png",
         "rotations": [0,1,2,3],
         "weight": 0.25,
         "socket": {
@@ -193,7 +177,6 @@
     },
     {
         "name": "walldiv",
-        "imgsrc": "walldiv.png",
         "rotations": [0,1,2,3],
         "weight": 0.25,
         "socket": {
@@ -205,7 +188,6 @@
     },
     {
         "name": "window",
-        "imgsrc": "window.png",
         "rotations": [0,1,2,3],
         "weight": 0.05,
         "socket": {

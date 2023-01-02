@@ -1,7 +1,6 @@
 [
     {
         "name": "bridge",
-        "imgsrc": "bridge.png",
         "rotations": [0,1],
         "weight": 2,
         "socket": {
@@ -13,7 +12,6 @@
     },
     {
         "name": "ground",
-        "imgsrc": "ground.png",
         "rotations": [0],
         "weight": 3,
         "socket": {
@@ -25,7 +23,6 @@
     },
     {
         "name": "river",
-        "imgsrc": "river.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -37,7 +34,6 @@
     },
     {
         "name": "riverturn",
-        "imgsrc": "riverturn.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -49,7 +45,6 @@
     },
     {
         "name": "road",
-        "imgsrc": "road.png",
         "rotations": [0,1],
         "weight": 3,
         "socket": {
@@ -61,7 +56,6 @@
     },
     {
         "name": "roadturn",
-        "imgsrc": "roadturn.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -73,7 +67,6 @@
     },
     {
         "name": "t",
-        "imgsrc": "t.png",
         "rotations": [0,1,2,3],
         "weight": 2,
         "socket": {
@@ -85,7 +78,6 @@
     },
     {
         "name": "tower",
-        "imgsrc": "tower.png",
         "rotations": [0, 1, 2, 3],
         "weight": 1,
         "socket": {
@@ -103,7 +95,6 @@
     },
     {
         "name": "wall",
-        "imgsrc": "wall.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -119,7 +110,6 @@
     },
     {
         "name": "wallriver",
-        "imgsrc": "wallriver.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -135,7 +125,6 @@
     },
     {
         "name": "wallroad",
-        "imgsrc": "wallroad.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {

@@ -1,7 +1,6 @@
 [
     {
         "name": "cliff 0",
-        "imgsrc": "cliff 0.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -13,7 +12,6 @@
     },
     {
         "name": "cliff 1",
-        "imgsrc": "cliff 1.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -25,7 +23,6 @@
     },
     {
         "name": "cliff 2",
-        "imgsrc": "cliff 2.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -37,7 +34,6 @@
     },
     {
         "name": "cliff 3",
-        "imgsrc": "cliff 3.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -49,7 +45,6 @@
     },            
     {
         "name": "cliffcorner 0",
-        "imgsrc": "cliffcorner 0.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -61,7 +56,6 @@
     },
     {
         "name": "cliffcorner 1",
-        "imgsrc": "cliffcorner 1.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -73,7 +67,6 @@
     },
     {
         "name": "cliffcorner 2",
-        "imgsrc": "cliffcorner 2.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -85,7 +78,6 @@
     },
     {
         "name": "cliffcorner 3",
-        "imgsrc": "cliffcorner 3.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -97,7 +89,6 @@
     },
     {
         "name": "cliffturn 0",
-        "imgsrc": "cliffturn 0.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -109,7 +100,6 @@
     },
     {
         "name": "cliffturn 1",
-        "imgsrc": "cliffturn 1.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -121,7 +111,6 @@
     },
     {
         "name": "cliffturn 2",
-        "imgsrc": "cliffturn 2.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -133,7 +122,6 @@
     },
     {
         "name": "cliffturn 3",
-        "imgsrc": "cliffturn 3.png",
         "rotations": [0],
         "weight": 0.1,
         "socket": {
@@ -145,7 +133,6 @@
     },
     {
         "name": "grass 0",
-        "imgsrc": "grass 0.png",
         "rotations": [0],
         "weight": 2,
         "socket": {
@@ -157,7 +144,6 @@
     },
     {
         "name": "grasscorner 0",
-        "imgsrc": "grasscorner 0.png",
         "rotations": [0],
         "weight": 0.4,
         "socket": {
@@ -169,7 +155,6 @@
     },
     {
         "name": "grasscorner 1",
-        "imgsrc": "grasscorner 1.png",
         "rotations": [0],
         "weight": 0.4,
         "socket": {
@@ -181,7 +166,6 @@
     },
     {
         "name": "grasscorner 2",
-        "imgsrc": "grasscorner 2.png",
         "rotations": [0],
         "weight": 0.4,
         "socket": {
@@ -193,7 +177,6 @@
     },
     {
         "name": "grasscorner 3",
-        "imgsrc": "grasscorner 3.png",
         "rotations": [0],
         "weight": 0.4,
         "socket": {
@@ -205,7 +188,6 @@
     },
     {
         "name": "road 0",
-        "imgsrc": "road 0.png",
         "rotations": [0],
         "weight": 0.7,
         "socket": {
@@ -217,7 +199,6 @@
     },
     {
         "name": "road 1",
-        "imgsrc": "road 1.png",
         "rotations": [0],
         "weight": 0.7,
         "socket": {
@@ -229,7 +210,6 @@
     },
     {
         "name": "road 2",
-        "imgsrc": "road 2.png",
         "rotations": [0],
         "weight": 0.7,
         "socket": {
@@ -241,7 +221,6 @@
     },
     {
         "name": "road 3",
-        "imgsrc": "road 3.png",
         "rotations": [0],
         "weight": 0.7,
         "socket": {
@@ -253,7 +232,6 @@
     },
     {
         "name": "roadturn 0",
-        "imgsrc": "roadturn 0.png",
         "rotations": [0],
         "weight": 0.2,
         "socket": {
@@ -265,7 +243,6 @@
     },
     {
         "name": "roadturn 1",
-        "imgsrc": "roadturn 1.png",
         "rotations": [0],
         "weight": 0.2,
         "socket": {
@@ -277,7 +254,6 @@
     },
     {
         "name": "roadturn 2",
-        "imgsrc": "roadturn 2.png",
         "rotations": [0],
         "weight": 0.2,
         "socket": {
@@ -289,7 +265,6 @@
     },
     {
         "name": "roadturn 3",
-        "imgsrc": "roadturn 3.png",
         "rotations": [0],
         "weight": 0.2,
         "socket": {
@@ -301,7 +276,6 @@
     },
     {
         "name": "water_a 0",
-        "imgsrc": "water_a 0.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -313,7 +287,6 @@
     },
     {
         "name": "water_b 0",
-        "imgsrc": "water_b 0.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -325,7 +298,6 @@
     },
     {
         "name": "water_c 0",
-        "imgsrc": "water_c 0.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -337,7 +309,6 @@
     },
     {
         "name": "watercorner 0",
-        "imgsrc": "watercorner 0.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -349,7 +320,6 @@
     },
     {
         "name": "watercorner 1",
-        "imgsrc": "watercorner 1.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -361,7 +331,6 @@
     },
     {
         "name": "watercorner 2",
-        "imgsrc": "watercorner 2.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -373,7 +342,6 @@
     },
     {
         "name": "watercorner 3",
-        "imgsrc": "watercorner 3.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -385,7 +353,6 @@
     },
     {
         "name": "waterside 0",
-        "imgsrc": "waterside 0.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -397,7 +364,6 @@
     },
     {
         "name": "waterside 1",
-        "imgsrc": "waterside 1.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -409,7 +375,6 @@
     },
     {
         "name": "waterside 2",
-        "imgsrc": "waterside 2.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -421,7 +386,6 @@
     },
     {
         "name": "waterside 3",
-        "imgsrc": "waterside 3.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -433,7 +397,6 @@
     },
     {
         "name": "waterturn 0",
-        "imgsrc": "waterturn 0.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -445,7 +408,6 @@
     },
     {
         "name": "waterturn 1",
-        "imgsrc": "waterturn 1.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -457,7 +419,6 @@
     },
     {
         "name": "waterturn 2",
-        "imgsrc": "waterturn 2.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {
@@ -469,7 +430,6 @@
     },
     {
         "name": "waterturn 3",
-        "imgsrc": "waterturn 3.png",
         "rotations": [0],
         "weight": 0.3,
         "socket": {

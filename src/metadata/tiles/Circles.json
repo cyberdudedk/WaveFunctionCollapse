@@ -1,7 +1,6 @@
 [
     {
         "name": "b_half",
-        "imgsrc": "b_half.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -13,7 +12,6 @@
     },
     {
         "name": "b_i",
-        "imgsrc": "b_i.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -25,7 +23,6 @@
     },
     {
         "name": "b_quarter",
-        "imgsrc": "b_quarter.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -37,7 +34,6 @@
     },
     {
         "name": "b",
-        "imgsrc": "b.png",
         "rotations": [0],
         "weight": 1,
         "socket": {
@@ -49,7 +45,6 @@
     },
     {
         "name": "w_half",
-        "imgsrc": "w_half.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -61,7 +56,6 @@
     },
     {
         "name": "w_i",
-        "imgsrc": "w_i.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -73,7 +67,6 @@
     },
     {
         "name": "w_quarter",
-        "imgsrc": "w_quarter.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -85,7 +78,6 @@
     },
     {
         "name": "w",
-        "imgsrc": "w.png",
         "rotations": [0],
         "weight": 1,
         "socket": {

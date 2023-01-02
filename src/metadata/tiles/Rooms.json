@@ -1,7 +1,6 @@
 [
     {
         "name": "bend",
-        "imgsrc": "bend.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -13,7 +12,6 @@
     },
     {
         "name": "corner",
-        "imgsrc": "corner.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -25,7 +23,6 @@
     },
     {
         "name": "corridor",
-        "imgsrc": "corridor.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -37,7 +34,6 @@
     },
     {
         "name": "door",
-        "imgsrc": "door.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -49,7 +45,6 @@
     },
     {
         "name": "empty",
-        "imgsrc": "empty.png",
         "rotations": [0],
         "weight": 1,
         "socket": {
@@ -61,7 +56,6 @@
     },
     {
         "name": "side",
-        "imgsrc": "side.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -73,7 +67,6 @@
     },
     {
         "name": "t",
-        "imgsrc": "t.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -85,7 +78,6 @@
     },
     {
         "name": "turn",
-        "imgsrc": "turn.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -97,7 +89,6 @@
     },
     {
         "name": "wall",
-        "imgsrc": "wall.png",
         "rotations": [0],
         "weight": 1,
         "socket": {

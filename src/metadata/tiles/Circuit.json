@@ -1,7 +1,6 @@
 [
     {
         "name": "bridge",
-        "imgsrc": "bridge.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -13,7 +12,6 @@
     },
     {
         "name": "connection",
-        "imgsrc": "connection.png",
         "rotations": [0,1,2,3],
         "weight": 3,
         "socket": {
@@ -28,7 +26,6 @@
     },
     {
         "name": "dskew",
-        "imgsrc": "dskew.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -40,7 +37,6 @@
     },
     {
         "name": "skew",
-        "imgsrc": "skew.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -52,7 +48,6 @@
     },
     {
         "name": "substrate",
-        "imgsrc": "substrate.png",
         "rotations": [0],
         "weight": 1,
         "socket": {
@@ -64,7 +59,6 @@
     },
     {
         "name": "t",
-        "imgsrc": "t.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -76,7 +70,6 @@
     },
     {
         "name": "track",
-        "imgsrc": "track.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -88,7 +81,6 @@
     },
     {
         "name": "transition",
-        "imgsrc": "transition.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -100,7 +92,6 @@
     },
     {
         "name": "turn",
-        "imgsrc": "turn.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
@@ -112,7 +103,6 @@
     },
     {
         "name": "viad",
-        "imgsrc": "viad.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -124,7 +114,6 @@
     },
     {
         "name": "vias",
-        "imgsrc": "vias.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -136,7 +125,6 @@
     },
     {
         "name": "wire",
-        "imgsrc": "wire.png",
         "rotations": [0,1],
         "weight": 1,
         "socket": {
@@ -148,7 +136,6 @@
     },
     {
         "name": "component",
-        "imgsrc": "component.png",
         "rotations": [0],
         "weight": 1,
         "socket": {
@@ -160,7 +147,6 @@
     },
     {
         "name": "corner",
-        "imgsrc": "corner.png",
         "rotations": [0,1,2,3],
         "weight": 1,
         "socket": {
