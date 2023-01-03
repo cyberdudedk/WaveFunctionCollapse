@@ -57,7 +57,7 @@ export class WFCRender {
         return this.wfc.wfcData;
     }
 
-    public getWFC(): WFC {
+    public getWFC(): WFCTiles {
         return this.wfc;
     }
 
@@ -68,7 +68,7 @@ export class WFCRender {
     public async init(config: WFCConfig) {
         console.clear();
         this.config = config;
-        this.wfc = new WFC();
+        this.wfc = new WFCTiles();
         this.wfc.init(config);
 
         this.wfcRunner = new WFCRunner(config, this.wfc, this.wfcCallback);

@@ -72,210 +72,6 @@ var SuperImposedState;
 
 /***/ }),
 
-/***/ "./src/WFC.ts":
-/*!********************!*\
-  !*** ./src/WFC.ts ***!
-  \********************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "WFC": () => (/* binding */ WFC)
-/* harmony export */ });
-/* harmony import */ var _Direction__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Direction */ "./src/Direction.ts");
-/* harmony import */ var _PieceObject__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./PieceObject */ "./src/PieceObject.ts");
-/* harmony import */ var _WFCConfig__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCConfig */ "./src/WFCConfig.ts");
-/* harmony import */ var _WFCData__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCData */ "./src/WFCData.ts");
-
-
-
-
-class WFC {
-    constructor() {
-        this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
-        this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_2__.WFCConfig();
-        this.piecesMap = {};
-        this.tiles = [];
-    }
-    async init(config) {
-        console.clear();
-        this.config = config;
-        this.loadTiles();
-    }
-    loadTiles() {
-        this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
-        this.wfcData.tilePieces = {};
-        this.wfcData.tileSets = {};
-        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms", "Summer"];
-        for (let tileIndex in tileNames) {
-            const tile = tileNames[tileIndex];
-            this.wfcData.tilePieces[tile] = __webpack_require__("./src/metadata/tiles sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
-            this.wfcData.tileSets[tile] = __webpack_require__("./src/metadata/sets sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
-        }
-    }
-    async initTileData() {
-        let pieces = this.wfcData.tilePieces[this.config.tileName];
-        let sets = this.wfcData.tileSets[this.config.tileName];
-        let currentSet = sets[this.config.set];
-        Object.entries(currentSet).forEach((value) => {
-            let pieceName = value[0];
-            let properties = value[1];
-            if (properties.rotations != undefined) {
-                pieces.find(x => x.name == pieceName).rotations = properties.rotations;
-            }
-            if (properties.weight != undefined) {
-                pieces.find(x => x.name == pieceName).weight = properties.weight;
-            }
-        });
-        let mappedPieces = pieces.reduce((piecesMap, piece) => {
-            if (currentSet[piece.name] == undefined) {
-                return piecesMap;
-            }
-            let pieceSockets = piece.socket;
-            piece.socketmatching = {};
-            piece.blacklistedNeighbors = {};
-            piece.rotations.forEach((rotation) => {
-                let socketMatchObject = {};
-                let blacklistedNeighbors = {};
-                Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).forEach((direction, index) => {
-                    if (!isNaN(Number(direction)))
-                        return;
-                    let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
-                    let directionIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[direction];
-                    let rotationMoved = (directionIndex - rotation + directionsCount) % directionsCount;
-                    let flipped = directionIndex >= (directionsCount / 2);
-                    let sockets = pieceSockets[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved]];
-                    (Array.isArray(sockets) ? sockets : [sockets]).forEach((socket) => {
-                        (socketMatchObject[direction] || (socketMatchObject[direction] = [])).push(flipped ? socket.split("").reverse().join("") : socket);
-                    });
-                });
-                if (piece.blacklist) {
-                    Object.entries(piece.blacklist).forEach((blacklist) => {
-                        let blackListDirection = blacklist[0];
-                        let blackListValue = blacklist[1];
-                        let blackListIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[blackListDirection];
-                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
-                        let rotationBlacklistingIndex = (blackListIndex + rotation) % directionsCount;
-                        let rotationBlacklisting = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationBlacklistingIndex];
-                        Object.entries(blackListValue).forEach((blacklistPiece) => {
-                            let blackListPieceName = blacklistPiece[0];
-                            let blackListPieceRotations = blacklistPiece[1];
-                            blackListPieceRotations.forEach((blackListPieceRotation) => {
-                                let blackListPieceNameWithRotation = blackListPieceName + "_" + (blackListPieceRotation + rotation) % directionsCount;
-                                if (blacklistedNeighbors[rotationBlacklisting] == undefined) {
-                                    blacklistedNeighbors[rotationBlacklisting] = [];
-                                }
-                                blacklistedNeighbors[rotationBlacklisting].push(blackListPieceNameWithRotation);
-                            });
-                        });
-                    });
-                }
-                piece.blacklistedNeighbors[rotation] = blacklistedNeighbors;
-                piece.socketmatching[rotation] = socketMatchObject;
-            });
-            piecesMap[piece.name] = piece;
-            return piecesMap;
-        }, {});
-        let socketBuckets = {};
-        Object.entries(mappedPieces).forEach((mappedPieceValue) => {
-            let pieceName = mappedPieceValue[0];
-            let piece = mappedPieceValue[1];
-            if (piece.socketmatching != undefined) {
-                Object.entries(piece.socketmatching).forEach((socketMatchValue) => {
-                    let socketDirection = parseInt(socketMatchValue[0]);
-                    let socketMatch = socketMatchValue[1];
-                    Object.entries(socketMatch).forEach((socket) => {
-                        let socketDirectionInner = socket[0];
-                        let socketMatchInnerValueArray = socket[1];
-                        let socketDirectionInnerIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[socketDirectionInner];
-                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
-                        let socketDirectionPolarIndex = (socketDirectionInnerIndex + directionsCount / 2) % directionsCount;
-                        let socketDirectionPolar = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[socketDirectionPolarIndex];
-                        socketMatchInnerValueArray.forEach((socketMatchInnerValue) => {
-                            if (socketBuckets[socketMatchInnerValue] == undefined) {
-                                let innerObject = {};
-                                socketBuckets[socketMatchInnerValue] = innerObject;
-                            }
-                            if (socketBuckets[socketMatchInnerValue][socketDirectionPolar] == undefined) {
-                                socketBuckets[socketMatchInnerValue][socketDirectionPolar] = [];
-                            }
-                            socketBuckets[socketMatchInnerValue][socketDirectionPolar].push(pieceName + "_" + socketDirection);
-                        });
-                    });
-                });
-            }
-        });
-        console.log('mappedPieces', mappedPieces);
-        this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair) => {
-            let piece = piecePair[1];
-            if (currentSet[piece.name] == undefined) {
-                return piecesMap;
-            }
-            if (piece.rotations == undefined) {
-                piece.rotations = [0];
-            }
-            piece.rotations.forEach((rotation) => {
-                var _a, _b;
-                let pieceName = piece.name + "_" + rotation;
-                let validNeighbors = {
-                    top: [],
-                    right: [],
-                    bottom: [],
-                    left: []
-                };
-                if (piece.socketmatching != undefined) {
-                    if (piece.socketmatching[rotation] != undefined) {
-                        let socketMatch = piece.socketmatching[rotation];
-                        Object.entries(socketMatch).forEach((socketPair) => {
-                            let socketDirection = socketPair[0];
-                            let sockets = socketPair[1];
-                            sockets.forEach((socket) => {
-                                if (socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
-                                    let validPiecesForSocket = socketBuckets[socket][socketDirection];
-                                    validPiecesForSocket.forEach((validPiece) => {
-                                        var _a;
-                                        let blackList = (_a = piece.blacklistedNeighbors[rotation][socketDirection]) !== null && _a !== void 0 ? _a : [];
-                                        if (!validNeighbors[socketDirection].includes(validPiece) && !blackList.includes(validPiece)) {
-                                            validNeighbors[socketDirection].push(validPiece);
-                                        }
-                                    });
-                                }
-                            });
-                        });
-                    }
-                }
-                let weight = (_a = piece.weight) !== null && _a !== void 0 ? _a : 1;
-                if (Array.isArray(piece.weight)) {
-                    weight = (_b = weight[rotation]) !== null && _b !== void 0 ? _b : 1;
-                }
-                console.log('newValid', piece.newValid);
-                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, piece.newValid, weight);
-            });
-            return piecesMap;
-        }, {});
-        console.log(this.piecesMap);
-        return true;
-    }
-    reset() {
-        let piecesKeys = Object.keys(this.piecesMap);
-        let startingTile = {
-            validPieces: piecesKeys,
-        };
-        this.tiles = Array.from({ length: this.config.tilesWidth }, (a, x) => {
-            return Array.from({ length: this.config.tilesHeight }, (b, y) => {
-                return {
-                    position: { x: x, y: y },
-                    validPieces: [...startingTile.validPieces]
-                };
-            });
-        });
-    }
-}
-
-
-/***/ }),
-
 /***/ "./src/WFCConfig.ts":
 /*!**************************!*\
   !*** ./src/WFCConfig.ts ***!
@@ -342,7 +138,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./SuperImposedState */ "./src/SuperImposedState.ts");
 /* harmony import */ var _WFCConfig__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./WFCConfig */ "./src/WFCConfig.ts");
 /* harmony import */ var _WFCRunner__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCRunner */ "./src/WFCRunner.ts");
-/* harmony import */ var _WFC__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFC */ "./src/WFC.ts");
+/* harmony import */ var _WFCTiles__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCTiles */ "./src/WFCTiles.ts");
 
 
 
@@ -350,7 +146,7 @@ __webpack_require__.r(__webpack_exports__);
 class WFCRender {
     constructor(canvasId) {
         this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_1__.WFCConfig();
-        this.wfc = new _WFC__WEBPACK_IMPORTED_MODULE_3__.WFC();
+        this.wfc = new _WFCTiles__WEBPACK_IMPORTED_MODULE_3__.WFCTiles();
         this.halfScaleHeight = this.config.tileScale / 2;
         this.halfScaleWidth = this.config.tileScale / 2;
         this.imagesMap = {};
@@ -393,7 +189,7 @@ class WFCRender {
     async init(config) {
         console.clear();
         this.config = config;
-        this.wfc = new _WFC__WEBPACK_IMPORTED_MODULE_3__.WFC();
+        this.wfc = new _WFCTiles__WEBPACK_IMPORTED_MODULE_3__.WFCTiles();
         this.wfc.init(config);
         this.wfcRunner = new _WFCRunner__WEBPACK_IMPORTED_MODULE_2__.WFCRunner(config, this.wfc, this.wfcCallback);
         await this.initImageData();
@@ -796,6 +592,207 @@ class WFCRunner {
 
 /***/ }),
 
+/***/ "./src/WFCTiles.ts":
+/*!*************************!*\
+  !*** ./src/WFCTiles.ts ***!
+  \*************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "WFCTiles": () => (/* binding */ WFCTiles)
+/* harmony export */ });
+/* harmony import */ var _Direction__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Direction */ "./src/Direction.ts");
+/* harmony import */ var _PieceObject__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./PieceObject */ "./src/PieceObject.ts");
+/* harmony import */ var _WFCConfig__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCConfig */ "./src/WFCConfig.ts");
+/* harmony import */ var _WFCData__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCData */ "./src/WFCData.ts");
+
+
+
+
+class WFCTiles {
+    constructor() {
+        this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
+        this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_2__.WFCConfig();
+        this.piecesMap = {};
+        this.tiles = [];
+    }
+    async init(config) {
+        console.clear();
+        this.config = config;
+        this.loadTiles();
+    }
+    loadTiles() {
+        this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
+        this.wfcData.tilePieces = {};
+        this.wfcData.tileSets = {};
+        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms", "Summer"];
+        for (let tileIndex in tileNames) {
+            const tile = tileNames[tileIndex];
+            this.wfcData.tilePieces[tile] = __webpack_require__("./src/metadata/tiles sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
+            this.wfcData.tileSets[tile] = __webpack_require__("./src/metadata/sets sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
+        }
+    }
+    async initTileData() {
+        let pieces = this.wfcData.tilePieces[this.config.tileName];
+        let sets = this.wfcData.tileSets[this.config.tileName];
+        let currentSet = sets[this.config.set];
+        Object.entries(currentSet).forEach((value) => {
+            let pieceName = value[0];
+            let properties = value[1];
+            if (properties.rotations != undefined) {
+                pieces.find(x => x.name == pieceName).rotations = properties.rotations;
+            }
+            if (properties.weight != undefined) {
+                pieces.find(x => x.name == pieceName).weight = properties.weight;
+            }
+        });
+        let mappedPieces = pieces.reduce((piecesMap, piece) => {
+            if (currentSet[piece.name] == undefined) {
+                return piecesMap;
+            }
+            let pieceSockets = piece.socket;
+            piece.socketmatching = {};
+            piece.blacklistedNeighbors = {};
+            piece.rotations.forEach((rotation) => {
+                let socketMatchObject = {};
+                let blacklistedNeighbors = {};
+                Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).forEach((direction, index) => {
+                    if (!isNaN(Number(direction)))
+                        return;
+                    let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
+                    let directionIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[direction];
+                    let rotationMoved = (directionIndex - rotation + directionsCount) % directionsCount;
+                    let flipped = directionIndex >= (directionsCount / 2);
+                    let sockets = pieceSockets[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved]];
+                    (Array.isArray(sockets) ? sockets : [sockets]).forEach((socket) => {
+                        (socketMatchObject[direction] || (socketMatchObject[direction] = [])).push(flipped ? socket.split("").reverse().join("") : socket);
+                    });
+                });
+                if (piece.blacklist) {
+                    Object.entries(piece.blacklist).forEach((blacklist) => {
+                        let blackListDirection = blacklist[0];
+                        let blackListValue = blacklist[1];
+                        let blackListIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[blackListDirection];
+                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
+                        let rotationBlacklistingIndex = (blackListIndex + rotation) % directionsCount;
+                        let rotationBlacklisting = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationBlacklistingIndex];
+                        Object.entries(blackListValue).forEach((blacklistPiece) => {
+                            let blackListPieceName = blacklistPiece[0];
+                            let blackListPieceRotations = blacklistPiece[1];
+                            blackListPieceRotations.forEach((blackListPieceRotation) => {
+                                let blackListPieceNameWithRotation = blackListPieceName + "_" + (blackListPieceRotation + rotation) % directionsCount;
+                                if (blacklistedNeighbors[rotationBlacklisting] == undefined) {
+                                    blacklistedNeighbors[rotationBlacklisting] = [];
+                                }
+                                blacklistedNeighbors[rotationBlacklisting].push(blackListPieceNameWithRotation);
+                            });
+                        });
+                    });
+                }
+                piece.blacklistedNeighbors[rotation] = blacklistedNeighbors;
+                piece.socketmatching[rotation] = socketMatchObject;
+            });
+            piecesMap[piece.name] = piece;
+            return piecesMap;
+        }, {});
+        let socketBuckets = {};
+        Object.entries(mappedPieces).forEach((mappedPieceValue) => {
+            let pieceName = mappedPieceValue[0];
+            let piece = mappedPieceValue[1];
+            if (piece.socketmatching != undefined) {
+                Object.entries(piece.socketmatching).forEach((socketMatchValue) => {
+                    let socketDirection = parseInt(socketMatchValue[0]);
+                    let socketMatch = socketMatchValue[1];
+                    Object.entries(socketMatch).forEach((socket) => {
+                        let socketDirectionInner = socket[0];
+                        let socketMatchInnerValueArray = socket[1];
+                        let socketDirectionInnerIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[socketDirectionInner];
+                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
+                        let socketDirectionPolarIndex = (socketDirectionInnerIndex + directionsCount / 2) % directionsCount;
+                        let socketDirectionPolar = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[socketDirectionPolarIndex];
+                        socketMatchInnerValueArray.forEach((socketMatchInnerValue) => {
+                            if (socketBuckets[socketMatchInnerValue] == undefined) {
+                                let innerObject = {};
+                                socketBuckets[socketMatchInnerValue] = innerObject;
+                            }
+                            if (socketBuckets[socketMatchInnerValue][socketDirectionPolar] == undefined) {
+                                socketBuckets[socketMatchInnerValue][socketDirectionPolar] = [];
+                            }
+                            socketBuckets[socketMatchInnerValue][socketDirectionPolar].push(pieceName + "_" + socketDirection);
+                        });
+                    });
+                });
+            }
+        });
+        this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap, piecePair) => {
+            let piece = piecePair[1];
+            if (currentSet[piece.name] == undefined) {
+                return piecesMap;
+            }
+            if (piece.rotations == undefined) {
+                piece.rotations = [0];
+            }
+            piece.rotations.forEach((rotation) => {
+                var _a, _b;
+                let pieceName = piece.name + "_" + rotation;
+                let validNeighbors = {
+                    top: [],
+                    right: [],
+                    bottom: [],
+                    left: []
+                };
+                if (piece.socketmatching != undefined) {
+                    if (piece.socketmatching[rotation] != undefined) {
+                        let socketMatch = piece.socketmatching[rotation];
+                        Object.entries(socketMatch).forEach((socketPair) => {
+                            let socketDirection = socketPair[0];
+                            let sockets = socketPair[1];
+                            sockets.forEach((socket) => {
+                                if (socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
+                                    let validPiecesForSocket = socketBuckets[socket][socketDirection];
+                                    validPiecesForSocket.forEach((validPiece) => {
+                                        var _a;
+                                        let blackList = (_a = piece.blacklistedNeighbors[rotation][socketDirection]) !== null && _a !== void 0 ? _a : [];
+                                        if (!validNeighbors[socketDirection].includes(validPiece) && !blackList.includes(validPiece)) {
+                                            validNeighbors[socketDirection].push(validPiece);
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                    }
+                }
+                let weight = (_a = piece.weight) !== null && _a !== void 0 ? _a : 1;
+                if (Array.isArray(piece.weight)) {
+                    weight = (_b = weight[rotation]) !== null && _b !== void 0 ? _b : 1;
+                }
+                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, piece.newValid, weight);
+            });
+            return piecesMap;
+        }, {});
+        return true;
+    }
+    reset() {
+        let piecesKeys = Object.keys(this.piecesMap);
+        let startingTile = {
+            validPieces: piecesKeys,
+        };
+        this.tiles = Array.from({ length: this.config.tilesWidth }, (a, x) => {
+            return Array.from({ length: this.config.tilesHeight }, (b, y) => {
+                return {
+                    position: { x: x, y: y },
+                    validPieces: [...startingTile.validPieces]
+                };
+            });
+        });
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/metadata/render sync recursive ^\\.\\/.*\\.json$":
 /*!**************************************************!*\
   !*** ./src/metadata/render/ sync ^\.\/.*\.json$ ***!
@@ -1115,7 +1112,7 @@ module.exports = JSON.parse('[{"name":"div","rotations":[0,1],"weight":0.5,"sock
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"cross","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"line","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}}]');
+module.exports = JSON.parse('[{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"cross","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"line","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"},"edgeblacklist":{"0":["right","bottom","left"],"1":["top","bottom","left"],"2":["top","right","left"],"3":["top","right","bottom"]}}]');
 
 /***/ }),
 
@@ -1205,7 +1202,7 @@ var __webpack_exports__ = {};
   !*** ./src/index.ts ***!
   \**********************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _WFC__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./WFC */ "./src/WFC.ts");
+/* harmony import */ var _WFCTiles__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./WFCTiles */ "./src/WFCTiles.ts");
 /* harmony import */ var _WFCRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./WFCRender */ "./src/WFCRender.ts");
 
 
@@ -1213,7 +1210,7 @@ window.getWFCRender = function getWFCRender(canvasId) {
     return new _WFCRender__WEBPACK_IMPORTED_MODULE_1__.WFCRender(canvasId);
 };
 window.getWFC = function getWFC() {
-    return new _WFC__WEBPACK_IMPORTED_MODULE_0__.WFC();
+    return new _WFCTiles__WEBPACK_IMPORTED_MODULE_0__.WFCTiles();
 };
 
 })();

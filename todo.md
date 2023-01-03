@@ -13,6 +13,3 @@
 - Defining a minimum and maximum occurance of a tile.
   - Tiles with minimum has to be set randomly on board on start, and maximum has to be calculated usage during run.
 - Extend size and continue run => ever expanding.
-- Split code to classes, cleanup, refactor.
- 
-

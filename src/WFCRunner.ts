@@ -12,7 +12,7 @@ export class WFCRunner {
 
     public callback: any;
 
-    public constructor(config: WFCConfig, wfc: WFC, callback: any) {
+    public constructor(config: WFCConfig, wfc: WFCTiles, callback: any) {
         this.config = config;
         this.wfc = wfc;
 
