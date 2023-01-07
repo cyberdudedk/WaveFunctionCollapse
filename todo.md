@@ -1,7 +1,6 @@
 # Todo
 
 # 1.1 Ideas
-- Support for edge blacklist
 - Support for wrap-around
 - Support for defining edge as a "socket"
 - Debug show json object for tiles, sets, mappings

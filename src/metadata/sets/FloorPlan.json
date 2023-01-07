@@ -29,5 +29,25 @@
         "stairs": { "weight": 0.1 },
         "table": { "weight": 0.1 },
         "vent": { "weight": 0.1 }
+    },
+    "edgeblacklist_all": {
+        "div": { "edgeblacklist": ["right", "bottom", "left", "top"], "weight": 1000000 },
+        "divt": { "edgeblacklist": ["right", "bottom", "left", "top"], "weight": 1000000 },
+        "divturn": { "edgeblacklist": ["right", "bottom", "left", "top"], "weight": 1000000 },
+        "door": { "edgeblacklist": ["right", "bottom", "left", "top"], "weight": 1000000 },
+        "empty": { "edgeblacklist": ["right", "bottom", "left", "top"], "weight": 1000000 },
+        "floor": { "edgeblacklist": ["right", "bottom", "left", "top"], "weight": 1000000 },
+        "glass": { "edgeblacklist": ["right", "left"], "weight": 0.000001 },
+        "halfglass": { "edgeblacklist": ["right", "left"], "weight": 0.000001 },
+        "halfglass2": { "edgeblacklist": ["right", "left"], "weight": 0.000001 },
+        "in": { "edgeblacklist": ["top", "right", "left", "bottom"], "weight": 0.000001 },
+        "out": { "edgeblacklist": ["top", "right"], "weight": 0.000001 },
+        "stairs": { "edgeblacklist": ["right", "bottom", "left", "top"], "weight": 1000000 },
+        "table": { "edgeblacklist": ["right", "bottom", "left", "top"], "weight": 1000000 },
+        "vent": { "edgeblacklist": ["right", "bottom", "left", "top"], "weight": 1000000 },
+        "w": { "edgeblacklist": ["right", "left"], "weight": 0.000001 },
+        "wall": { "edgeblacklist": ["right", "left"], "weight": 0.000001 },
+        "walldiv": { "edgeblacklist": ["right", "left", "top"], "weight": 0.000001 },
+        "window": { "edgeblacklist": ["right", "left"], "weight": 0.000001  }
     }
 }

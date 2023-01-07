@@ -35,12 +35,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "PieceObject": () => (/* binding */ PieceObject)
 /* harmony export */ });
 class PieceObject {
-    constructor(key, name, rotation, validNeighbors, newValid, weight) {
+    constructor(key, name, rotation, validNeighbors, edgeblacklist, weight) {
         this.key = key;
         this.name = name;
         this.rotation = rotation;
         this.validNeighbors = validNeighbors;
-        this.newValid = newValid;
+        this.edgeblacklist = edgeblacklist;
         this.weight = weight;
     }
 }
@@ -647,11 +647,15 @@ class WFCTiles {
             if (properties.weight != undefined) {
                 pieces.find(x => x.name == pieceName).weight = properties.weight;
             }
+            if (properties.edgeblacklist != undefined) {
+                pieces.find(x => x.name == pieceName).edgeblacklist = properties.edgeblacklist;
+            }
         });
         let mappedPieces = pieces.reduce((piecesMap, piece) => {
             if (currentSet[piece.name] == undefined) {
                 return piecesMap;
             }
+            console.log('piece', piece);
             let pieceSockets = piece.socket;
             piece.socketmatching = {};
             piece.blacklistedNeighbors = {};
@@ -768,7 +772,16 @@ class WFCTiles {
                 if (Array.isArray(piece.weight)) {
                     weight = (_b = weight[rotation]) !== null && _b !== void 0 ? _b : 1;
                 }
-                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, piece.newValid, weight);
+                let edgeBlackList = null;
+                if (piece.edgeblacklist) {
+                    edgeBlackList = piece.edgeblacklist.map((direction) => {
+                        let dir = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[direction];
+                        let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
+                        let newDir = (dir + rotation) % directionsCount;
+                        return _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[newDir];
+                    });
+                }
+                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, edgeBlackList, weight);
             });
             return piecesMap;
         }, {});
@@ -781,10 +794,36 @@ class WFCTiles {
         };
         this.tiles = Array.from({ length: this.config.tilesWidth }, (a, x) => {
             return Array.from({ length: this.config.tilesHeight }, (b, y) => {
-                return {
-                    position: { x: x, y: y },
-                    validPieces: [...startingTile.validPieces]
-                };
+                var edges = [];
+                if (x == 0)
+                    edges.push('left');
+                if (y == 0)
+                    edges.push('top');
+                if (x == this.config.tilesWidth - 1)
+                    edges.push('right');
+                if (y == this.config.tilesHeight - 1)
+                    edges.push('bottom');
+                if (edges.length > 0) {
+                    let validPieces = startingTile.validPieces.filter((pieceName) => {
+                        let piece = this.piecesMap[pieceName];
+                        if (piece.edgeblacklist) {
+                            return !edges.some(v => piece.edgeblacklist.includes(v));
+                        }
+                        else {
+                            return true;
+                        }
+                    });
+                    return {
+                        position: { x: x, y: y },
+                        validPieces: validPieces
+                    };
+                }
+                else {
+                    return {
+                        position: { x: x, y: y },
+                        validPieces: [...startingTile.validPieces]
+                    };
+                }
             });
         });
     }
@@ -1013,7 +1052,7 @@ module.exports = JSON.parse('{"all":{"b_half":{},"b_i":{},"b_quarter":{},"b":{},
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"all":{"bridge":{},"component":{},"connection":{},"corner":{},"dskew":{},"skew":{},"substrate":{},"t":{},"track":{},"transition":{},"turn":{},"viad":{},"vias":{},"wire":{}},"noic":{"bridge":{"weight":0.4},"component":{"weight":0},"connection":{"weight":0},"corner":{"weight":0},"dskew":{"weight":0.3},"skew":{"weight":0.3},"substrate":{"weight":5},"t":{"weight":1},"track":{"weight":1},"transition":{"weight":0.3},"turn":{"weight":1},"viad":{"weight":0.01},"vias":{"weight":0.1},"wire":{"weight":0}},"iconly":{"bridge":{"weight":0},"component":{"weight":2},"connection":{"weight":1},"corner":{"weight":1},"dskew":{"weight":0.5},"skew":{"weight":0.5},"substrate":{"weight":10},"t":{"weight":0.5},"track":{"weight":0.7},"transition":{"weight":0},"turn":{"weight":0.6},"viad":{"weight":0},"vias":{"weight":0.1},"wire":{"weight":0}}}');
+module.exports = JSON.parse('{"all":{"bridge":{},"component":{},"connection":{},"corner":{},"dskew":{},"skew":{},"substrate":{},"t":{},"track":{},"transition":{},"turn":{},"viad":{},"vias":{},"wire":{}},"noic":{"bridge":{"weight":0.4},"component":{"weight":0},"connection":{"weight":0},"corner":{"weight":0},"dskew":{"weight":0.3},"skew":{"weight":0.3},"substrate":{"weight":5},"t":{"weight":1},"track":{"weight":1},"transition":{"weight":0.3},"turn":{"weight":1},"viad":{"weight":0.01},"vias":{"weight":0.1},"wire":{"weight":0}},"iconly":{"bridge":{"weight":0},"component":{"weight":2},"connection":{"weight":1},"corner":{"weight":1},"dskew":{"weight":0.5},"skew":{"weight":0.5},"substrate":{"weight":10},"t":{"weight":0.5},"track":{"weight":0.7},"transition":{"weight":0},"turn":{"weight":0.6},"viad":{"weight":0},"vias":{"weight":0.1},"wire":{"weight":0}},"edgeblacklist_all":{"bridge":{"edgeblacklist":["right","bottom","left","top"]},"component":{"edgeblacklist":["right","bottom","left","top"]},"connection":{"edgeblacklist":["top","bottom"]},"corner":{"edgeblacklist":["bottom","left"]},"dskew":{"edgeblacklist":["right","bottom","left","top"]},"skew":{"edgeblacklist":["top","right"]},"substrate":{},"t":{"edgeblacklist":["right","bottom","left"]},"track":{"edgeblacklist":["top","bottom"]},"transition":{"edgeblacklist":["top","bottom"]},"turn":{"edgeblacklist":["top","right"]},"viad":{"edgeblacklist":["right","left"]},"vias":{"edgeblacklist":["top"]},"wire":{"edgeblacklist":["right","left"]}}}');
 
 /***/ }),
 
@@ -1024,7 +1063,7 @@ module.exports = JSON.parse('{"all":{"bridge":{},"component":{},"connection":{},
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"all":{"div":{},"divt":{},"divturn":{},"door":{},"empty":{},"floor":{},"glass":{},"halfglass":{},"halfglass2":{},"in":{},"out":{},"stairs":{},"table":{},"vent":{},"w":{},"wall":{},"walldiv":{},"window":{}},"nooutdoor":{"div":{"weight":0.1},"divt":{"weight":0.1},"divturn":{"weight":1},"door":{"weight":0.1},"empty":{"weight":1},"floor":{"weight":5},"stairs":{"weight":0.1},"table":{"weight":0.1},"vent":{"weight":0.1}}}');
+module.exports = JSON.parse('{"all":{"div":{},"divt":{},"divturn":{},"door":{},"empty":{},"floor":{},"glass":{},"halfglass":{},"halfglass2":{},"in":{},"out":{},"stairs":{},"table":{},"vent":{},"w":{},"wall":{},"walldiv":{},"window":{}},"nooutdoor":{"div":{"weight":0.1},"divt":{"weight":0.1},"divturn":{"weight":1},"door":{"weight":0.1},"empty":{"weight":1},"floor":{"weight":5},"stairs":{"weight":0.1},"table":{"weight":0.1},"vent":{"weight":0.1}},"edgeblacklist_all":{"div":{"edgeblacklist":["right","bottom","left","top"],"weight":1000000},"divt":{"edgeblacklist":["right","bottom","left","top"],"weight":1000000},"divturn":{"edgeblacklist":["right","bottom","left","top"],"weight":1000000},"door":{"edgeblacklist":["right","bottom","left","top"],"weight":1000000},"empty":{"edgeblacklist":["right","bottom","left","top"],"weight":1000000},"floor":{"edgeblacklist":["right","bottom","left","top"],"weight":1000000},"glass":{"edgeblacklist":["right","left"],"weight":0.000001},"halfglass":{"edgeblacklist":["right","left"],"weight":0.000001},"halfglass2":{"edgeblacklist":["right","left"],"weight":0.000001},"in":{"edgeblacklist":["top","right","left","bottom"],"weight":0.000001},"out":{"edgeblacklist":["top","right"],"weight":0.000001},"stairs":{"edgeblacklist":["right","bottom","left","top"],"weight":1000000},"table":{"edgeblacklist":["right","bottom","left","top"],"weight":1000000},"vent":{"edgeblacklist":["right","bottom","left","top"],"weight":1000000},"w":{"edgeblacklist":["right","left"],"weight":0.000001},"wall":{"edgeblacklist":["right","left"],"weight":0.000001},"walldiv":{"edgeblacklist":["right","left","top"],"weight":0.000001},"window":{"edgeblacklist":["right","left"],"weight":0.000001}}}');
 
 /***/ }),
 
@@ -1035,7 +1074,7 @@ module.exports = JSON.parse('{"all":{"div":{},"divt":{},"divturn":{},"door":{},"
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"all":{"corner":{},"t":{},"cross":{},"line":{},"empty":{}},"nonempty":{"corner":{},"t":{},"cross":{},"line":{}},"onlycorners":{"corner":{}},"nocrossnoempty":{"corner":{},"t":{},"line":{}},"nocross":{"corner":{},"t":{},"line":{},"empty":{}},"onlyt":{"t":{}},"braided":{"line":{},"cross":{}},"cross":{"cross":{}},"crosst":{"cross":{},"t":{}},"cornert":{"corner":{},"t":{}}}');
+module.exports = JSON.parse('{"all":{"corner":{},"t":{},"cross":{},"line":{},"empty":{}},"nonempty":{"corner":{},"t":{},"cross":{},"line":{}},"onlycorners":{"corner":{}},"nocrossnoempty":{"corner":{},"t":{},"line":{}},"nocross":{"corner":{},"t":{},"line":{},"empty":{}},"onlyt":{"t":{}},"braided":{"line":{},"cross":{}},"cross":{"cross":{}},"crosst":{"cross":{},"t":{}},"cornert":{"corner":{},"t":{}},"linecorner":{"corner":{},"line":{}},"edgeblacklist_all":{"corner":{"edgeblacklist":["right","top"]},"t":{"edgeblacklist":["right","bottom","left"]},"cross":{"edgeblacklist":["right","bottom","top","left"]},"line":{"edgeblacklist":["right","left"]},"empty":{}},"edgeblacklist_nonempty":{"corner":{"edgeblacklist":["right","top"]},"t":{"edgeblacklist":["right","bottom","left"]},"cross":{"edgeblacklist":["right","bottom","top","left"]},"line":{"edgeblacklist":["right","left"]}},"edgeblacklist_nocrossnoempty":{"corner":{"edgeblacklist":["right","top"]},"t":{"edgeblacklist":["right","bottom","left"]},"line":{"edgeblacklist":["right","left"]}},"edgeblacklist_nocross":{"corner":{"edgeblacklist":["right","top"]},"t":{"edgeblacklist":["right","bottom","left"]},"line":{"edgeblacklist":["right","left"]},"empty":{}},"edgeblacklist_onlyt":{"corner":{"edgeblacklist":["right","top"],"weight":1e-7},"t":{"edgeblacklist":["right","bottom","left"],"weight":1000000}},"edgeblacklist_cross":{"corner":{"edgeblacklist":["right","top"],"weight":1e-7},"t":{"edgeblacklist":["right","bottom","left"],"weight":0.001},"cross":{"edgeblacklist":["right","bottom","top","left"],"weight":100000}},"edgeblacklist_crosst":{"corner":{"edgeblacklist":["right","top"],"weight":1e-7},"cross":{"edgeblacklist":["right","bottom","top","left"]},"t":{"edgeblacklist":["right","bottom","left"]}},"edgeblacklist_cornert":{"corner":{"edgeblacklist":["right","top"]},"t":{"edgeblacklist":["right","bottom","left"]}},"pyramid":{"cross":{"edgeblacklist":["right","bottom","top","left"]},"corner":{"edgeblacklist":["right","top"],"weight":1e-7},"line":{"edgeblacklist":["right","left"]}}}');
 
 /***/ }),
 
@@ -1057,7 +1096,7 @@ module.exports = JSON.parse('{"all":{"bend":{},"corner":{},"corridor":{},"door":
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"all":{"cliff 0":{},"cliff 1":{},"cliff 2":{},"cliff 3":{},"cliffcorner 0":{},"cliffcorner 1":{},"cliffcorner 2":{},"cliffcorner 3":{},"cliffturn 0":{},"cliffturn 1":{},"cliffturn 2":{},"cliffturn 3":{},"grass 0":{},"grasscorner 0":{},"grasscorner 1":{},"grasscorner 2":{},"grasscorner 3":{},"road 0":{},"road 1":{},"road 2":{},"road 3":{},"roadturn 0":{},"roadturn 1":{},"roadturn 2":{},"roadturn 3":{},"water_a 0":{},"water_b 0":{},"water_c 0":{},"watercorner 0":{},"watercorner 1":{},"watercorner 2":{},"watercorner 3":{},"waterside 0":{},"waterside 1":{},"waterside 2":{},"waterside 3":{},"waterturn 0":{},"waterturn 1":{},"waterturn 2":{},"waterturn 3":{}},"nocliff":{"grass 0":{},"grasscorner 0":{},"grasscorner 1":{},"grasscorner 2":{},"grasscorner 3":{},"road 0":{},"road 1":{},"road 2":{},"road 3":{},"roadturn 0":{},"roadturn 1":{},"roadturn 2":{},"roadturn 3":{},"water_a 0":{},"water_b 0":{},"water_c 0":{},"watercorner 0":{},"watercorner 1":{},"watercorner 2":{},"watercorner 3":{},"waterside 0":{},"waterside 1":{},"waterside 2":{},"waterside 3":{},"waterturn 0":{},"waterturn 1":{},"waterturn 2":{},"waterturn 3":{}},"nowater":{"cliff 0":{},"cliff 1":{},"cliff 2":{},"cliff 3":{},"cliffcorner 0":{},"cliffcorner 1":{},"cliffcorner 2":{},"cliffcorner 3":{},"cliffturn 0":{},"cliffturn 1":{},"cliffturn 2":{},"cliffturn 3":{},"grass 0":{},"grasscorner 0":{},"grasscorner 1":{},"grasscorner 2":{},"grasscorner 3":{},"road 0":{},"road 1":{},"road 2":{},"road 3":{},"roadturn 0":{},"roadturn 1":{},"roadturn 2":{},"roadturn 3":{}},"noroad":{"cliff 0":{},"cliff 1":{},"cliff 2":{},"cliff 3":{},"cliffcorner 0":{},"cliffcorner 1":{},"cliffcorner 2":{},"cliffcorner 3":{},"cliffturn 0":{},"cliffturn 1":{},"cliffturn 2":{},"cliffturn 3":{},"grass 0":{},"water_a 0":{},"water_b 0":{},"water_c 0":{},"watercorner 0":{},"watercorner 1":{},"watercorner 2":{},"watercorner 3":{},"waterside 0":{},"waterside 1":{},"waterside 2":{},"waterside 3":{},"waterturn 0":{},"waterturn 1":{},"waterturn 2":{},"waterturn 3":{}}}');
+module.exports = JSON.parse('{"all":{"cliff 0":{},"cliff 1":{},"cliff 2":{},"cliff 3":{},"cliffcorner 0":{},"cliffcorner 1":{},"cliffcorner 2":{},"cliffcorner 3":{},"cliffturn 0":{},"cliffturn 1":{},"cliffturn 2":{},"cliffturn 3":{},"grass 0":{},"grasscorner 0":{},"grasscorner 1":{},"grasscorner 2":{},"grasscorner 3":{},"road 0":{},"road 1":{},"road 2":{},"road 3":{},"roadturn 0":{},"roadturn 1":{},"roadturn 2":{},"roadturn 3":{},"water_a 0":{},"water_b 0":{},"water_c 0":{},"watercorner 0":{},"watercorner 1":{},"watercorner 2":{},"watercorner 3":{},"waterside 0":{},"waterside 1":{},"waterside 2":{},"waterside 3":{},"waterturn 0":{},"waterturn 1":{},"waterturn 2":{},"waterturn 3":{}},"nocliff":{"grass 0":{},"grasscorner 0":{},"grasscorner 1":{},"grasscorner 2":{},"grasscorner 3":{},"road 0":{},"road 1":{},"road 2":{},"road 3":{},"roadturn 0":{},"roadturn 1":{},"roadturn 2":{},"roadturn 3":{},"water_a 0":{},"water_b 0":{},"water_c 0":{},"watercorner 0":{},"watercorner 1":{},"watercorner 2":{},"watercorner 3":{},"waterside 0":{},"waterside 1":{},"waterside 2":{},"waterside 3":{},"waterturn 0":{},"waterturn 1":{},"waterturn 2":{},"waterturn 3":{}},"nowater":{"cliff 0":{},"cliff 1":{},"cliff 2":{},"cliff 3":{},"cliffcorner 0":{},"cliffcorner 1":{},"cliffcorner 2":{},"cliffcorner 3":{},"cliffturn 0":{},"cliffturn 1":{},"cliffturn 2":{},"cliffturn 3":{},"grass 0":{},"grasscorner 0":{},"grasscorner 1":{},"grasscorner 2":{},"grasscorner 3":{},"road 0":{},"road 1":{},"road 2":{},"road 3":{},"roadturn 0":{},"roadturn 1":{},"roadturn 2":{},"roadturn 3":{}},"noroad":{"cliff 0":{},"cliff 1":{},"cliff 2":{},"cliff 3":{},"cliffcorner 0":{},"cliffcorner 1":{},"cliffcorner 2":{},"cliffcorner 3":{},"cliffturn 0":{},"cliffturn 1":{},"cliffturn 2":{},"cliffturn 3":{},"grass 0":{},"water_a 0":{},"water_b 0":{},"water_c 0":{},"watercorner 0":{},"watercorner 1":{},"watercorner 2":{},"watercorner 3":{},"waterside 0":{},"waterside 1":{},"waterside 2":{},"waterside 3":{},"waterturn 0":{},"waterturn 1":{},"waterturn 2":{},"waterturn 3":{}},"islands":{"cliff 0":{"edgeblacklist":["right","bottom","left","top"]},"cliff 1":{"edgeblacklist":["right","bottom","left","top"]},"cliff 2":{"edgeblacklist":["right","bottom","left","top"]},"cliff 3":{"edgeblacklist":["right","bottom","left","top"]},"cliffcorner 0":{"edgeblacklist":["right","bottom","left","top"]},"cliffcorner 1":{"edgeblacklist":["right","bottom","left","top"]},"cliffcorner 2":{"edgeblacklist":["right","bottom","left","top"]},"cliffcorner 3":{"edgeblacklist":["right","bottom","left","top"]},"cliffturn 0":{"edgeblacklist":["right","bottom","left","top"]},"cliffturn 1":{"edgeblacklist":["right","bottom","left","top"]},"cliffturn 2":{"edgeblacklist":["right","bottom","left","top"]},"cliffturn 3":{"edgeblacklist":["right","bottom","left","top"]},"grass 0":{"edgeblacklist":["right","bottom","left","top"]},"grasscorner 0":{"edgeblacklist":["right","bottom","left","top"]},"grasscorner 1":{"edgeblacklist":["right","bottom","left","top"]},"grasscorner 2":{"edgeblacklist":["right","bottom","left","top"]},"grasscorner 3":{"edgeblacklist":["right","bottom","left","top"]},"road 0":{"edgeblacklist":["right","bottom","left","top"]},"road 1":{"edgeblacklist":["right","bottom","left","top"]},"road 2":{"edgeblacklist":["right","bottom","left","top"]},"road 3":{"edgeblacklist":["right","bottom","left","top"]},"roadturn 0":{"edgeblacklist":["right","bottom","left","top"]},"roadturn 1":{"edgeblacklist":["right","bottom","left","top"]},"roadturn 2":{"edgeblacklist":["right","bottom","left","top"]},"roadturn 3":{"edgeblacklist":["right","bottom","left","top"]},"water_a 0":{},"water_b 0":{},"water_c 0":{},"watercorner 0":{"edgeblacklist":["right","bottom","left","top"]},"watercorner 1":{"edgeblacklist":["right","bottom","left","top"]},"watercorner 2":{"edgeblacklist":["right","bottom","left","top"]},"watercorner 3":{"edgeblacklist":["right","bottom","left","top"]},"waterside 0":{"edgeblacklist":["right","bottom","left"]},"waterside 1":{"edgeblacklist":["bottom","left","top"]},"waterside 2":{"edgeblacklist":["right","left","top"]},"waterside 3":{"edgeblacklist":["bottom","left","top"]},"waterturn 0":{"edgeblacklist":["left","bottom"]},"waterturn 1":{"edgeblacklist":["right","bottom"]},"waterturn 2":{"edgeblacklist":["right","top"]},"waterturn 3":{"edgeblacklist":["left","top"]}}}');
 
 /***/ }),
 
@@ -1112,7 +1151,7 @@ module.exports = JSON.parse('[{"name":"div","rotations":[0,1],"weight":0.5,"sock
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"cross","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"line","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"},"edgeblacklist":{"0":["right","bottom","left"],"1":["top","bottom","left"],"2":["top","right","left"],"3":["top","right","bottom"]}}]');
+module.exports = JSON.parse('[{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"cross","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"line","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}}]');
 
 /***/ }),
 

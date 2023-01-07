@@ -46,5 +46,21 @@
         "viad": { "weight": 0.0 },
         "vias": { "weight": 0.1 },
         "wire": { "weight": 0.0 }
+    },
+    "edgeblacklist_all": {
+        "bridge": { "edgeblacklist": ["right", "bottom", "left", "top"] }, 
+        "component": { "edgeblacklist": ["right", "bottom", "left", "top"] }, 
+        "connection": { "edgeblacklist": ["top", "bottom"] }, 
+        "corner": { "edgeblacklist": ["bottom", "left"] }, 
+        "dskew": { "edgeblacklist": ["right", "bottom", "left", "top"] }, 
+        "skew": { "edgeblacklist": ["top", "right"] }, 
+        "substrate": { },
+        "t": { "edgeblacklist": ["right", "bottom", "left"] },
+        "track": { "edgeblacklist": ["top", "bottom"] },
+        "transition": { "edgeblacklist": ["top", "bottom"] },
+        "turn": { "edgeblacklist": ["top", "right"] },
+        "viad": { "edgeblacklist": ["right", "left"] },
+        "vias": { "edgeblacklist": ["top"] },
+        "wire": { "edgeblacklist": ["right", "left"] }
     }
 }

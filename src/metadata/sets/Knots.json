@@ -14,5 +14,53 @@
     "braided": {"line": { }, "cross": { }},
     "cross": {"cross": { }},
     "crosst": {"cross": { }, "t": { }},
-    "cornert": {"corner": { }, "t": { }}
+    "cornert": {"corner": { }, "t": { }},
+    "linecorner": { "corner": { }, "line": { } },
+    "edgeblacklist_all": {
+        "corner": { "edgeblacklist": ["right", "top"] },
+        "t": { "edgeblacklist": ["right","bottom","left"] },
+        "cross": { "edgeblacklist": ["right","bottom", "top", "left"] },
+        "line": { "edgeblacklist": ["right","left"] },
+        "empty": { }
+    },
+    "edgeblacklist_nonempty": {
+        "corner": { "edgeblacklist": ["right", "top"] },
+        "t": { "edgeblacklist": ["right","bottom","left"] },
+        "cross": { "edgeblacklist": ["right","bottom", "top", "left"] },
+        "line": { "edgeblacklist": ["right","left"] }
+    },
+    "edgeblacklist_nocrossnoempty": {
+        "corner": { "edgeblacklist": ["right", "top"] },
+        "t": { "edgeblacklist": ["right","bottom","left"] },
+        "line": { "edgeblacklist": ["right","left"] }
+    },
+    "edgeblacklist_nocross": {
+        "corner": { "edgeblacklist": ["right", "top"] },
+        "t": { "edgeblacklist": ["right","bottom","left"] },
+        "line": { "edgeblacklist": ["right","left"] },
+        "empty": { }
+    },
+    "edgeblacklist_onlyt": {
+        "corner": { "edgeblacklist": ["right", "top"], "weight": 0.0000001 },
+        "t": { "edgeblacklist": ["right","bottom","left"], "weight": 1000000 }
+    },
+    "edgeblacklist_cross": {
+        "corner": { "edgeblacklist": ["right", "top"], "weight": 0.0000001 },
+        "t": { "edgeblacklist": ["right","bottom","left"] , "weight": 0.001},
+        "cross": { "edgeblacklist": ["right","bottom", "top", "left"], "weight": 100000 }
+    },
+    "edgeblacklist_crosst": {
+        "corner": { "edgeblacklist": ["right", "top"], "weight": 0.0000001 },
+        "cross": { "edgeblacklist": ["right","bottom", "top", "left"] },
+        "t": { "edgeblacklist": ["right","bottom","left"] }
+    },
+    "edgeblacklist_cornert": {
+        "corner": { "edgeblacklist": ["right", "top"] },
+        "t": { "edgeblacklist": ["right","bottom","left"] }
+    },
+    "pyramid": {
+        "cross": { "edgeblacklist": ["right","bottom", "top", "left"] },
+        "corner": { "edgeblacklist": ["right", "top"],"weight": 0.0000001 },
+        "line": { "edgeblacklist": ["right","left"] }
+    }
 }

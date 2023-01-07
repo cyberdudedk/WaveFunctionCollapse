@@ -39,7 +39,7 @@ export class WFCTiles {
         let sets = this.wfcData.tileSets[this.config.tileName];
         let currentSet = sets[this.config.set];
 
-        Object.entries<any>(currentSet).forEach((value: [string, {weight: number, rotations: number[]}]) => {
+        Object.entries<any>(currentSet).forEach((value: [string, {weight: number, rotations: number[], edgeblacklist: string[]}]) => {
             let pieceName = value[0];
             let properties = value[1];
             if(properties.rotations != undefined) {
@@ -48,13 +48,16 @@ export class WFCTiles {
             if(properties.weight != undefined) {
                 pieces.find(x => x.name == pieceName).weight = properties.weight;
             }
+            if(properties.edgeblacklist != undefined) {
+                pieces.find(x => x.name == pieceName).edgeblacklist = properties.edgeblacklist;
+            }
         });
 
         let mappedPieces = pieces.reduce((piecesMap, piece) => {
             if(currentSet[piece.name] == undefined) {
                 return piecesMap;
             }
-
+            console.log('piece', piece);
             let pieceSockets = piece.socket
             piece.socketmatching = {};
             piece.blacklistedNeighbors = {};
@@ -186,12 +189,22 @@ export class WFCTiles {
                     weight = weight[rotation] ?? 1;
                 }
 
+                let edgeBlackList: string[] | null = null;
+                if(piece.edgeblacklist) {
+                    edgeBlackList = piece.edgeblacklist.map((direction: string) => {
+                        let dir = Direction[direction as keyof typeof Direction];
+                        let directionsCount = (Object.keys(Direction).length / 2);
+                        let newDir = (dir + rotation) % directionsCount;
+                        return Direction[newDir];
+                    });
+                }
+
                 piecesMap[pieceName] = new PieceObject(
                     piece.name + "_" + rotation,
                     piece.name, 
                     rotation, 
                     validNeighbors,
-                    piece.newValid,
+                    edgeBlackList,
                     weight,
                 );
                 
@@ -211,10 +224,33 @@ export class WFCTiles {
         this.tiles = Array.from({length:this.config.tilesWidth}, 
             (a,x) => {
                 return Array.from({length:this.config.tilesHeight}, (b, y) => {
-                  return {
-                    position: {x: x, y: y},
-                    validPieces: [...startingTile.validPieces]
-                  };
+                    var edges: string[] = [];
+                    if(x == 0) edges.push('left');
+                    if(y == 0) edges.push('top');
+                    if(x == this.config.tilesWidth-1) edges.push('right');
+                    if(y == this.config.tilesHeight-1) edges.push('bottom');
+                    
+                    if(edges.length > 0) {
+                        let validPieces = startingTile.validPieces.filter((pieceName: string) => {
+                            let piece = this.piecesMap[pieceName];
+                            if(piece.edgeblacklist) {
+                                return !edges.some(v => piece.edgeblacklist.includes(v));
+                            } else {
+                                return true;
+                            }
+                        });
+
+                        return {
+                            position: {x: x, y: y},
+                            validPieces: validPieces
+                        };
+                    } else {
+                        return {
+                            position: {x: x, y: y},
+                            validPieces: [...startingTile.validPieces]
+                        };
+                    }
+                    
                 });
             }
         )
