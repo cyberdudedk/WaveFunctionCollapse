@@ -132,6 +132,18 @@
                 wfcRender.initDraw();
             });
 
+            function saveImage() {
+                var image = document.getElementById('draw').toDataURL("image/png");
+                   // .replace("image/png", "image/octet-stream");
+                downloadImage(image, 'wfctile.png');
+            }
+
+            function downloadImage(data, filename = 'wfctile.png') {
+                var a = document.createElement('a');
+                a.href = data;
+                a.download = filename;
+                a.click();
+            }
         </script>
     </head>
     <body style="background-color: rgba(249, 249, 249, 0.84);">
@@ -164,7 +176,7 @@
                             <td>edgeWrapAround</td><td><input type="checkbox" id="edgeWrapAround" value="edgeWrapAround"></td>
                         </tr>
                         <tr>
-                            <td><button id="apply" onclick="applyConfig()" >Apply</button></td><td></td>
+                            <td><button id="apply" onclick="applyConfig()" >Apply</button></td><td><button id="save" onclick="saveImage()" >Save</button></td>
                             <td></td><td></td>
                             <td></td><td></td>
                             
