@@ -95,6 +95,7 @@ class WFCConfig {
         this.tilesWidth = 30;
         this.superImposed = 1;
         this.useMouse = false;
+        this.edgeWrapAround = false;
         this.tileName = 'Knots';
         this.set = 'all';
     }
@@ -452,9 +453,6 @@ class WFCRunner {
                 }
                 let piece = this.wfc.piecesMap[tileKey];
                 this.wfc.tiles[x][y] = piece;
-                if (piece == undefined) {
-                    console.log('piece', x, y, piece, tileKey, randomPiece, currentTile.validPieces);
-                }
                 let validation = this.runValidation(x, y, [piece]);
                 if (validation == null) {
                     break;
@@ -485,17 +483,17 @@ class WFCRunner {
     runValidation(x, y, pieces) {
         let recheck = [];
         let neighbors = [];
-        if (y != 0) {
-            neighbors.push({ direction: 'top', tile: this.wfc.tiles[x][y - 1] });
+        if (this.config.edgeWrapAround || y != 0) {
+            neighbors.push({ direction: 'top', tile: this.wfc.tiles[x][((y - 1) + this.config.tilesHeight) % (this.config.tilesHeight)] });
         }
-        if (x != this.config.tilesWidth - 1) {
-            neighbors.push({ direction: 'right', tile: this.wfc.tiles[x + 1][y] });
+        if (this.config.edgeWrapAround || x != this.config.tilesWidth - 1) {
+            neighbors.push({ direction: 'right', tile: this.wfc.tiles[((x + 1) + this.config.tilesWidth) % (this.config.tilesWidth)][y] });
         }
-        if (y != this.config.tilesHeight - 1) {
-            neighbors.push({ direction: 'bottom', tile: this.wfc.tiles[x][y + 1] });
+        if (this.config.edgeWrapAround || y != this.config.tilesHeight - 1) {
+            neighbors.push({ direction: 'bottom', tile: this.wfc.tiles[x][((y + 1) + this.config.tilesHeight) % (this.config.tilesHeight)] });
         }
-        if (x != 0) {
-            neighbors.push({ direction: 'left', tile: this.wfc.tiles[x - 1][y] });
+        if (this.config.edgeWrapAround || x != 0) {
+            neighbors.push({ direction: 'left', tile: this.wfc.tiles[((x - 1) + this.config.tilesWidth) % (this.config.tilesWidth)][y] });
         }
         neighbors.forEach((neighbor) => {
             if (neighbor.tile.validPieces) {
@@ -655,7 +653,6 @@ class WFCTiles {
             if (currentSet[piece.name] == undefined) {
                 return piecesMap;
             }
-            console.log('piece', piece);
             let pieceSockets = piece.socket;
             piece.socketmatching = {};
             piece.blacklistedNeighbors = {};

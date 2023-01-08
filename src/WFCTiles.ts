@@ -57,7 +57,6 @@ export class WFCTiles {
             if(currentSet[piece.name] == undefined) {
                 return piecesMap;
             }
-            console.log('piece', piece);
             let pieceSockets = piece.socket
             piece.socketmatching = {};
             piece.blacklistedNeighbors = {};

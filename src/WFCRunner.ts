@@ -82,9 +82,6 @@ export class WFCRunner {
 
                 let piece = this.wfc.piecesMap[tileKey];
                 this.wfc.tiles[x][y] = piece;
-                if (piece == undefined) {
-                    console.log('piece', x, y, piece, tileKey, randomPiece, currentTile.validPieces);
-                }
                 let validation = this.runValidation(x, y, [piece]);
                 if (validation == null) {
                     break;
@@ -121,32 +118,32 @@ export class WFCRunner {
     public runValidation(x: number, y: number, pieces: any[]) {
         let recheck: any[] = [];
         let neighbors = [];
-        if (y != 0) {
+        
+        if (this.config.edgeWrapAround || y != 0) {
             neighbors.push(
-                { direction: 'top', tile: this.wfc.tiles[x][y - 1] }
+                { direction: 'top', tile: this.wfc.tiles[x][((y - 1) + this.config.tilesHeight) % (this.config.tilesHeight)] }
             );
         }
 
-        if (x != this.config.tilesWidth - 1) {
+        if (this.config.edgeWrapAround || x != this.config.tilesWidth - 1) {
             neighbors.push(
-                { direction: 'right', tile: this.wfc.tiles[x + 1][y] }
+                { direction: 'right', tile: this.wfc.tiles[((x + 1) + this.config.tilesWidth) % (this.config.tilesWidth)][y] }
             );
         }
 
-        if (y != this.config.tilesHeight - 1) {
+        if (this.config.edgeWrapAround || y != this.config.tilesHeight - 1) {
             neighbors.push(
-                { direction: 'bottom', tile: this.wfc.tiles[x][y + 1] }
+                { direction: 'bottom', tile: this.wfc.tiles[x][((y + 1) + this.config.tilesHeight) % (this.config.tilesHeight)] }
             );
         }
 
-        if (x != 0) {
+        if (this.config.edgeWrapAround || x != 0) {
             neighbors.push(
-                { direction: 'left', tile: this.wfc.tiles[x - 1][y] }
+                { direction: 'left', tile: this.wfc.tiles[((x - 1) + this.config.tilesWidth) % (this.config.tilesWidth)][y] }
             );
         }
 
         neighbors.forEach((neighbor) => {
-
             if (neighbor.tile.validPieces) {
                 let validBefore = neighbor.tile.validPieces.length;
                 let validArray: any = [];

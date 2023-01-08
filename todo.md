@@ -1,7 +1,6 @@
 # Todo
 
 # 1.1 Ideas
-- Support for wrap-around
 - Support for defining edge as a "socket"
 - Debug show json object for tiles, sets, mappings
 - Debug show progress, time, and retry/failed state

@@ -1,16 +1,18 @@
 
 export class WFCConfig {
-    public maxRetryCount = 10;
-    public maxDepth = 100;
-    public tileScale = 40;
+    public maxRetryCount: number = 10;
+    public maxDepth: number = 100;
+    public tileScale: number = 40;
     public fast: boolean = false;
     public runSpeed: number = 10;
     public runLoop: number = 30;
 
-    public tilesHeight = 30;
-    public tilesWidth = 30;
-    public superImposed = 1;
-    public useMouse = false;
+    public tilesHeight: number = 30;
+    public tilesWidth: number = 30;
+    public superImposed: number = 1;
+    public useMouse: boolean = false;
+
+    public edgeWrapAround: boolean = false;
 
     public tileName: string = 'Knots';
     public set: string = 'all';

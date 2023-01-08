@@ -66,6 +66,7 @@
             config.tilesWidth = parseInt((queryParams.get('tilesWidth') ?? 15));
             config.superImposed = parseInt((queryParams.get('superImposed') ?? 1));
             config.useMouse = parseInt((queryParams.get('useMouse') ?? 0));
+            config.edgeWrapAround = parseInt((queryParams.get('edgeWrapAround') ?? 0));
         }
 
         function loadConfigControls(config) {
@@ -158,6 +159,9 @@
                             <td>maxRetryCount</td><td><input type="number" min="0" max="100" id="maxRetryCount"></td>
                             <td>maxDepth</td><td><input type="number" min="1" max="500" id="maxDepth"></td>
                             <td>useMouse</td><td><input type="checkbox" id="useMouse" value="useMouse"></td>
+                        </tr>
+                        <tr>
+                            <td>edgeWrapAround</td><td><input type="checkbox" id="edgeWrapAround" value="edgeWrapAround"></td>
                         </tr>
                         <tr>
                             <td><button id="apply" onclick="applyConfig()" >Apply</button></td><td></td>
