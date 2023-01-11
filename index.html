@@ -32,6 +32,10 @@
                 if(element.type == 'checkbox') {
                     queryParams.set(configItem, element.checked ? 1 : 0);
                 }
+                else if(element.type == 'text') {
+                    var value = element.value;
+                    queryParams.set(configItem, value);
+                }
                 else if(configItem == "tileName" || configItem == "set") {
                     var value = element.value;
                     queryParams.set(configItem, value);
@@ -67,6 +71,7 @@
             config.superImposed = parseInt((queryParams.get('superImposed') ?? 1));
             config.useMouse = parseInt((queryParams.get('useMouse') ?? 0));
             config.edgeWrapAround = parseInt((queryParams.get('edgeWrapAround') ?? 0));
+            config.edgeSocket = queryParams.get('edgeSocket') ?? '';
         }
 
         function loadConfigControls(config) {
@@ -133,9 +138,7 @@
             });
 
             function saveImage() {
-                var image = document.getElementById('draw').toDataURL("image/png");
-                   // .replace("image/png", "image/octet-stream");
-                downloadImage(image, 'wfctile.png');
+                downloadImage(wfcRender.getImage(), 'wfctile.png');
             }
 
             function downloadImage(data, filename = 'wfctile.png') {
@@ -174,6 +177,7 @@
                         </tr>
                         <tr>
                             <td>edgeWrapAround</td><td><input type="checkbox" id="edgeWrapAround" value="edgeWrapAround"></td>
+                            <td>edgeSocket</td><td><input type="text" id="edgeSocket" value="edgeSocket"></td>
                         </tr>
                         <tr>
                             <td><button id="apply" onclick="applyConfig()" >Apply</button></td><td><button id="save" onclick="saveImage()" >Save</button></td>

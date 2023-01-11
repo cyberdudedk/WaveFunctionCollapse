@@ -198,6 +198,8 @@ export class WFCTiles {
                     });
                 }
 
+                
+
                 piecesMap[pieceName] = new PieceObject(
                     piece.name + "_" + rotation,
                     piece.name, 
@@ -205,8 +207,8 @@ export class WFCTiles {
                     validNeighbors,
                     edgeBlackList,
                     weight,
+                    piece.socketmatching[rotation]
                 );
-                
             });
             
             return piecesMap;
@@ -220,6 +222,21 @@ export class WFCTiles {
         let startingTile = {
             validPieces: piecesKeys,
         };
+        console.log('edgeSockets',this.config.edgeSocket);
+
+        let useEdgeSocket = false;
+        let edgeSockets: { [name: string]: string } = {};
+
+        if(this.config.edgeSocket != '') {
+            useEdgeSocket = true;
+            edgeSockets = {
+                "top": this.config.edgeSocket,
+                "left": this.config.edgeSocket.split("").reverse().join(""),
+                "bottom": this.config.edgeSocket,
+                "right": this.config.edgeSocket.split("").reverse().join("")
+            };
+        }
+
         this.tiles = Array.from({length:this.config.tilesWidth}, 
             (a,x) => {
                 return Array.from({length:this.config.tilesHeight}, (b, y) => {
@@ -232,12 +249,21 @@ export class WFCTiles {
                     if(edges.length > 0) {
                         let validPieces = startingTile.validPieces.filter((pieceName: string) => {
                             let piece = this.piecesMap[pieceName];
+                            let allow = true;
+                            if(useEdgeSocket) {
+                                allow = edges.every(edge => 
+                                    piece.sockets[edge].includes(edgeSockets[edge])
+                                );
+                            }
+
                             if(piece.edgeblacklist) {
-                                return !edges.some(v => piece.edgeblacklist.includes(v));
+                                return !edges.some(v => piece.edgeblacklist.includes(v)) && allow;
                             } else {
-                                return true;
+                                return true && allow;
                             }
                         });
+
+
 
                         return {
                             position: {x: x, y: y},

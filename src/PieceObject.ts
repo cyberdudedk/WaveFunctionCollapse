@@ -5,6 +5,7 @@ export class PieceObject {
     public validNeighbors: { [name: string]: string[]; };
     public edgeblacklist: string[] | null;
     public weight: any;
+    public sockets: any;
 
     public constructor(
         key: string,
@@ -12,7 +13,8 @@ export class PieceObject {
         rotation: number,
         validNeighbors: { [name: string]: string[]; },
         edgeblacklist: string[] | null,
-        weight: any
+        weight: any,
+        sockets: any
     ) {
         this.key = key;
         this.name = name;
@@ -20,5 +22,6 @@ export class PieceObject {
         this.validNeighbors = validNeighbors;
         this.edgeblacklist = edgeblacklist;
         this.weight = weight;
+        this.sockets = sockets;
     }
 }

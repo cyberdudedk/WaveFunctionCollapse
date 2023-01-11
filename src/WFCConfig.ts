@@ -13,6 +13,7 @@ export class WFCConfig {
     public useMouse: boolean = false;
 
     public edgeWrapAround: boolean = false;
+    public edgeSocket: string = "";
 
     public tileName: string = 'Knots';
     public set: string = 'all';

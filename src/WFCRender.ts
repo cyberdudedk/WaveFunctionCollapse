@@ -146,85 +146,102 @@ export class WFCRender {
             column.forEach((tile, rowIndex) => {
                 if (!this.config.fast) {
                     if (tile.validPieces) {
-                        let validCount = tile.validPieces.length;
-
-                        if (tile.validPieces.length > 0) {
-                            if (this.config.superImposed == SuperImposedState.Layered) {
-                                //superimposed 1 - on top of each
-                                tile.validPieces.forEach((key: string) => {
-                                    let piece = this.wfc.piecesMap[key];
-                                    let tileImage = this.imagesMap[piece.name];
-                                    this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
-                                });
-                            } else if (this.config.superImposed == SuperImposedState.GridScaled) {
-                                //superimposed 2 - grid
-                                let gridSize = Math.ceil(Math.sqrt(validCount));
-                                tile.validPieces.forEach((key: string, index: number) => {
-                                    let piece = this.wfc.piecesMap[key];
-                                    let tileImage = this.imagesMap[piece.name];
-                                    this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
-                                });
-                            } else if (this.config.superImposed == SuperImposedState.Grid) {
-                                //superimposed 3 - grid without scaling
-                                validCount = Object.keys(this.wfc.piecesMap).length;
-                                let gridSize = Math.ceil(Math.sqrt(validCount));
-                                tile.validPieces.forEach((key: string, index: number) => {
-                                    let piece = this.wfc.piecesMap[key];
-                                    let tileImage = this.imagesMap[piece.name];
-                                    this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
-                                });
-                            } else if (this.config.superImposed == SuperImposedState.None) {
-                                //superimposed 4 - none
-                            } else if (this.config.superImposed == SuperImposedState.LayeredSorted) {
-                                //superimposed 5 - layered sorted
-                                let sortedValid = tile.validPieces.sort((a: string, b: string) => {
-                                    let pieceA = this.wfc.piecesMap[a];
-                                    let pieceB = this.wfc.piecesMap[b];
-                                    return pieceB.weight - pieceA.weight;
-                                });
-                                sortedValid.forEach((key: string) => {
-                                    let piece = this.wfc.piecesMap[key];
-                                    let tileImage = this.imagesMap[piece.name];
-                                    this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
-                                });
-
-                            } else if (this.config.superImposed == SuperImposedState.GridAlpha) {
-                                //superimposed 6 - grid scaled alpha
-                                let minWeight = 999;
-                                let maxWeight = 0;
-                                let sortedValid = tile.validPieces.sort((a: string, b: string) => {
-                                    let pieceA = this.wfc.piecesMap[a];
-                                    let pieceB = this.wfc.piecesMap[b];
-                                    let weight = pieceA.weight;
-                                    if (minWeight > weight) {
-                                        minWeight = weight;
-                                    }
-                                    if (maxWeight < weight) {
-                                        maxWeight = weight;
-                                    }
-                                    return pieceB.weight - pieceA.weight;
-                                });
-                                sortedValid.forEach((key: string, index: number) => {
-                                    let piece = this.wfc.piecesMap[key];
-                                    let tileImage = this.imagesMap[piece.name];
-                                    let weight = piece.weight;
-                                    let weightPercent = ((weight - minWeight)) / (maxWeight - minWeight);
-                                    let adjustedAlpha = (weightPercent * (0.6 - 0.2)) + 0.2;
-                                    let gridSize = Math.ceil(Math.sqrt(validCount));
-                                    this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, adjustedAlpha);
-                                });
-
-                            }
-                        }
+                        this.drawSuperImposed(columnIndex, rowIndex, tile);
                     }
                 }
                 if (tile.key != undefined) {
-                    let key = tile.key;
-                    let piece = this.wfc.piecesMap[key];
-                    let tileImage = this.imagesMap[piece.name];
-                    this.drawTile(tileImage, columnIndex, rowIndex, tile.rotation);
+                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
                 }
             });
+        });
+    }
+
+    private drawSuperImposed(columnIndex: number, rowIndex: number, tile: any) {
+        let validCount = tile.validPieces.length;
+        if (validCount > 0) {
+            switch (this.config.superImposed) {
+                case SuperImposedState.Layered:
+                    this.drawSuperImposed_Layered(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case SuperImposedState.GridScaled:
+                    this.drawSuperImposed_GridScaled(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case  SuperImposedState.Grid:
+                    this.drawSuperImposed_Grid(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case SuperImposedState.LayeredSorted:
+                    this.drawSuperImposed_LayeredSorted(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case  SuperImposedState.GridAlpha:
+                    this.drawSuperImposed_GridAlpha(columnIndex, rowIndex, tile, validCount);
+                    break;
+            }
+        }
+    }
+
+    private drawSuperImposed_Layered(columnIndex: number, rowIndex: number, tile: any, validCount: number) {
+        tile.validPieces.forEach((key: string) => {
+            let piece = this.wfc.piecesMap[key];
+            let tileImage = this.imagesMap[piece.name];
+            this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
+        });
+    }
+
+    private drawSuperImposed_LayeredSorted(columnIndex: number, rowIndex: number, tile: any, validCount: number) {
+        let sortedValid = tile.validPieces.sort((a: string, b: string) => {
+            let pieceA = this.wfc.piecesMap[a];
+            let pieceB = this.wfc.piecesMap[b];
+            return pieceB.weight - pieceA.weight;
+        });
+        sortedValid.forEach((key: string) => {
+            let piece = this.wfc.piecesMap[key];
+            let tileImage = this.imagesMap[piece.name];
+            this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
+        });
+    }
+
+    private drawSuperImposed_GridScaled(columnIndex: number, rowIndex: number, tile: any, validCount: number) {
+        let gridSize = Math.ceil(Math.sqrt(validCount));
+        tile.validPieces.forEach((key: string, index: number) => {
+            let piece = this.wfc.piecesMap[key];
+            let tileImage = this.imagesMap[piece.name];
+            this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
+        });
+    }
+
+    private drawSuperImposed_Grid(columnIndex: number, rowIndex: number, tile: any, validCount: number) {
+        let piecesCount = Object.keys(this.wfc.piecesMap).length;
+        let gridSize = Math.ceil(Math.sqrt(piecesCount));
+        tile.validPieces.forEach((key: string, index: number) => {
+            let piece = this.wfc.piecesMap[key];
+            let tileImage = this.imagesMap[piece.name];
+            this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, piecesCount, 0.4);
+        });
+    }
+
+    private drawSuperImposed_GridAlpha(columnIndex: number, rowIndex: number, tile: any, validCount: number) {
+        let minWeight = 999;
+        let maxWeight = 0;
+        let sortedValid = tile.validPieces.sort((a: string, b: string) => {
+            let pieceA = this.wfc.piecesMap[a];
+            let pieceB = this.wfc.piecesMap[b];
+            let weight = pieceA.weight;
+            if (minWeight > weight) {
+                minWeight = weight;
+            }
+            if (maxWeight < weight) {
+                maxWeight = weight;
+            }
+            return pieceB.weight - pieceA.weight;
+        });
+        sortedValid.forEach((key: string, index: number) => {
+            let piece = this.wfc.piecesMap[key];
+            let tileImage = this.imagesMap[piece.name];
+            let weight = piece.weight;
+            let weightPercent = ((weight - minWeight)) / (maxWeight - minWeight);
+            let adjustedAlpha = (weightPercent * (0.6 - 0.2)) + 0.2;
+            let gridSize = Math.ceil(Math.sqrt(validCount));
+            this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, adjustedAlpha);
         });
     }
 
@@ -264,5 +281,9 @@ export class WFCRender {
         this.ctx.rotate((rotation * 90) * (Math.PI / 180));
         this.ctx.drawImage(img, -(width / 2), -(height / 2), width, height);
         this.ctx.restore();
+    }
+
+    public getImage() {
+        return this.canvas.toDataURL("image/png");
     }
 }

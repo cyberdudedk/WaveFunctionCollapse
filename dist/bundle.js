@@ -35,13 +35,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "PieceObject": () => (/* binding */ PieceObject)
 /* harmony export */ });
 class PieceObject {
-    constructor(key, name, rotation, validNeighbors, edgeblacklist, weight) {
+    constructor(key, name, rotation, validNeighbors, edgeblacklist, weight, sockets) {
         this.key = key;
         this.name = name;
         this.rotation = rotation;
         this.validNeighbors = validNeighbors;
         this.edgeblacklist = edgeblacklist;
         this.weight = weight;
+        this.sockets = sockets;
     }
 }
 
@@ -96,6 +97,7 @@ class WFCConfig {
         this.superImposed = 1;
         this.useMouse = false;
         this.edgeWrapAround = false;
+        this.edgeSocket = "";
         this.tileName = 'Knots';
         this.set = 'all';
     }
@@ -251,87 +253,96 @@ class WFCRender {
             column.forEach((tile, rowIndex) => {
                 if (!this.config.fast) {
                     if (tile.validPieces) {
-                        let validCount = tile.validPieces.length;
-                        if (tile.validPieces.length > 0) {
-                            if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Layered) {
-                                //superimposed 1 - on top of each
-                                tile.validPieces.forEach((key) => {
-                                    let piece = this.wfc.piecesMap[key];
-                                    let tileImage = this.imagesMap[piece.name];
-                                    this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
-                                });
-                            }
-                            else if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridScaled) {
-                                //superimposed 2 - grid
-                                let gridSize = Math.ceil(Math.sqrt(validCount));
-                                tile.validPieces.forEach((key, index) => {
-                                    let piece = this.wfc.piecesMap[key];
-                                    let tileImage = this.imagesMap[piece.name];
-                                    this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
-                                });
-                            }
-                            else if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Grid) {
-                                //superimposed 3 - grid without scaling
-                                validCount = Object.keys(this.wfc.piecesMap).length;
-                                let gridSize = Math.ceil(Math.sqrt(validCount));
-                                tile.validPieces.forEach((key, index) => {
-                                    let piece = this.wfc.piecesMap[key];
-                                    let tileImage = this.imagesMap[piece.name];
-                                    this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
-                                });
-                            }
-                            else if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.None) {
-                                //superimposed 4 - none
-                            }
-                            else if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.LayeredSorted) {
-                                //superimposed 5 - layered sorted
-                                let sortedValid = tile.validPieces.sort((a, b) => {
-                                    let pieceA = this.wfc.piecesMap[a];
-                                    let pieceB = this.wfc.piecesMap[b];
-                                    return pieceB.weight - pieceA.weight;
-                                });
-                                sortedValid.forEach((key) => {
-                                    let piece = this.wfc.piecesMap[key];
-                                    let tileImage = this.imagesMap[piece.name];
-                                    this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
-                                });
-                            }
-                            else if (this.config.superImposed == _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridAlpha) {
-                                //superimposed 6 - grid scaled alpha
-                                let minWeight = 999;
-                                let maxWeight = 0;
-                                let sortedValid = tile.validPieces.sort((a, b) => {
-                                    let pieceA = this.wfc.piecesMap[a];
-                                    let pieceB = this.wfc.piecesMap[b];
-                                    let weight = pieceA.weight;
-                                    if (minWeight > weight) {
-                                        minWeight = weight;
-                                    }
-                                    if (maxWeight < weight) {
-                                        maxWeight = weight;
-                                    }
-                                    return pieceB.weight - pieceA.weight;
-                                });
-                                sortedValid.forEach((key, index) => {
-                                    let piece = this.wfc.piecesMap[key];
-                                    let tileImage = this.imagesMap[piece.name];
-                                    let weight = piece.weight;
-                                    let weightPercent = ((weight - minWeight)) / (maxWeight - minWeight);
-                                    let adjustedAlpha = (weightPercent * (0.6 - 0.2)) + 0.2;
-                                    let gridSize = Math.ceil(Math.sqrt(validCount));
-                                    this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, adjustedAlpha);
-                                });
-                            }
-                        }
+                        this.drawSuperImposed(columnIndex, rowIndex, tile);
                     }
                 }
                 if (tile.key != undefined) {
-                    let key = tile.key;
-                    let piece = this.wfc.piecesMap[key];
-                    let tileImage = this.imagesMap[piece.name];
-                    this.drawTile(tileImage, columnIndex, rowIndex, tile.rotation);
+                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
                 }
             });
+        });
+    }
+    drawSuperImposed(columnIndex, rowIndex, tile) {
+        let validCount = tile.validPieces.length;
+        if (validCount > 0) {
+            switch (this.config.superImposed) {
+                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Layered:
+                    this.drawSuperImposed_Layered(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridScaled:
+                    this.drawSuperImposed_GridScaled(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Grid:
+                    this.drawSuperImposed_Grid(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.LayeredSorted:
+                    this.drawSuperImposed_LayeredSorted(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridAlpha:
+                    this.drawSuperImposed_GridAlpha(columnIndex, rowIndex, tile, validCount);
+                    break;
+            }
+        }
+    }
+    drawSuperImposed_Layered(columnIndex, rowIndex, tile, validCount) {
+        tile.validPieces.forEach((key) => {
+            let piece = this.wfc.piecesMap[key];
+            let tileImage = this.imagesMap[piece.name];
+            this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
+        });
+    }
+    drawSuperImposed_LayeredSorted(columnIndex, rowIndex, tile, validCount) {
+        let sortedValid = tile.validPieces.sort((a, b) => {
+            let pieceA = this.wfc.piecesMap[a];
+            let pieceB = this.wfc.piecesMap[b];
+            return pieceB.weight - pieceA.weight;
+        });
+        sortedValid.forEach((key) => {
+            let piece = this.wfc.piecesMap[key];
+            let tileImage = this.imagesMap[piece.name];
+            this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
+        });
+    }
+    drawSuperImposed_GridScaled(columnIndex, rowIndex, tile, validCount) {
+        let gridSize = Math.ceil(Math.sqrt(validCount));
+        tile.validPieces.forEach((key, index) => {
+            let piece = this.wfc.piecesMap[key];
+            let tileImage = this.imagesMap[piece.name];
+            this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
+        });
+    }
+    drawSuperImposed_Grid(columnIndex, rowIndex, tile, validCount) {
+        let piecesCount = Object.keys(this.wfc.piecesMap).length;
+        let gridSize = Math.ceil(Math.sqrt(piecesCount));
+        tile.validPieces.forEach((key, index) => {
+            let piece = this.wfc.piecesMap[key];
+            let tileImage = this.imagesMap[piece.name];
+            this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, piecesCount, 0.4);
+        });
+    }
+    drawSuperImposed_GridAlpha(columnIndex, rowIndex, tile, validCount) {
+        let minWeight = 999;
+        let maxWeight = 0;
+        let sortedValid = tile.validPieces.sort((a, b) => {
+            let pieceA = this.wfc.piecesMap[a];
+            let pieceB = this.wfc.piecesMap[b];
+            let weight = pieceA.weight;
+            if (minWeight > weight) {
+                minWeight = weight;
+            }
+            if (maxWeight < weight) {
+                maxWeight = weight;
+            }
+            return pieceB.weight - pieceA.weight;
+        });
+        sortedValid.forEach((key, index) => {
+            let piece = this.wfc.piecesMap[key];
+            let tileImage = this.imagesMap[piece.name];
+            let weight = piece.weight;
+            let weightPercent = ((weight - minWeight)) / (maxWeight - minWeight);
+            let adjustedAlpha = (weightPercent * (0.6 - 0.2)) + 0.2;
+            let gridSize = Math.ceil(Math.sqrt(validCount));
+            this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, adjustedAlpha);
         });
     }
     drawImgGrid(img, x, y, rotation, alpha) {
@@ -365,6 +376,9 @@ class WFCRender {
         this.ctx.rotate((rotation * 90) * (Math.PI / 180));
         this.ctx.drawImage(img, -(width / 2), -(height / 2), width, height);
         this.ctx.restore();
+    }
+    getImage() {
+        return this.canvas.toDataURL("image/png");
     }
 }
 
@@ -778,7 +792,7 @@ class WFCTiles {
                         return _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[newDir];
                     });
                 }
-                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, edgeBlackList, weight);
+                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, edgeBlackList, weight, piece.socketmatching[rotation]);
             });
             return piecesMap;
         }, {});
@@ -789,6 +803,18 @@ class WFCTiles {
         let startingTile = {
             validPieces: piecesKeys,
         };
+        console.log('edgeSockets', this.config.edgeSocket);
+        let useEdgeSocket = false;
+        let edgeSockets = {};
+        if (this.config.edgeSocket != '') {
+            useEdgeSocket = true;
+            edgeSockets = {
+                "top": this.config.edgeSocket,
+                "left": this.config.edgeSocket.split("").reverse().join(""),
+                "bottom": this.config.edgeSocket,
+                "right": this.config.edgeSocket.split("").reverse().join("")
+            };
+        }
         this.tiles = Array.from({ length: this.config.tilesWidth }, (a, x) => {
             return Array.from({ length: this.config.tilesHeight }, (b, y) => {
                 var edges = [];
@@ -803,11 +829,15 @@ class WFCTiles {
                 if (edges.length > 0) {
                     let validPieces = startingTile.validPieces.filter((pieceName) => {
                         let piece = this.piecesMap[pieceName];
+                        let allow = true;
+                        if (useEdgeSocket) {
+                            allow = edges.every(edge => piece.sockets[edge].includes(edgeSockets[edge]));
+                        }
                         if (piece.edgeblacklist) {
-                            return !edges.some(v => piece.edgeblacklist.includes(v));
+                            return !edges.some(v => piece.edgeblacklist.includes(v)) && allow;
                         }
                         else {
-                            return true;
+                            return  true && allow;
                         }
                     });
                     return {
