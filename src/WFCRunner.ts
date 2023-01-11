@@ -283,7 +283,8 @@ export class WFCRunner {
     {
         let pieceObjectsForRemoval = Object.entries(this.wfc.piecesMap)
             .filter((values) => values[1].name == tileName )
-            .map((values) => values[0] );
+            .map((values) => values[0]);
+
         this.wfc.tiles.forEach((column, columnIndex) => {
             column.forEach((tile, rowIndex) => {
                 if(tile.validPieces) {
