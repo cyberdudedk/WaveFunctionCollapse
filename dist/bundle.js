@@ -35,7 +35,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "PieceObject": () => (/* binding */ PieceObject)
 /* harmony export */ });
 class PieceObject {
-    constructor(key, name, rotation, validNeighbors, edgeblacklist, weight, sockets) {
+    constructor(key, name, rotation, validNeighbors, edgeblacklist, weight, sockets, minimum = null, maximum = null) {
         this.key = key;
         this.name = name;
         this.rotation = rotation;
@@ -43,6 +43,8 @@ class PieceObject {
         this.edgeblacklist = edgeblacklist;
         this.weight = weight;
         this.sockets = sockets;
+        this.minimum = minimum;
+        this.maximum = maximum;
     }
 }
 
@@ -227,7 +229,7 @@ class WFCRender {
         this.startOver();
     }
     startOver() {
-        this.wfc.reset();
+        this.wfcRunner.reset();
         this.reset();
         this.startWFCLoop(this.config.runSpeed);
     }
@@ -240,7 +242,7 @@ class WFCRender {
             document.body.addEventListener('click', () => this.wfcRunner.runWFC(), true);
         }
         this.draw();
-        this.wfcRunner.startWFCLoop(interval);
+        this.wfcRunner.start(interval);
     }
     draw() {
         this.ctx.save();
@@ -427,7 +429,12 @@ class WFCRunner {
         this.retryCount++;
         this.stopWFCLoop();
         if (this.retryCount <= this.config.maxRetryCount) {
-            this.startOver();
+            //console.log('no valid found, retrying', this.retryCount);
+            if (!this.config.fast) {
+                this.hasRunWFC();
+            }
+            this.reset();
+            this.startWFCLoop(this.config.runSpeed);
         }
         else {
             console.log('not possible to solve within ' + this.config.maxRetryCount + ' retries');
@@ -459,40 +466,50 @@ class WFCRunner {
                     this.noValidFound();
                     return false;
                 }
-                let randomPiece = Math.floor(Math.random() * currentTile.validPieces.length);
                 let tileKey = this.getRandomElementFromArrayWeigted(currentTile.validPieces);
                 if (tileKey == null) {
                     this.noValidFound();
                     return false;
                 }
-                let piece = this.wfc.piecesMap[tileKey];
-                this.wfc.tiles[x][y] = piece;
-                let validation = this.runValidation(x, y, [piece]);
-                if (validation == null) {
+                let placed = this.placeTile(x, y, tileKey);
+                if (!placed) {
                     break;
-                }
-                let depth = 0;
-                while (validation.length > 0 && depth < this.config.maxDepth) {
-                    let newValidations = [];
-                    if (validation.length > 0) {
-                        validation.forEach((v) => {
-                            let validationTile = this.wfc.tiles[v.x][v.y];
-                            let validationTilePieces = validationTile.validPieces;
-                            let pieces = validationTilePieces.map((tileKey) => {
-                                return this.wfc.piecesMap[tileKey];
-                            });
-                            let innerValidation = this.runValidation(v.x, v.y, pieces);
-                            newValidations.push(innerValidation);
-                        });
-                    }
-                    let newValidationsConcat = [].concat.apply([], newValidations);
-                    let newValidationsSet = Array.from(new Set(newValidationsConcat));
-                    depth += 1;
-                    validation = newValidationsSet;
                 }
             }
         }
-        this.hasRunWFC();
+        if (!this.config.fast) {
+            this.hasRunWFC();
+        }
+    }
+    placeTile(x, y, tileKey) {
+        let piece = this.wfc.piecesMap[tileKey];
+        this.wfc.tiles[x][y] = piece;
+        let validation = this.runValidation(x, y, [piece]);
+        if (validation == null) {
+            return false;
+        }
+        let depth = 0;
+        while (validation.length > 0 && depth < this.config.maxDepth) {
+            let newValidations = [];
+            if (validation.length > 0) {
+                validation.forEach((v) => {
+                    let validationTile = this.wfc.tiles[v.x][v.y];
+                    let validationTilePieces = validationTile.validPieces;
+                    let pieces = validationTilePieces.map((tileKey) => {
+                        return this.wfc.piecesMap[tileKey];
+                    });
+                    let innerValidation = this.runValidation(v.x, v.y, pieces);
+                    newValidations.push(innerValidation);
+                });
+            }
+            let newValidationsConcat = [].concat.apply([], newValidations);
+            let newValidationsSet = Array.from(new Set(newValidationsConcat));
+            depth += 1;
+            validation = newValidationsSet;
+        }
+        this.wfc.tileCounters[piece.name].count += 1;
+        this.checkForMaximumTiles(piece.name);
+        return true;
     }
     runValidation(x, y, pieces) {
         let recheck = [];
@@ -544,7 +561,6 @@ class WFCRunner {
             }
         });
         if (stop) {
-            console.log('checkForStop', 'return true');
             console.log('Found solution after ' + this.retryCount + ' retries');
             this.stopWFCLoop();
             return true;
@@ -555,11 +571,83 @@ class WFCRunner {
         this.stopRunning = true;
         clearInterval(this.wfcLoop);
     }
-    startOver() {
+    reset() {
         this.wfc.reset();
-        this.startWFCLoop(this.config.runSpeed);
+        this.setStartTiles();
+    }
+    setStartTiles() {
+        let failed = false;
+        Object.entries(this.wfc.tileCounters).forEach((values) => {
+            if (failed)
+                return;
+            let tileCounterKey = values[0];
+            let countObject = values[1];
+            if (countObject.minimum != undefined && countObject.minimum > 0) {
+                let maxTrySet = countObject.minimum * 10;
+                let trySet = 0;
+                while (countObject.count < countObject.minimum && trySet < maxTrySet) {
+                    trySet++;
+                    let x = Math.floor(Math.random() * this.config.tilesWidth);
+                    let y = Math.floor(Math.random() * this.config.tilesHeight);
+                    let tile = this.wfc.tiles[x][y];
+                    let tilePieces = tile.validPieces;
+                    if (tile.validPieces == undefined)
+                        continue;
+                    if (tile.validPieces.length == 0)
+                        continue;
+                    let counterTiles = tilePieces.filter((tileKey) => this.wfc.piecesMap[tileKey].name == tileCounterKey);
+                    if (counterTiles.length > 0) {
+                        let randomIndex = Math.floor(Math.random() * counterTiles.length);
+                        let placeTileKey = counterTiles[randomIndex];
+                        let placed = this.placeTile(x, y, placeTileKey);
+                        if (!placed) {
+                            continue;
+                        }
+                    }
+                }
+                if (countObject.count < countObject.minimum) {
+                    failed = true;
+                }
+            }
+        });
+        if (failed) {
+            this.noValidFound();
+        }
+        else {
+            this.checkForMaximumTilesReached();
+        }
+    }
+    checkForMaximumTilesReached() {
+        Object.entries(this.wfc.tileCounters).forEach((values) => {
+            let tileCounterKey = values[0];
+            this.checkForMaximumTiles(tileCounterKey);
+        });
+    }
+    checkForMaximumTiles(tileName) {
+        var countObject = this.wfc.tileCounters[tileName];
+        if (countObject.maximum != undefined) {
+            if (countObject.count >= countObject.maximum) {
+                this.maximumReached(tileName);
+            }
+        }
+    }
+    maximumReached(tileName) {
+        let pieceObjectsForRemoval = Object.entries(this.wfc.piecesMap)
+            .filter((values) => values[1].name == tileName)
+            .map((values) => values[0]);
+        this.wfc.tiles.forEach((column, columnIndex) => {
+            column.forEach((tile, rowIndex) => {
+                if (tile.validPieces) {
+                    tile.validPieces = tile.validPieces.filter((tileKey) => !pieceObjectsForRemoval.includes(tileKey));
+                }
+            });
+        });
+    }
+    start(interval) {
+        this.startWFCLoop(interval);
     }
     startWFCLoop(interval) {
+        this.stopWFCLoop();
         this.stopRunning = false;
         if (this.config.useMouse) {
         }
@@ -629,6 +717,7 @@ class WFCTiles {
         this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_2__.WFCConfig();
         this.piecesMap = {};
         this.tiles = [];
+        this.tileCounters = {};
     }
     async init(config) {
         console.clear();
@@ -662,6 +751,12 @@ class WFCTiles {
             if (properties.edgeblacklist != undefined) {
                 pieces.find(x => x.name == pieceName).edgeblacklist = properties.edgeblacklist;
             }
+            if (properties.minimum != undefined) {
+                pieces.find(x => x.name == pieceName).minimum = properties.minimum;
+            }
+            if (properties.maximum != undefined) {
+                pieces.find(x => x.name == pieceName).maximum = properties.maximum;
+            }
         });
         let mappedPieces = pieces.reduce((piecesMap, piece) => {
             if (currentSet[piece.name] == undefined) {
@@ -670,6 +765,7 @@ class WFCTiles {
             let pieceSockets = piece.socket;
             piece.socketmatching = {};
             piece.blacklistedNeighbors = {};
+            this.tileCounters[piece.name] = { minimum: piece.minimum, maximum: piece.maximum, count: 0 };
             piece.rotations.forEach((rotation) => {
                 let socketMatchObject = {};
                 let blacklistedNeighbors = {};
@@ -792,18 +888,18 @@ class WFCTiles {
                         return _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[newDir];
                     });
                 }
-                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, edgeBlackList, weight, piece.socketmatching[rotation]);
+                piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, edgeBlackList, weight, piece.socketmatching[rotation], piece.minimum, piece.maximum);
             });
             return piecesMap;
         }, {});
         return true;
     }
     reset() {
+        //this.tileCounters = {};
         let piecesKeys = Object.keys(this.piecesMap);
         let startingTile = {
             validPieces: piecesKeys,
         };
-        console.log('edgeSockets', this.config.edgeSocket);
         let useEdgeSocket = false;
         let edgeSockets = {};
         if (this.config.edgeSocket != '') {
@@ -852,6 +948,10 @@ class WFCTiles {
                     };
                 }
             });
+        });
+        Object.entries(this.tileCounters).forEach((value) => {
+            let numbers = value[1];
+            numbers.count = 0;
         });
     }
 }
@@ -1057,7 +1157,7 @@ module.exports = JSON.parse('[{"name":"cliff 0","imgsrc":"cliff 0.png"},{"name":
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"all":{"bridge":{},"ground":{},"river":{},"riverturn":{},"road":{},"roadturn":{},"t":{},"tower":{},"wall":{},"wallriver":{},"wallroad":{}},"grassytower":{"ground":{"weight":5},"road":{"weight":0.1},"roadturn":{"weight":0.1},"t":{"weight":0.01},"tower":{"weight":0.1},"wall":{},"wallroad":{"weight":0.1}}}');
+module.exports = JSON.parse('{"all":{"bridge":{},"ground":{},"river":{},"riverturn":{},"road":{},"roadturn":{},"t":{},"tower":{},"wall":{},"wallriver":{},"wallroad":{}},"grassytower":{"ground":{"weight":5},"road":{"weight":0.1},"roadturn":{"weight":0.1},"t":{"weight":0.01},"tower":{"weight":0.1},"wall":{},"wallroad":{"weight":0.1}},"onetower":{"bridge":{},"ground":{},"river":{},"riverturn":{},"road":{},"roadturn":{},"t":{},"tower":{"minimum":2,"maximum":4},"wall":{},"wallriver":{},"wallroad":{}}}');
 
 /***/ }),
 
@@ -1079,7 +1179,7 @@ module.exports = JSON.parse('{"all":{"b_half":{},"b_i":{},"b_quarter":{},"b":{},
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"all":{"bridge":{},"component":{},"connection":{},"corner":{},"dskew":{},"skew":{},"substrate":{},"t":{},"track":{},"transition":{},"turn":{},"viad":{},"vias":{},"wire":{}},"noic":{"bridge":{"weight":0.4},"component":{"weight":0},"connection":{"weight":0},"corner":{"weight":0},"dskew":{"weight":0.3},"skew":{"weight":0.3},"substrate":{"weight":5},"t":{"weight":1},"track":{"weight":1},"transition":{"weight":0.3},"turn":{"weight":1},"viad":{"weight":0.01},"vias":{"weight":0.1},"wire":{"weight":0}},"iconly":{"bridge":{"weight":0},"component":{"weight":2},"connection":{"weight":1},"corner":{"weight":1},"dskew":{"weight":0.5},"skew":{"weight":0.5},"substrate":{"weight":10},"t":{"weight":0.5},"track":{"weight":0.7},"transition":{"weight":0},"turn":{"weight":0.6},"viad":{"weight":0},"vias":{"weight":0.1},"wire":{"weight":0}},"edgeblacklist_all":{"bridge":{"edgeblacklist":["right","bottom","left","top"]},"component":{"edgeblacklist":["right","bottom","left","top"]},"connection":{"edgeblacklist":["top","bottom"]},"corner":{"edgeblacklist":["bottom","left"]},"dskew":{"edgeblacklist":["right","bottom","left","top"]},"skew":{"edgeblacklist":["top","right"]},"substrate":{},"t":{"edgeblacklist":["right","bottom","left"]},"track":{"edgeblacklist":["top","bottom"]},"transition":{"edgeblacklist":["top","bottom"]},"turn":{"edgeblacklist":["top","right"]},"viad":{"edgeblacklist":["right","left"]},"vias":{"edgeblacklist":["top"]},"wire":{"edgeblacklist":["right","left"]}}}');
+module.exports = JSON.parse('{"all":{"bridge":{},"component":{},"connection":{},"corner":{},"dskew":{},"skew":{},"substrate":{},"t":{},"track":{},"transition":{},"turn":{},"viad":{},"vias":{},"wire":{}},"noic":{"bridge":{"weight":0.4},"component":{"weight":0},"connection":{"weight":0},"corner":{"weight":0},"dskew":{"weight":0.3},"skew":{"weight":0.3},"substrate":{"weight":5},"t":{"weight":1},"track":{"weight":1},"transition":{"weight":0.3},"turn":{"weight":1},"viad":{"weight":0.01},"vias":{"weight":0.1},"wire":{"weight":0}},"iconly":{"bridge":{"weight":0},"component":{"weight":2},"connection":{"weight":1},"corner":{"weight":1},"dskew":{"weight":0.5},"skew":{"weight":0.5},"substrate":{"weight":10},"t":{"weight":0.5},"track":{"weight":0.7},"transition":{"weight":0},"turn":{"weight":0.6},"viad":{"weight":0},"vias":{"weight":0.1},"wire":{"weight":0}},"edgeblacklist_all":{"bridge":{"edgeblacklist":["right","bottom","left","top"]},"component":{"edgeblacklist":["right","bottom","left","top"]},"connection":{"edgeblacklist":["top","bottom"]},"corner":{"edgeblacklist":["bottom","left"]},"dskew":{"edgeblacklist":["right","bottom","left","top"]},"skew":{"edgeblacklist":["top","right"]},"substrate":{},"t":{"edgeblacklist":["right","bottom","left"]},"track":{"edgeblacklist":["top","bottom"]},"transition":{"edgeblacklist":["top","bottom"]},"turn":{"edgeblacklist":["top","right"]},"viad":{"edgeblacklist":["right","left"]},"vias":{"edgeblacklist":["top"]},"wire":{"edgeblacklist":["right","left"]}},"two_small_ic":{"bridge":{},"component":{"minimum":2,"maximum":8},"connection":{},"corner":{"maximum":8,"weight":0.01},"dskew":{},"skew":{},"substrate":{},"t":{},"track":{},"transition":{},"turn":{},"viad":{},"vias":{},"wire":{}}}');
 
 /***/ }),
 

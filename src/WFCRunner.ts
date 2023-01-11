@@ -1,3 +1,4 @@
+import { PieceObject } from './PieceObject';
 import { WFCConfig } from './WFCConfig';
 import { WFCTiles } from './WFCTiles';
 
@@ -37,9 +38,16 @@ export class WFCRunner {
 
     public noValidFound() {
         this.retryCount++;
+        
         this.stopWFCLoop();
         if (this.retryCount <= this.config.maxRetryCount) {
-            this.startOver();
+            //console.log('no valid found, retrying', this.retryCount);
+            if(!this.config.fast) {
+                this.hasRunWFC();
+            }
+            
+            this.reset();
+            this.startWFCLoop(this.config.runSpeed);
         } else {
             console.log('not possible to solve within ' + this.config.maxRetryCount + ' retries');
         }
@@ -73,42 +81,54 @@ export class WFCRunner {
                     this.noValidFound();
                     return false;
                 }
-                let randomPiece = Math.floor(Math.random() * currentTile.validPieces.length);
+
                 let tileKey = this.getRandomElementFromArrayWeigted(currentTile.validPieces);
                 if (tileKey == null) {
                     this.noValidFound();
                     return false;
                 }
 
-                let piece = this.wfc.piecesMap[tileKey];
-                this.wfc.tiles[x][y] = piece;
-                let validation = this.runValidation(x, y, [piece]);
-                if (validation == null) {
+                let placed = this.placeTile(x, y, tileKey);
+                if(!placed) {
                     break;
-                }
-
-                let depth = 0;
-                while (validation.length > 0 && depth < this.config.maxDepth) {
-                    let newValidations: any[] = [];
-                    if (validation.length > 0) {
-                        validation.forEach((v) => {
-                            let validationTile = this.wfc.tiles[v.x][v.y];
-                            let validationTilePieces = validationTile.validPieces;
-                            let pieces = validationTilePieces.map((tileKey: string) => {
-                                return this.wfc.piecesMap[tileKey];
-                            });
-                            let innerValidation = this.runValidation(v.x, v.y, pieces);
-                            newValidations.push(innerValidation);
-                        });
-                    }
-                    let newValidationsConcat = [].concat.apply([], newValidations);
-                    let newValidationsSet = Array.from(new Set(newValidationsConcat));
-                    depth += 1;
-                    validation = newValidationsSet;
                 }
             }
         }
-        this.hasRunWFC();
+        if( !this.config.fast ) {
+            this.hasRunWFC();
+        }
+    }
+
+    public placeTile(x: number, y: number, tileKey: string) {
+        let piece = this.wfc.piecesMap[tileKey];
+        this.wfc.tiles[x][y] = piece;
+        let validation = this.runValidation(x, y, [piece]);
+        if (validation == null) {
+            return false;
+        }
+
+        let depth = 0;
+        while (validation.length > 0 && depth < this.config.maxDepth) {
+            let newValidations: any[] = [];
+            if (validation.length > 0) {
+                validation.forEach((v) => {
+                    let validationTile = this.wfc.tiles[v.x][v.y];
+                    let validationTilePieces = validationTile.validPieces;
+                    let pieces = validationTilePieces.map((tileKey: string) => {
+                        return this.wfc.piecesMap[tileKey];
+                    });
+                    let innerValidation = this.runValidation(v.x, v.y, pieces);
+                    newValidations.push(innerValidation);
+                });
+            }
+            let newValidationsConcat = [].concat.apply([], newValidations);
+            let newValidationsSet = Array.from(new Set(newValidationsConcat));
+            depth += 1;
+            validation = newValidationsSet;
+        }
+        this.wfc.tileCounters[piece.name].count += 1;
+        this.checkForMaximumTiles(piece.name);
+        return true;
     }
 
     public hasRunWFC = () => {
@@ -181,7 +201,6 @@ export class WFCRunner {
         });
 
         if (stop) {
-            console.log('checkForStop', 'return true');
             console.log('Found solution after ' + this.retryCount + ' retries');
             this.stopWFCLoop();
             return true;
@@ -194,13 +213,92 @@ export class WFCRunner {
         clearInterval(this.wfcLoop);
     }
 
-    public startOver() {
+    public reset() {
         this.wfc.reset();
+        this.setStartTiles();
+    }
 
-        this.startWFCLoop(this.config.runSpeed);
+    public setStartTiles() {
+        let failed = false;
+        Object.entries(this.wfc.tileCounters).forEach((values) => {
+            if(failed) return;
+            let tileCounterKey = values[0];
+            let countObject = values[1];
+            if(countObject.minimum != undefined && countObject.minimum > 0) {
+                let maxTrySet = countObject.minimum * 10;
+                let trySet = 0;
+                while(countObject.count < countObject.minimum && trySet < maxTrySet) {
+                    trySet++;
+                    let x = Math.floor(Math.random() * this.config.tilesWidth);
+                    let y = Math.floor(Math.random() * this.config.tilesHeight);
+                    let tile = this.wfc.tiles[x][y];
+                    let tilePieces = tile.validPieces;
+                    if(tile.validPieces == undefined) continue;
+                    if(tile.validPieces.length == 0) continue;
+                    let counterTiles = tilePieces.filter((tileKey: string) => this.wfc.piecesMap[tileKey].name == tileCounterKey);
+
+                    if(counterTiles.length > 0) {
+                        let randomIndex = Math.floor(Math.random() * counterTiles.length);
+                        let placeTileKey = counterTiles[randomIndex];
+                        let placed = this.placeTile(x, y, placeTileKey);
+                        if(!placed) {
+                            continue;
+                        }
+                    }
+                    
+                    
+                }
+
+                if(countObject.count < countObject.minimum) {
+                    failed = true;
+                }
+            }
+
+        });
+
+        if(failed) {
+            this.noValidFound();
+        } else {
+            this.checkForMaximumTilesReached();
+        }
+    }
+
+    public checkForMaximumTilesReached() {
+        Object.entries(this.wfc.tileCounters).forEach((values) => {
+            let tileCounterKey = values[0];
+            this.checkForMaximumTiles(tileCounterKey);
+        });
+    }
+
+    public checkForMaximumTiles(tileName: string) {
+        var countObject = this.wfc.tileCounters[tileName];
+        if(countObject.maximum != undefined) {
+            if(countObject.count >= countObject.maximum) {
+                this.maximumReached(tileName);
+            }
+        }
+    }
+
+    public maximumReached(tileName: string) 
+    {
+        let pieceObjectsForRemoval = Object.entries(this.wfc.piecesMap)
+            .filter((values) => values[1].name == tileName )
+            .map((values) => values[0] );
+        this.wfc.tiles.forEach((column, columnIndex) => {
+            column.forEach((tile, rowIndex) => {
+                if(tile.validPieces) {
+                    tile.validPieces = tile.validPieces.filter((tileKey: string) => !pieceObjectsForRemoval.includes(tileKey));
+                }
+            });
+        });
+    }
+
+    public start(interval: number) {
+        this.startWFCLoop(interval);
     }
 
     public startWFCLoop(interval: number) {
+        this.stopWFCLoop();
         this.stopRunning = false;
         if (this.config.useMouse) {
         } else {

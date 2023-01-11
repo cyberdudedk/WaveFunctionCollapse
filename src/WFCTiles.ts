@@ -9,6 +9,7 @@ export class WFCTiles {
 
     public piecesMap: { [name: string]: any } = {};
     public tiles: any[][] = [];
+    public tileCounters: { [name: string]: {minimum: number, maximum: number, count: number} } = {};
 
     constructor() {
 
@@ -38,8 +39,8 @@ export class WFCTiles {
         let pieces: any[] = this.wfcData.tilePieces[this.config.tileName];
         let sets = this.wfcData.tileSets[this.config.tileName];
         let currentSet = sets[this.config.set];
-
-        Object.entries<any>(currentSet).forEach((value: [string, {weight: number, rotations: number[], edgeblacklist: string[]}]) => {
+        
+        Object.entries<any>(currentSet).forEach((value: [string, {weight: number, rotations: number[], edgeblacklist: string[], minimum: number, maximum: number}]) => {
             let pieceName = value[0];
             let properties = value[1];
             if(properties.rotations != undefined) {
@@ -51,6 +52,12 @@ export class WFCTiles {
             if(properties.edgeblacklist != undefined) {
                 pieces.find(x => x.name == pieceName).edgeblacklist = properties.edgeblacklist;
             }
+            if(properties.minimum != undefined) {
+                pieces.find(x => x.name == pieceName).minimum = properties.minimum;
+            }
+            if(properties.maximum != undefined) {
+                pieces.find(x => x.name == pieceName).maximum = properties.maximum;
+            }
         });
 
         let mappedPieces = pieces.reduce((piecesMap, piece) => {
@@ -60,6 +67,7 @@ export class WFCTiles {
             let pieceSockets = piece.socket
             piece.socketmatching = {};
             piece.blacklistedNeighbors = {};
+            this.tileCounters[piece.name] = {minimum: piece.minimum, maximum: piece.maximum, count: 0};
 
             piece.rotations.forEach((rotation: number) => { 
                 let socketMatchObject: { [name: string]: any } = {};
@@ -207,7 +215,9 @@ export class WFCTiles {
                     validNeighbors,
                     edgeBlackList,
                     weight,
-                    piece.socketmatching[rotation]
+                    piece.socketmatching[rotation],
+                    piece.minimum,
+                    piece.maximum
                 );
             });
             
@@ -218,11 +228,11 @@ export class WFCTiles {
     }
 
     public reset() {
+        //this.tileCounters = {};
         let piecesKeys = Object.keys(this.piecesMap);
         let startingTile = {
             validPieces: piecesKeys,
         };
-        console.log('edgeSockets',this.config.edgeSocket);
 
         let useEdgeSocket = false;
         let edgeSockets: { [name: string]: string } = {};
@@ -263,8 +273,6 @@ export class WFCTiles {
                             }
                         });
 
-
-
                         return {
                             position: {x: x, y: y},
                             validPieces: validPieces
@@ -275,9 +283,13 @@ export class WFCTiles {
                             validPieces: [...startingTile.validPieces]
                         };
                     }
-                    
                 });
             }
         )
+
+        Object.entries(this.tileCounters).forEach((value: [string, any]) => {
+            let numbers = value[1];
+            numbers.count = 0;
+        });
     }
 }

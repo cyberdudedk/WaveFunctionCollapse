@@ -6,6 +6,8 @@ export class PieceObject {
     public edgeblacklist: string[] | null;
     public weight: any;
     public sockets: any;
+    public minimum: number | null;
+    public maximum: number | null;
 
     public constructor(
         key: string,
@@ -14,7 +16,9 @@ export class PieceObject {
         validNeighbors: { [name: string]: string[]; },
         edgeblacklist: string[] | null,
         weight: any,
-        sockets: any
+        sockets: any,
+        minimum: number | null = null,
+        maximum: number | null = null,
     ) {
         this.key = key;
         this.name = name;
@@ -23,5 +27,7 @@ export class PieceObject {
         this.edgeblacklist = edgeblacklist;
         this.weight = weight;
         this.sockets = sockets;
+        this.minimum = minimum;
+        this.maximum = maximum;
     }
 }

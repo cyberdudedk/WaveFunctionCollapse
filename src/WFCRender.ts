@@ -113,7 +113,7 @@ export class WFCRender {
     }
 
     public startOver() {
-        this.wfc.reset();
+        this.wfcRunner.reset();
         this.reset();
 
         this.startWFCLoop(this.config.runSpeed);
@@ -131,7 +131,7 @@ export class WFCRender {
         }
         this.draw();
 
-        this.wfcRunner.startWFCLoop(interval);
+        this.wfcRunner.start(interval);
     }
 
     public draw() {

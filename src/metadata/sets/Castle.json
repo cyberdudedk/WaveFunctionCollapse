@@ -20,5 +20,18 @@
         "tower": {"weight": 0.1 },
         "wall": { },
         "wallroad": { "weight": 0.1}
+    },
+    "onetower": {
+        "bridge": { }, 
+        "ground": { }, 
+        "river": { }, 
+        "riverturn": { }, 
+        "road": { }, 
+        "roadturn": { }, 
+        "t": { },
+        "tower": { "minimum": 2, "maximum": 4 },
+        "wall": { },
+        "wallriver": { },
+        "wallroad": { }
     }
 }
