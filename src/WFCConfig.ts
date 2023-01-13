@@ -1,3 +1,5 @@
+import { StartingPositions } from "./StartingPositions";
+import { SuperImposedState } from "./SuperImposedState";
 
 export class WFCConfig {
     public maxRetryCount: number = 10;
@@ -9,7 +11,7 @@ export class WFCConfig {
 
     public tilesHeight: number = 30;
     public tilesWidth: number = 30;
-    public superImposed: number = 1;
+    public superImposed: SuperImposedState = SuperImposedState.Layered;
     public useMouse: boolean = false;
 
     public edgeWrapAround: boolean = false;
@@ -17,4 +19,6 @@ export class WFCConfig {
 
     public tileName: string = 'Knots';
     public set: string = 'all';
+
+    public startingPosition: StartingPositions = StartingPositions.Random;
 }

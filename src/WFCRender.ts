@@ -1,8 +1,10 @@
 import { SuperImposedState } from './SuperImposedState';
+import { StartingPositions } from './StartingPositions';
 import { WFCConfig } from './WFCConfig';
 import { WFCData } from './WFCData';
 import { WFCRunner } from './WFCRunner';
 import { WFCTiles } from './WFCTiles';
+import { WFCEvent } from './WFCEvent';
 
 
 export class WFCRender {
@@ -42,6 +44,10 @@ export class WFCRender {
         return SuperImposedState;
     }
 
+    public getStartingPositions() {
+        return StartingPositions;
+    }
+
     public getAvailableSets(tileName: string) {
         var sets = this.wfc.wfcData.tileSets[tileName];
         if (sets == null)
@@ -61,7 +67,8 @@ export class WFCRender {
         return this.wfc;
     }
 
-    private wfcCallback = () => {
+    private wfcCallback = (event: WFCEvent) => {
+        if(event.type != 'step') console.log('event', event.type, event.data);
         this.draw();
     };
 

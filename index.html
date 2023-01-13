@@ -24,110 +24,124 @@
             var config = {
                     
             };
-        function applyConfig() {
-            const queryParams = new URLSearchParams(window.location.search);
-            for(var configItem in config) {
-                var element = document.getElementById(configItem);
-                
-                if(element.type == 'checkbox') {
-                    queryParams.set(configItem, element.checked ? 1 : 0);
-                }
-                else if(element.type == 'text') {
-                    var value = element.value;
-                    queryParams.set(configItem, value);
-                }
-                else if(configItem == "tileName" || configItem == "set") {
-                    var value = element.value;
-                    queryParams.set(configItem, value);
-                } else {
-                    var value = parseInt(element.value);
-                    var min = parseInt(element.min);
-                    var max = parseInt(element.max);
-                    if(element.min && value < min) {
-                        value = min;
-                    }
-                    if(element.max && value > max) {
-                        
-                        value = max;
-                    }
-                    queryParams.set(configItem, value);
-                }
-            }
-            document.location = "?" + queryParams.toString();
-        }
 
-        function loadConfig() {
-            const queryParams = new URLSearchParams(window.location.search);
-            config.tileName = queryParams.get('tileName') ?? 'Knots';
-            config.set = queryParams.get('set') ?? 'all';
-            config.maxRetryCount = parseInt((queryParams.get('maxRetryCount') ?? 10));
-            config.maxDepth =  parseInt((queryParams.get('maxDepth') ?? 100));
-            config.tileScale =  parseInt((queryParams.get('tileScale') ?? 30));
-            config.fast = parseInt((queryParams.get('fast') ?? 0));
-            config.runSpeed = parseInt((queryParams.get('runSpeed') ?? 10));
-            config.runLoop = parseInt((queryParams.get('runLoop') ?? 30));
-            config.tilesHeight = parseInt((queryParams.get('tilesHeight') ?? 15));
-            config.tilesWidth = parseInt((queryParams.get('tilesWidth') ?? 15));
-            config.superImposed = parseInt((queryParams.get('superImposed') ?? 1));
-            config.useMouse = parseInt((queryParams.get('useMouse') ?? 0));
-            config.edgeWrapAround = parseInt((queryParams.get('edgeWrapAround') ?? 0));
-            config.edgeSocket = queryParams.get('edgeSocket') ?? '';
-        }
-
-        function loadConfigControls(config) {
-            var tiles = wfcRender.getAvailableTiles();
-            var tileSelector = document.getElementById("tileName");
-            for (var tileIndex in tiles){
-                var tile = tiles[tileIndex];
-                var opt = document.createElement('option');
-                opt.value = tile;
-                opt.innerHTML = tile;
-                tileSelector.appendChild(opt);
+            function applyConfig() {
+                const queryParams = new URLSearchParams(window.location.search);
+                for(var configItem in config) {
+                    var element = document.getElementById(configItem);
+                    
+                    if(element.type == 'checkbox') {
+                        queryParams.set(configItem, element.checked ? 1 : 0);
+                    }
+                    else if(element.type == 'text') {
+                        var value = element.value;
+                        queryParams.set(configItem, value);
+                    }
+                    else if(configItem == "tileName" || configItem == "set") {
+                        var value = element.value;
+                        queryParams.set(configItem, value);
+                    } else {
+                        var value = parseInt(element.value);
+                        var min = parseInt(element.min);
+                        var max = parseInt(element.max);
+                        if(element.min && value < min) {
+                            value = min;
+                        }
+                        if(element.max && value > max) {
+                            
+                            value = max;
+                        }
+                        queryParams.set(configItem, value);
+                    }
+                }
+                document.location = "?" + queryParams.toString();
             }
 
-            var superImposedStates = wfcRender.getSuperImposedStates();
-            var superImposedSelector = document.getElementById("superImposed");
-            for (var superimposedIndex in superImposedStates){
-                var isValueProperty = Number(superimposedIndex) >= 0;
-                if (isValueProperty) {
-                    var superImposed = superImposedStates[superimposedIndex];
+            function loadConfig() {
+                const queryParams = new URLSearchParams(window.location.search);
+                config.tileName = queryParams.get('tileName') ?? 'Knots';
+                config.set = queryParams.get('set') ?? 'all';
+                config.maxRetryCount = parseInt((queryParams.get('maxRetryCount') ?? 10));
+                config.maxDepth =  parseInt((queryParams.get('maxDepth') ?? 100));
+                config.tileScale =  parseInt((queryParams.get('tileScale') ?? 30));
+                config.fast = parseInt((queryParams.get('fast') ?? 0));
+                config.runSpeed = parseInt((queryParams.get('runSpeed') ?? 10));
+                config.runLoop = parseInt((queryParams.get('runLoop') ?? 30));
+                config.tilesHeight = parseInt((queryParams.get('tilesHeight') ?? 15));
+                config.tilesWidth = parseInt((queryParams.get('tilesWidth') ?? 15));
+                config.superImposed = parseInt((queryParams.get('superImposed') ?? 1));
+                config.useMouse = parseInt((queryParams.get('useMouse') ?? 0));
+                config.edgeWrapAround = parseInt((queryParams.get('edgeWrapAround') ?? 0));
+                config.edgeSocket = queryParams.get('edgeSocket') ?? '';
+                config.startingPosition = parseInt((queryParams.get('startingPosition') ?? 0));
+            }
+
+            function loadConfigControls(config) {
+                var tiles = wfcRender.getAvailableTiles();
+                var tileSelector = document.getElementById("tileName");
+                for (var tileIndex in tiles){
+                    var tile = tiles[tileIndex];
                     var opt = document.createElement('option');
-                    opt.value = superimposedIndex;
-                    opt.innerHTML = superImposed;
-                    superImposedSelector.appendChild(opt);
+                    opt.value = tile;
+                    opt.innerHTML = tile;
+                    tileSelector.appendChild(opt);
                 }
-            }
-            
-            for(var configItem in config) {
-                let type = document.getElementById(configItem).type;
-                if(type == 'checkbox') {
-                    let val = config[configItem];
-                    document.getElementById(configItem).checked = val;
-                } else {
-                    document.getElementById(configItem).value = config[configItem];
+
+                var superImposedStates = wfcRender.getSuperImposedStates();
+                var superImposedSelector = document.getElementById("superImposed");
+                for (var superimposedIndex in superImposedStates){
+                    var isValueProperty = Number(superimposedIndex) >= 0;
+                    if (isValueProperty) {
+                        var superImposed = superImposedStates[superimposedIndex];
+                        var opt = document.createElement('option');
+                        opt.value = superimposedIndex;
+                        opt.innerHTML = superImposed;
+                        superImposedSelector.appendChild(opt);
+                    }
                 }
                 
+                var startingPositionStates = wfcRender.getStartingPositions();
+                var startingPositionSelector = document.getElementById("startingPosition");
+                for (var startingPositionIndex in startingPositionStates){
+                    var isValueProperty = Number(startingPositionIndex) >= 0;
+                    if (isValueProperty) {
+                        var startingPosition = startingPositionStates[startingPositionIndex];
+                        var opt = document.createElement('option');
+                        opt.value = startingPositionIndex;
+                        opt.innerHTML = startingPosition;
+                        startingPositionSelector.appendChild(opt);
+                    }
+                }
+
+                for(var configItem in config) {
+                    let type = document.getElementById(configItem).type;
+                    if(type == 'checkbox') {
+                        let val = config[configItem];
+                        document.getElementById(configItem).checked = val;
+                    } else {
+                        document.getElementById(configItem).value = config[configItem];
+                    }
+                    
+                }
+
+                selectTile(document.getElementById('tileName'));
+                document.getElementById('set').value = config['set'];
             }
 
-            selectTile(document.getElementById('tileName'));
-            document.getElementById('set').value = config['set'];
-            
-        }
-
-        function selectTile(obj) {
-            var sets = wfcRender.getAvailableSets(obj.value);
-            var setSelector = document.getElementById("set");
-            while (setSelector.options.length) setSelector.remove(0);
-            for (var setIndex in sets){
-                var set = sets[setIndex];
-                var opt = document.createElement('option');
-                opt.value = set;
-                opt.innerHTML = set;
-                setSelector.appendChild(opt);
+            function selectTile(obj) {
+                var sets = wfcRender.getAvailableSets(obj.value);
+                var setSelector = document.getElementById("set");
+                while (setSelector.options.length) setSelector.remove(0);
+                for (var setIndex in sets){
+                    var set = sets[setIndex];
+                    var opt = document.createElement('option');
+                    opt.value = set;
+                    opt.innerHTML = set;
+                    setSelector.appendChild(opt);
+                }
             }
-        }
 
-        window.addEventListener("load", async function(){
+            window.addEventListener("load", async function(){
                 loadConfig();
                 wfcRender = getWFCRender('draw');
                 await wfcRender.init(config);
@@ -178,6 +192,7 @@
                         <tr>
                             <td>edgeWrapAround</td><td><input type="checkbox" id="edgeWrapAround" value="edgeWrapAround"></td>
                             <td>edgeSocket</td><td><input type="text" id="edgeSocket" value="edgeSocket"></td>
+                            <td>startingPosition<td><select id="startingPosition"></select></td>
                         </tr>
                         <tr>
                             <td><button id="apply" onclick="applyConfig()" >Apply</button></td><td><button id="save" onclick="saveImage()" >Save</button></td>
@@ -187,20 +202,10 @@
                         </tr>
                     </tbody>
                 </table>
-                
-                
-                
-                
-                
-                
-                
-
-                
             </div>
         </div>
         <br>
         <canvas id="draw">
-
         </canvas>
     </body>
 </html>

@@ -1,5 +1,7 @@
 import { PieceObject } from './PieceObject';
+import { StartingPositions } from './StartingPositions';
 import { WFCConfig } from './WFCConfig';
+import { WFCEvent } from './WFCEvent';
 import { WFCTiles } from './WFCTiles';
 
 
@@ -11,9 +13,11 @@ export class WFCRunner {
     public stopRunning = true;
     public wfcLoop: NodeJS.Timer | undefined = undefined;
 
-    public callback: any;
+    public callback: (event: WFCEvent) => any;
+    
+    private pickFirstTile = true;
 
-    public constructor(config: WFCConfig, wfc: WFCTiles, callback: any) {
+    public constructor(config: WFCConfig, wfc: WFCTiles, callback: (event: WFCEvent) => any) {
         this.config = config;
         this.wfc = wfc;
 
@@ -43,13 +47,47 @@ export class WFCRunner {
         if (this.retryCount <= this.config.maxRetryCount) {
             //console.log('no valid found, retrying', this.retryCount);
             if(!this.config.fast) {
-                this.hasRunWFC();
+                this.hasRunWFC(new WFCEvent('retry'));
             }
             
             this.reset();
             this.startWFCLoop(this.config.runSpeed);
         } else {
             console.log('not possible to solve within ' + this.config.maxRetryCount + ' retries');
+            this.hasRunWFC(new WFCEvent('unsolvable'));
+        }
+    }
+
+    private pickPosition(position: StartingPositions): {x: number, y: number} | null {
+        switch(position) {
+            case StartingPositions.TopLeft:
+                return {x: 0, y: 0};
+            case StartingPositions.TopCenter:
+                return {x: Math.floor(this.config.tilesWidth / 2), y: 0};
+            case StartingPositions.TopRight:
+                return {x: this.config.tilesWidth - 1, y: 0};
+            case StartingPositions.CenterLeft:
+                return {x: 0, y: Math.floor(this.config.tilesHeight / 2)};
+            case StartingPositions.Mid:
+                return {x: Math.floor(this.config.tilesWidth / 2), y: Math.floor(this.config.tilesHeight / 2)};
+            case StartingPositions.CenterRight:
+                return {x: this.config.tilesWidth - 1, y: Math.floor(this.config.tilesHeight / 2)};
+            case StartingPositions.BottomLeft:
+                return {x: 0, y: this.config.tilesHeight - 1};
+            case StartingPositions.BottomCenter:
+                return {x: Math.floor(this.config.tilesWidth / 2), y: this.config.tilesHeight - 1};
+            case StartingPositions.BottomRight:
+                return {x: this.config.tilesWidth - 1, y: this.config.tilesHeight - 1};
+            case StartingPositions.Random:
+                let entropyGroups = this.getTilePositionsAsEntropyGroups();
+                let entropyKeys = Object.keys(entropyGroups);
+                if (entropyKeys.length == 0) {
+                    return null;
+                }
+                let lowestEntropyKey = Number(entropyKeys[0]);
+                let lowestEntroyGroup = entropyGroups[lowestEntropyKey];
+                let randomPositionFromLowestEntropyGroup = this.getRandomElementFromArray(lowestEntroyGroup);
+                return randomPositionFromLowestEntropyGroup;
         }
     }
 
@@ -57,25 +95,26 @@ export class WFCRunner {
         for (var i = 0; (i < this.config.runLoop) || this.config.fast; i++) {
             let stop = this.checkForStop();
             if (stop) {
-                this.hasRunWFC();
+                this.hasRunWFC(new WFCEvent('stop'));
                 return;
             }
             if (this.stopRunning)
                 return;
-            let entropyGroups = this.getTilePositionsAsEntropyGroups();
-            let entropyKeys = Object.keys(entropyGroups);
-            if (entropyKeys.length == 0) {
+
+            let pos = null;
+            if(this.pickFirstTile) {
+                pos = this.pickPosition(this.config.startingPosition);
+                this.pickFirstTile = false;
+            } else {
+                pos = this.pickPosition(StartingPositions.Random);
+            }
+
+            if(pos == null) {
                 this.stopWFCLoop();
                 return;
             }
 
-            let lowestEntropyKey = Number(entropyKeys[0]);
-            let lowestEntroyGroup = entropyGroups[lowestEntropyKey];
-            let randomPositionFromLowestEntropyGroup = this.getRandomElementFromArray(lowestEntroyGroup);
-            let x = randomPositionFromLowestEntropyGroup.x;
-            let y = randomPositionFromLowestEntropyGroup.y;
-
-            let currentTile = this.wfc.tiles[x][y];
+            let currentTile = this.wfc.tiles[pos.x][pos.y];
             if (currentTile.validPieces != undefined) {
                 if (currentTile.validPieces.length == 0) {
                     this.noValidFound();
@@ -88,14 +127,14 @@ export class WFCRunner {
                     return false;
                 }
 
-                let placed = this.placeTile(x, y, tileKey);
+                let placed = this.placeTile(pos.x, pos.y, tileKey);
                 if(!placed) {
                     break;
                 }
             }
         }
         if( !this.config.fast ) {
-            this.hasRunWFC();
+            this.hasRunWFC(new WFCEvent('step'));
         }
     }
 
@@ -131,8 +170,8 @@ export class WFCRunner {
         return true;
     }
 
-    public hasRunWFC = () => {
-        this.callback();
+    public hasRunWFC = (event: WFCEvent) => {
+        this.callback(event);
     };
 
     public runValidation(x: number, y: number, pieces: any[]) {
@@ -216,6 +255,8 @@ export class WFCRunner {
     public reset() {
         this.wfc.reset();
         this.setStartTiles();
+
+        this.pickFirstTile = true;
     }
 
     public setStartTiles() {
@@ -309,7 +350,7 @@ export class WFCRunner {
         }
     }
 
-    private getRandomElementFromArray(array: any[]) {
+    private getRandomElementFromArray<T>(array: T[]) : T {
         return array[Math.floor(Math.random() * array.length)];
     }
 
