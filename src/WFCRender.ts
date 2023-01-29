@@ -6,7 +6,7 @@ import { WFCData } from './WFCData';
 import { WFCRunner } from './WFCRunner';
 import { WFCTiles } from './WFCTiles';
 import { WFCEvent } from './WFCEvent';
-
+import { RunMethod } from './RunMethod';
 
 export class WFCRender {
     public config: WFCConfig = new WFCConfig();
@@ -53,6 +53,10 @@ export class WFCRender {
         return SizingMethod;
     }
 
+    public getRunMethods() {
+        return RunMethod;
+    }
+
     public getAvailableSets(tileName: string) {
         var sets = this.wfc.wfcData.tileSets[tileName];
         if (sets == null)
@@ -76,13 +80,29 @@ export class WFCRender {
         return this.wfcRunner;
     }
 
+    public continueRun() {
+        if(this.waitingContinueForExpand) {
+            this.waitingContinueForExpand = false;
+            this.autoExpand();
+        }
+        this.wfcRunner.continueRun();
+    }
+
+    private waitingContinueForExpand: boolean = false;
+
     private wfcCallback = (event: WFCEvent) : boolean => {
         if(event.type != 'step' && event.type != "found") console.log('event', event.type, event.data);
         this.draw();
 
         if(event.type == 'found' && this.config.autoExpand) {
-            this.autoExpand();
-            return true;
+            if(this.config.runMethod == RunMethod.UntilExpand) {
+                this.waitingContinueForExpand = true;
+                return false;
+            } else {
+                this.autoExpand();
+                return true;
+            }
+            
         }
         else {
             return false;
@@ -185,9 +205,39 @@ export class WFCRender {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
+
+    private getCursorPosition(event: MouseEvent) : {x: number, y: number} {
+        const rect = this.canvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        return { x, y };
+    }
+
+    private canvasClicked(event: MouseEvent) {
+        
+        event.button == 2
+        let position = this.getCursorPosition(event);
+        let tileX = Math.floor(position.x / this.config.tileScale);
+        let tileY = Math.floor(position.y / this.config.tileScale);
+        if(event.button == 0) {
+            console.log('Clicked: ' + tileX + ', ' + tileY);
+            console.log(event);
+            this.wfcRunner.cycleTile(tileX, tileY);
+            this.draw();
+        } else if(event.button == 2) {
+            this.wfcRunner.placeCycledTile(tileX, tileY);
+            this.draw();
+        }
+    }
+
     public startWFCLoop(interval: number) {
         if (this.config.useMouse) {
-            document.body.addEventListener('click', () => this.wfcRunner.runWFC(), true);
+            this.canvas.addEventListener('click', (e) => {
+                this.canvasClicked(e);
+            });
+            this.canvas.addEventListener('contextmenu', (e) => {
+                this.canvasClicked(e);
+            });
         }
         this.draw();
 
@@ -214,6 +264,8 @@ export class WFCRender {
                     }
                     if (tile.key != undefined) {
                         this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
+                    } else if(tile.temporary) {
+                        this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
                     }
                 }
             }
@@ -341,8 +393,8 @@ export class WFCRender {
         this.ctx.restore();
     }
 
-    private drawTile(img: CanvasImageSource, x: number, y: number, rotation: number) {
-        this.drawImgGrid(img, x, y, rotation, 1);
+    private drawTile(img: CanvasImageSource, x: number, y: number, rotation: number, alpha: number = 1) {
+        this.drawImgGrid(img, x, y, rotation, alpha);
     }
 
     private drawSuperimposed(img: CanvasImageSource, x: number, y: number, rotation: number, possible: number) {

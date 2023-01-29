@@ -1,6 +1,7 @@
 import { StartingPositions } from "./StartingPositions";
 import { SuperImposedState } from "./SuperImposedState";
 import { SizingMethod } from "./SizingMethod";
+import { RunMethod } from "./RunMethod";
 
 export class WFCConfig {
     public maxRetryCount: number = 10;
@@ -32,4 +33,6 @@ export class WFCConfig {
     
     public autoExpandSize: number = 1;
     public autoExpand: boolean = false;
+
+    public runMethod: RunMethod = RunMethod.AutoRun;
 }

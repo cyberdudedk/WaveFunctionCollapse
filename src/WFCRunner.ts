@@ -1,4 +1,5 @@
 import { PieceObject } from './PieceObject';
+import { RunMethod } from './RunMethod';
 import { StartingPositions } from './StartingPositions';
 import { WFCConfig } from './WFCConfig';
 import { WFCEvent } from './WFCEvent';
@@ -44,7 +45,7 @@ export class WFCRunner {
             let column = this.wfc.tiles[x];
             for(let y = -this.config.offsetY; y < this.config.tilesHeight - this.config.offsetY; y++) {
                 let tile = column[y];
-                if (tile.validPieces) {
+                if (tile.key == undefined) {
                     let entropy = tile.validPieces.length;
                     if (entropyGroups[entropy] == undefined) {
                         entropyGroups[entropy] = [];
@@ -131,34 +132,71 @@ export class WFCRunner {
                 return;
             }
 
-            let currentTile = this.wfc.tiles[pos.x][pos.y];
-            if (currentTile.validPieces != undefined) {
-                if (currentTile.validPieces.length == 0) {
-                    this.noValidFound();
-                    return false;
-                }
-
-                let tileKey = this.getRandomElementFromArrayWeigted(currentTile.validPieces);
-                if (tileKey == null) {
-                    this.noValidFound();
-                    return false;
-                }
-
-                let placed = this.placeTile(pos.x, pos.y, tileKey);
-                if(!placed) {
-                    break;
-                }
+            let placed = this.placeTilePosition(pos.x, pos.y);
+            if(placed == false) {
+                break;
             }
+
         }
         if( !this.config.fast ) {
             this.hasRunWFC(new WFCEvent('step'));
         }
     }
 
+    public placeTilePosition(x: number, y: number) : boolean | undefined {
+        let currentTile = this.wfc.tiles[x][y];
+        if (currentTile.validPieces != undefined) {
+            if (currentTile.validPieces.length == 0) {
+                this.noValidFound();
+                return false;
+            }
+
+            let tileKey = this.getRandomElementFromArrayWeigted(currentTile.validPieces);
+            console.log('selected tileky', tileKey);
+            if (tileKey == null) {
+                this.noValidFound();
+                return false;
+            }
+
+            let placed = this.placeTile(x, y, tileKey);
+            console.log('placed', placed);
+            if(!placed) {
+                return false;
+            }
+            return true;
+        }
+    }
+
+    public cycleTile(x: number, y: number) {
+        let currentTile = this.wfc.tiles[x][y];
+        if(currentTile.validPieces == undefined || currentTile.validPieces.length == 0) {
+            return;
+        }
+        if(currentTile.cycle == undefined) {
+            currentTile.cycle = 0;
+        } else {
+            currentTile.cycle += 1;
+        }
+        currentTile.cycle = currentTile.cycle % currentTile.validPieces.length;
+        let tileKey = currentTile.validPieces[currentTile.cycle];
+        let piece = this.wfc.piecesMap[tileKey];
+        currentTile.temporary = piece;
+
+    }
+
+    public placeCycledTile(x: number, y: number) {
+        let currentTile = this.wfc.tiles[x][y];
+        if(currentTile.temporary == undefined) {
+            return;
+        }
+        let temporary = currentTile.temporary;
+        currentTile.temporary = undefined;
+        this.placeTile(x, y, temporary.key);
+    }
+
     public placeTile(x: number, y: number, tileKey: string) {
         let piece = this.wfc.piecesMap[tileKey];
-        this.wfc.tiles[x][y] = piece;
-        
+        this.wfc.tiles[x][y] = Object.assign(this.wfc.tiles[x][y],  piece);
         this.runValidationLoop(x, y, [piece]);
 
         this.wfc.tileCounters[piece.name].count += 1;
@@ -247,6 +285,11 @@ export class WFCRunner {
                 let validArrayConcat = [].concat.apply([], validArray);
                 let uniquevalidArraySet = Array.from(new Set(validArrayConcat));
                 neighbor.tile.validPieces = uniquevalidArraySet;
+                if(neighbor.tile.temporary != undefined) {
+                    if(!neighbor.tile.validPieces.includes(neighbor.tile.temporary.key)) {
+                        neighbor.tile.temporary = undefined;
+                    }
+                }
                 var validAfter = neighbor.tile.validPieces.length;
                 if (validBefore != validAfter) {
                     recheck.push(neighbor.tile.position);
@@ -388,11 +431,23 @@ export class WFCRunner {
         this.startWFCLoop(interval);
     }
 
+    public continueRun() {
+        this.stopRunning = false;
+        if (this.config.runMethod == RunMethod.Step) {
+
+            this.runWFC();
+        } else {
+            this.wfcLoop = setInterval(() => {
+                this.runWFC();
+            }, this.config.runSpeed);
+        }
+        
+    }
+
     public startWFCLoop(interval: number) {
         this.stopWFCLoop();
         this.stopRunning = false;
-        if (this.config.useMouse) {
-        } else {
+        if(this.config.runMethod == RunMethod.AutoStart) {
             this.wfcLoop = setInterval(() => {
                 this.runWFC();
             }, interval);

@@ -3,9 +3,6 @@
 ## 1.1 Ideas
 
 ## 2.1 Tile-based
-- Ability to preassign tiles, during run
-  - Extend this with UseMouse so mouse can select a tile (left click = cycle, right click continue), or mouseover hover and keyboard number to set tile, to be calculated usage during run.
-- Extend size and continue run => ever expanding.
 
 ## 2.1 Debug and json
 - Debug show json object for tiles, sets, mappings

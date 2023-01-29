@@ -83,6 +83,7 @@
                 config.sizingMethod = parseInt((queryParams.get('sizingMethod') ?? 0));
                 config.autoExpand = parseInt((queryParams.get('autoExpand') ?? 0));
                 config.autoExpandSize = parseInt((queryParams.get('autoExpandSize') ?? 1));
+                config.runMethod = parseInt((queryParams.get('runMethod') ?? 0));
             }
 
             function loadConfigControls(config) {
@@ -90,6 +91,7 @@
                 dropDown("superImposed", wfcRender.getSuperImposedStates(), true);
                 dropDown("startingPosition", wfcRender.getStartingPositions(), true);
                 dropDown("sizingMethod", wfcRender.getSizingMethods(), true);
+                dropDown("runMethod", wfcRender.getRunMethods(), true);
 
                 for(var configItem in config) {
                     let element = document.getElementById(configItem);
@@ -148,6 +150,10 @@
                 a.download = filename;
                 a.click();
             }
+
+            function continueRun() {
+                wfcRender.continueRun();
+            }
         </script>
     </head>
     <body style="background-color: rgba(249, 249, 249, 0.84);">
@@ -189,7 +195,12 @@
                         <tr>
                             <td>autoExpandSize</td><td><input type="number" min="1" max="100" id="autoExpandSize"></td>
                             <td>autoExpand</td><td><input type="checkbox" id="autoExpand" value="autoExpand"></td>
-                            <td><button id="apply" onclick="applyConfig()">Apply</button></td><td><button id="save" onclick="saveImage()" >Save</button></td>
+                            <td>runMethod</td><td><select id="runMethod"></select></td>
+                        </tr>
+                        <tr>
+                            <td><button id="apply" onclick="applyConfig()">Apply</button></td>
+                            <td><button id="save" onclick="saveImage()" >Save</button></td>
+                            <td><button id="continue" onclick="continueRun()" >Continue</button></td>
                         </tr>
                     </tbody>
                 </table>
