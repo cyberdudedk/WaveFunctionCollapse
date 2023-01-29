@@ -80,12 +80,12 @@ export class WFCRender {
         if(event.type != 'step' && event.type != "found") console.log('event', event.type, event.data);
         this.draw();
 
-        if(event.type == 'found') {
+        if(event.type == 'found' && this.config.autoExpand) {
             this.autoExpand();
             return true;
         }
         else {
-            return true;
+            return false;
         }
     };
 
