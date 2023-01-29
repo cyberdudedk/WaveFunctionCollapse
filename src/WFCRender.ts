@@ -217,11 +217,9 @@ export class WFCRender {
         
         event.button == 2
         let position = this.getCursorPosition(event);
-        let tileX = Math.floor(position.x / this.config.tileScale);
-        let tileY = Math.floor(position.y / this.config.tileScale);
+        let tileX = Math.floor(position.x / this.config.tileScale) - this.config.offsetX;
+        let tileY = Math.floor(position.y / this.config.tileScale) - this.config.offsetY;
         if(event.button == 0) {
-            console.log('Clicked: ' + tileX + ', ' + tileY);
-            console.log(event);
             this.wfcRunner.cycleTile(tileX, tileY);
             this.draw();
         } else if(event.button == 2) {
@@ -237,6 +235,9 @@ export class WFCRender {
             });
             this.canvas.addEventListener('contextmenu', (e) => {
                 this.canvasClicked(e);
+                if(e.preventDefault != undefined) e.preventDefault();
+                if(e.stopPropagation != undefined) e.stopPropagation();
+                return false;
             });
         }
         this.draw();

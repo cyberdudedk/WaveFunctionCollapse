@@ -59,10 +59,8 @@ export class WFCRunner {
 
     public noValidFound() {
         this.retryCount++;
-        console.log('noValidFound');
         this.stopWFCLoop();
         if (this.retryCount <= this.config.maxRetryCount) {
-            //console.log('no valid found, retrying', this.retryCount);
             if(!this.config.fast) {
                 this.hasRunWFC(new WFCEvent('retry'));
             }
@@ -152,14 +150,12 @@ export class WFCRunner {
             }
 
             let tileKey = this.getRandomElementFromArrayWeigted(currentTile.validPieces);
-            console.log('selected tileky', tileKey);
             if (tileKey == null) {
                 this.noValidFound();
                 return false;
             }
 
             let placed = this.placeTile(x, y, tileKey);
-            console.log('placed', placed);
             if(!placed) {
                 return false;
             }
@@ -197,6 +193,7 @@ export class WFCRunner {
     public placeTile(x: number, y: number, tileKey: string) {
         let piece = this.wfc.piecesMap[tileKey];
         this.wfc.tiles[x][y] = Object.assign(this.wfc.tiles[x][y],  piece);
+        //this.wfc.tiles[x][y] = piece;
         this.runValidationLoop(x, y, [piece]);
 
         this.wfc.tileCounters[piece.name].count += 1;
@@ -294,7 +291,7 @@ export class WFCRunner {
                 if (validBefore != validAfter) {
                     recheck.push(neighbor.tile.position);
                 }
-            } else if(getPlaced && (neighbor.tile instanceof PieceObject)) {
+            } else if(getPlaced && (neighbor.tile.key != undefined)) {
                 recheck.push({
                     x: neighbor.x, 
                     y: neighbor.y
