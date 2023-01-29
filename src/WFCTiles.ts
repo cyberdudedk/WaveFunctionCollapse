@@ -11,13 +11,25 @@ export class WFCTiles {
     public tiles: any[][] = [];
     public tileCounters: { [name: string]: {minimum: number, maximum: number, count: number} } = {};
 
+    private minX = 0;
+    private minY = 0;
+    private maxX = 0;
+    private maxY = 0;
+
     constructor() {
 
     }
 
     public async init(config: WFCConfig) {
-        console.clear();
+        //console.clear();
         this.config = config;
+        this.config.offsetX = 0;
+        this.config.offsetY = 0;
+
+        this.minX = 0;
+        this.minY = 0;
+        this.maxX = this.config.tilesWidth;
+        this.maxY = this.config.tilesHeight;
 
         this.loadTiles();
     }
@@ -247,49 +259,130 @@ export class WFCTiles {
             };
         }
 
-        this.tiles = Array.from({length:this.config.tilesWidth}, 
-            (a,x) => {
-                return Array.from({length:this.config.tilesHeight}, (b, y) => {
-                    var edges: string[] = [];
-                    if(x == 0) edges.push('left');
-                    if(y == 0) edges.push('top');
-                    if(x == this.config.tilesWidth-1) edges.push('right');
-                    if(y == this.config.tilesHeight-1) edges.push('bottom');
-                    
-                    if(edges.length > 0) {
-                        let validPieces = startingTile.validPieces.filter((pieceName: string) => {
-                            let piece = this.piecesMap[pieceName];
-                            let allow = true;
-                            if(useEdgeSocket) {
-                                allow = edges.every(edge => 
-                                    piece.sockets[edge].includes(edgeSockets[edge])
-                                );
-                            }
+        this.tiles = [];
 
-                            if(piece.edgeblacklist) {
-                                return !edges.some(v => piece.edgeblacklist.includes(v)) && allow;
-                            } else {
-                                return true && allow;
-                            }
-                        });
-
-                        return {
-                            position: {x: x, y: y},
-                            validPieces: validPieces
-                        };
-                    } else {
-                        return {
-                            position: {x: x, y: y},
-                            validPieces: [...startingTile.validPieces]
-                        };
-                    }
-                });
+        for(let x = this.minX; x < this.maxX; x++) {
+            if(this.tiles[x] == undefined) {
+                this.tiles[x] = this.startingRow(x, startingTile, useEdgeSocket, edgeSockets);
             }
-        )
+        }
+
+        console.log('this.tiles', this.tiles);
 
         Object.entries(this.tileCounters).forEach((value: [string, any]) => {
             let numbers = value[1];
             numbers.count = 0;
         });
+    }
+
+    private startingCell(x: number, y: number, startingTile: { validPieces: string[]; }, useEdgeSocket: boolean, edgeSockets: { [name: string]: string; }): { position: { x: number; y: number; }; validPieces: string[]; } {
+        var edges: string[] = [];
+        if (x == this.minX)
+            edges.push('left');
+        if (y == this.minY)
+            edges.push('top');
+        if (x == this.maxX - 1)
+            edges.push('right');
+        if (y == this.maxY - 1)
+            edges.push('bottom');
+
+        if (edges.length > 0) {
+            let validPieces = startingTile.validPieces.filter((pieceName: string) => {
+                let piece = this.piecesMap[pieceName];
+                let allow = true;
+                if (useEdgeSocket) {
+                    allow = edges.every(edge => piece.sockets[edge].includes(edgeSockets[edge])
+                    );
+                }
+
+                if (piece.edgeblacklist) {
+                    return !edges.some(v => piece.edgeblacklist.includes(v)) && allow;
+                } else {
+                    return true && allow;
+                }
+            });
+
+            return {
+                position: { x: x, y: y },
+                validPieces: validPieces
+            };
+        } else {
+            return {
+                position: { x: x, y: y },
+                validPieces: [...startingTile.validPieces]
+            };
+        }
+    }
+
+    private startingRow(x: number, startingTile: { validPieces: string[]; }, useEdgeSocket: boolean, edgeSockets: { [name: string]: string; }): { position: { x: number; y: number; }; validPieces: string[]; }[] {
+        let row = [];
+        for(let y = this.minY; y < this.maxY; y++) {
+            
+            if(row[y] == undefined) {
+                row[y] = this.startingCell(x,y, startingTile, useEdgeSocket, edgeSockets);
+            }
+        }
+
+        return row;
+    }
+
+    public expand() {
+        this.minX = -this.config.offsetX || 0;
+        this.minY = -this.config.offsetY || 0;
+        this.maxX = this.config.tilesWidth - (this.config.offsetX || 0);
+        this.maxY = this.config.tilesHeight - (this.config.offsetY || 0);
+
+        let piecesKeys = Object.keys(this.piecesMap);
+        let startingTile = {
+            validPieces: piecesKeys,
+        };
+
+        let useEdgeSocket = false;
+        let edgeSockets: { [name: string]: string } = {};
+
+        if(this.config.edgeSocket != '') {
+            useEdgeSocket = true;
+            edgeSockets = {
+                "top": this.config.edgeSocket,
+                "left": this.config.edgeSocket.split("").reverse().join(""),
+                "bottom": this.config.edgeSocket,
+                "right": this.config.edgeSocket.split("").reverse().join("")
+            };
+        }
+/*
+        this.tiles = Array.from({length:this.maxX}, 
+            (a,x) => {
+                return this.startingRow(x, startingTile, useEdgeSocket, edgeSockets);
+            }
+        );*/
+
+        let newCells: {x: number, y: number, tile: any}[] = [];
+        for(let x = this.minX; x < this.maxX; x++) {
+            if(this.tiles[x] == undefined) {
+                //Entire row is undefined
+                this.tiles[x] = this.startingRow(x, startingTile, useEdgeSocket, edgeSockets);
+                Object.keys(this.tiles[x]).forEach((yKey: string) => {
+                    let y = parseInt(yKey);
+                    newCells.push({
+                        x: x,
+                        y: y,
+                        tile: this.tiles[x][y]
+                    });
+                });
+            } else {
+                for(let y = this.minY; y < this.maxY; y++) {
+                    if(this.tiles[x][y] == undefined) {
+                        //Cell is undefined
+                        this.tiles[x][y] = this.startingCell(x,y, startingTile, useEdgeSocket, edgeSockets);
+                        newCells.push({
+                            x: x,
+                            y: y,
+                            tile: this.tiles[x][y]
+                        });
+                    }
+                }
+            }
+        }
+        return newCells;
     }
 }

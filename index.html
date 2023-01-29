@@ -17,6 +17,10 @@
             table input[type="checkbox"] {
                 width: auto;
             }
+
+            canvas {
+                border: 1px solid rgb(134, 132, 132);
+            }
         </style>
         <script type="module" src="/dist/bundle.js"></script>
         <script>
@@ -29,7 +33,7 @@
                 const queryParams = new URLSearchParams(window.location.search);
                 for(var configItem in config) {
                     var element = document.getElementById(configItem);
-                    
+                    if(!element) continue;
                     if(element.type == 'checkbox') {
                         queryParams.set(configItem, element.checked ? 1 : 0);
                     }
@@ -74,71 +78,54 @@
                 config.edgeWrapAround = parseInt((queryParams.get('edgeWrapAround') ?? 0));
                 config.edgeSocket = queryParams.get('edgeSocket') ?? '';
                 config.startingPosition = parseInt((queryParams.get('startingPosition') ?? 0));
+                config.canvasHeight = parseInt((queryParams.get('canvasHeight') ?? 450));
+                config.canvasWidth = parseInt((queryParams.get('canvasWidth') ?? 450));
+                config.sizingMethod = parseInt((queryParams.get('sizingMethod') ?? 0));
+                config.autoExpand = parseInt((queryParams.get('autoExpand') ?? 0));
+                config.autoExpandSize = parseInt((queryParams.get('autoExpandSize') ?? 1));
             }
 
             function loadConfigControls(config) {
-                var tiles = wfcRender.getAvailableTiles();
-                var tileSelector = document.getElementById("tileName");
-                for (var tileIndex in tiles){
-                    var tile = tiles[tileIndex];
-                    var opt = document.createElement('option');
-                    opt.value = tile;
-                    opt.innerHTML = tile;
-                    tileSelector.appendChild(opt);
-                }
-
-                var superImposedStates = wfcRender.getSuperImposedStates();
-                var superImposedSelector = document.getElementById("superImposed");
-                for (var superimposedIndex in superImposedStates){
-                    var isValueProperty = Number(superimposedIndex) >= 0;
-                    if (isValueProperty) {
-                        var superImposed = superImposedStates[superimposedIndex];
-                        var opt = document.createElement('option');
-                        opt.value = superimposedIndex;
-                        opt.innerHTML = superImposed;
-                        superImposedSelector.appendChild(opt);
-                    }
-                }
-                
-                var startingPositionStates = wfcRender.getStartingPositions();
-                var startingPositionSelector = document.getElementById("startingPosition");
-                for (var startingPositionIndex in startingPositionStates){
-                    var isValueProperty = Number(startingPositionIndex) >= 0;
-                    if (isValueProperty) {
-                        var startingPosition = startingPositionStates[startingPositionIndex];
-                        var opt = document.createElement('option');
-                        opt.value = startingPositionIndex;
-                        opt.innerHTML = startingPosition;
-                        startingPositionSelector.appendChild(opt);
-                    }
-                }
+                dropDown("tileName", wfcRender.getAvailableTiles());
+                dropDown("superImposed", wfcRender.getSuperImposedStates(), true);
+                dropDown("startingPosition", wfcRender.getStartingPositions(), true);
+                dropDown("sizingMethod", wfcRender.getSizingMethods(), true);
 
                 for(var configItem in config) {
-                    let type = document.getElementById(configItem).type;
+                    let element = document.getElementById(configItem);
+                    if(!element) {
+                        continue;
+                    }
+                    let type = element.type;
                     if(type == 'checkbox') {
-                        let val = config[configItem];
-                        document.getElementById(configItem).checked = val;
+                        document.getElementById(configItem).checked = config[configItem];
                     } else {
                         document.getElementById(configItem).value = config[configItem];
                     }
-                    
                 }
 
                 selectTile(document.getElementById('tileName'));
                 document.getElementById('set').value = config['set'];
             }
 
+            function dropDown(controlId, states, isEnum = false) {
+                let selector = document.getElementById(controlId);
+                for (var index in states){
+                    let isValueProperty = (isEnum ? Number(index) >= 0 : true);
+                    if (isValueProperty) {
+                        let opt = document.createElement('option');
+                        opt.value = (isEnum ? index : states[index]);
+                        opt.innerHTML = states[index];
+                        selector.appendChild(opt);
+                    }
+                }
+            }
+
             function selectTile(obj) {
-                var sets = wfcRender.getAvailableSets(obj.value);
                 var setSelector = document.getElementById("set");
                 while (setSelector.options.length) setSelector.remove(0);
-                for (var setIndex in sets){
-                    var set = sets[setIndex];
-                    var opt = document.createElement('option');
-                    opt.value = set;
-                    opt.innerHTML = set;
-                    setSelector.appendChild(opt);
-                }
+
+                dropDown("set", wfcRender.getAvailableSets(obj.value));
             }
 
             window.addEventListener("load", async function(){
@@ -195,10 +182,14 @@
                             <td>startingPosition<td><select id="startingPosition"></select></td>
                         </tr>
                         <tr>
-                            <td><button id="apply" onclick="applyConfig()" >Apply</button></td><td><button id="save" onclick="saveImage()" >Save</button></td>
-                            <td></td><td></td>
-                            <td></td><td></td>
-                            
+                            <td>canvasHeight</td><td><input type="number" min="0" max="2000" id="canvasHeight"></td>
+                            <td>canvasWidth</td><td><input type="number" min="0" max="2000" id="canvasWidth"></td>
+                            <td>sizingMethod</td><td><select id="sizingMethod"></select></td>
+                        </tr>
+                        <tr>
+                            <td>autoExpandSize</td><td><input type="number" min="1" max="100" id="autoExpandSize"></td>
+                            <td>autoExpand</td><td><input type="checkbox" id="autoExpand" value="autoExpand"></td>
+                            <td><button id="apply" onclick="applyConfig()">Apply</button></td><td><button id="save" onclick="saveImage()" >Save</button></td>
                         </tr>
                     </tbody>
                 </table>

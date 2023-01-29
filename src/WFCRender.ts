@@ -1,5 +1,6 @@
 import { SuperImposedState } from './SuperImposedState';
 import { StartingPositions } from './StartingPositions';
+import { SizingMethod } from './SizingMethod';
 import { WFCConfig } from './WFCConfig';
 import { WFCData } from './WFCData';
 import { WFCRunner } from './WFCRunner';
@@ -48,6 +49,10 @@ export class WFCRender {
         return StartingPositions;
     }
 
+    public getSizingMethods() {
+        return SizingMethod;
+    }
+
     public getAvailableSets(tileName: string) {
         var sets = this.wfc.wfcData.tileSets[tileName];
         if (sets == null)
@@ -67,30 +72,63 @@ export class WFCRender {
         return this.wfc;
     }
 
-    private wfcCallback = (event: WFCEvent) => {
-        if(event.type != 'step') console.log('event', event.type, event.data);
+    public getWFCRunner(): WFCRunner {
+        return this.wfcRunner;
+    }
+
+    private wfcCallback = (event: WFCEvent) : boolean => {
+        if(event.type != 'step' && event.type != "found") console.log('event', event.type, event.data);
         this.draw();
+
+        if(event.type == 'found') {
+            this.autoExpand();
+            return true;
+        }
+        else {
+            return true;
+        }
     };
 
     public async init(config: WFCConfig) {
         console.clear();
         this.config = config;
+        
+        this.resizeCanvas();
+
+        this.ctx.fillStyle = "transparent";
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);        
+        
         this.wfc = new WFCTiles();
         this.wfc.init(config);
-
-        this.wfcRunner = new WFCRunner(config, this.wfc, this.wfcCallback);
-
         await this.initImageData();
+        this.wfcRunner = new WFCRunner(config, this.wfc, this.wfcCallback);
+    }
 
-        let ctx = this.ctx;
-        let canvas = this.canvas;
+    public resizeCanvas() {
+        if(this.config.sizingMethod == SizingMethod.CalcCanvasSize) 
+        {
+            this.canvas.height = this.config.tilesHeight * this.config.tileScale;
+            this.canvas.width = this.config.tilesWidth * this.config.tileScale;
+        }
+        else 
+        {
+            this.canvas.height = this.config.canvasHeight;
+            this.canvas.width = this.config.canvasWidth;
+        }
+
+        //TODO: Move this check to the config
+        if(this.config.sizingMethod == SizingMethod.CalcTileSize) 
+        {
+            this.config.tilesHeight = Math.floor(this.config.canvasHeight / this.config.tileScale);
+            this.config.tilesWidth = Math.floor(this.config.canvasWidth / this.config.tileScale);
+        }
+        else if(this.config.sizingMethod == SizingMethod.CalcTileScale) 
+        {
+            this.config.tileScale = Math.max(Math.floor(this.config.canvasHeight) / this.config.tilesHeight, Math.floor(this.config.canvasWidth / this.config.tilesWidth));
+        }
 
         this.halfScaleHeight = this.config.tileScale / 2;
         this.halfScaleWidth = this.config.tileScale / 2;
-        canvas.height = this.config.tilesHeight * this.config.tileScale;
-        canvas.width = this.config.tilesWidth * this.config.tileScale;
-        ctx.fillStyle = "transparent";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
     public async initImageData() {
@@ -126,6 +164,21 @@ export class WFCRender {
         this.startWFCLoop(this.config.runSpeed);
     }
 
+    public autoExpand() {
+        this.config.tilesHeight+= this.config.autoExpandSize * 2;
+        this.config.tilesWidth+=this.config.autoExpandSize * 2;
+        this.config.offsetX+=this.config.autoExpandSize * 1;
+        this.config.offsetY+=this.config.autoExpandSize * 1;
+        this.expand();
+        this.getWFCRunner().expand();
+        this.draw();
+    }
+
+    public expand() {
+        this.resizeCanvas();
+        //this.draw();
+    }
+
 
     public reset() {
         this.ctx.fillStyle = "white";
@@ -149,18 +202,22 @@ export class WFCRender {
 
     public drawTiles() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        this.wfc.tiles.forEach((column, columnIndex) => {
-            column.forEach((tile, rowIndex) => {
-                if (!this.config.fast) {
-                    if (tile.validPieces) {
-                        this.drawSuperImposed(columnIndex, rowIndex, tile);
+        for(let columnIndex = -this.config.offsetX; columnIndex < this.config.tilesWidth - this.config.offsetX; columnIndex++) {
+            let column = this.wfc.tiles[columnIndex];
+            for(let rowIndex = -this.config.offsetY; rowIndex < this.config.tilesHeight - this.config.offsetY; rowIndex++) {
+                let tile = column[rowIndex];
+                if(tile) {
+                    if (!this.config.fast) {
+                        if (tile.validPieces) {
+                            this.drawSuperImposed(columnIndex, rowIndex, tile);
+                        }
+                    }
+                    if (tile.key != undefined) {
+                        this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
                     }
                 }
-                if (tile.key != undefined) {
-                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
-                }
-            });
-        });
+            }
+        }
     }
 
     private drawSuperImposed(columnIndex: number, rowIndex: number, tile: any) {
@@ -219,7 +276,24 @@ export class WFCRender {
     private drawSuperImposed_Grid(columnIndex: number, rowIndex: number, tile: any, validCount: number) {
         let piecesCount = Object.keys(this.wfc.piecesMap).length;
         let gridSize = Math.ceil(Math.sqrt(piecesCount));
-        tile.validPieces.forEach((key: string, index: number) => {
+        let minWeight = 999;
+        let maxWeight = 0;
+        let sortedValid = tile.validPieces.sort((a: string, b: string) => {
+            let pieceA = this.wfc.piecesMap[a];
+            let pieceB = this.wfc.piecesMap[b];
+            let weight = pieceA.weight;
+            if (minWeight > weight) {
+                minWeight = weight;
+            }
+            if (maxWeight < weight) {
+                maxWeight = weight;
+            }
+            if(pieceA.weight == pieceB.weight) {
+                return a.localeCompare(b);
+            }
+            return pieceB.weight - pieceA.weight;
+        });
+        sortedValid.forEach((key: string, index: number) => {
             let piece = this.wfc.piecesMap[key];
             let tileImage = this.imagesMap[piece.name];
             this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, piecesCount, 0.4);
@@ -239,6 +313,9 @@ export class WFCRender {
             if (maxWeight < weight) {
                 maxWeight = weight;
             }
+            if(pieceA.weight == pieceB.weight) {
+                return a.localeCompare(b);
+            }
             return pieceB.weight - pieceA.weight;
         });
         sortedValid.forEach((key: string, index: number) => {
@@ -255,7 +332,10 @@ export class WFCRender {
     private drawImgGrid(img: CanvasImageSource, x: number, y: number, rotation: number, alpha: number) {
         this.ctx.save();
         this.ctx.globalAlpha = alpha;
-        this.ctx.translate((this.config.tileScale * x) + this.halfScaleWidth, (this.config.tileScale * y) + this.halfScaleHeight);
+        this.ctx.translate(
+            (this.config.tileScale * (x + this.config.offsetX)) + this.halfScaleWidth, 
+            (this.config.tileScale * (y + this.config.offsetY)) + this.halfScaleHeight
+        );
         this.ctx.rotate((rotation * 90) * (Math.PI / 180));
         this.ctx.drawImage(img, -this.halfScaleWidth, -this.halfScaleHeight, this.config.tileScale, this.config.tileScale);
         this.ctx.restore();
@@ -276,15 +356,20 @@ export class WFCRender {
     private drawSuperimposedPartGrid(img: CanvasImageSource, x: number, y: number, gridSize: number, gridIndex: number, rotation: number, possible: number, alpha: number) {
         let width = this.config.tileScale / gridSize;
         let height = this.config.tileScale / (gridSize);
-        let newX = (this.config.tileScale * x) + ((gridIndex % gridSize) * width);
-        let newY = (this.config.tileScale * y) + ((Math.floor(gridIndex / gridSize)) * height);
+        let newX = (this.config.tileScale * (x + this.config.offsetX)) 
+            + ((gridIndex % gridSize) * width);
+        let newY = (this.config.tileScale * (y + this.config.offsetY)) 
+            + ((Math.floor(gridIndex / gridSize)) * height);
         this.drawImg(img, newX, newY, width, height, rotation, alpha);
     }
 
     private drawImg(img: CanvasImageSource, x: number, y: number, width: number, height: number, rotation: number, alpha: number) {
         this.ctx.save();
         this.ctx.globalAlpha = alpha;
-        this.ctx.translate(x + (width / 2), y + (height / 2));
+        this.ctx.translate(
+            x + (width / 2), 
+            y + (height / 2)
+        );
         this.ctx.rotate((rotation * 90) * (Math.PI / 180));
         this.ctx.drawImage(img, -(width / 2), -(height / 2), width, height);
         this.ctx.restore();

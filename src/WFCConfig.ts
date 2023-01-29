@@ -1,5 +1,6 @@
 import { StartingPositions } from "./StartingPositions";
 import { SuperImposedState } from "./SuperImposedState";
+import { SizingMethod } from "./SizingMethod";
 
 export class WFCConfig {
     public maxRetryCount: number = 10;
@@ -21,4 +22,14 @@ export class WFCConfig {
     public set: string = 'all';
 
     public startingPosition: StartingPositions = StartingPositions.Random;
+
+    public canvasHeight: number = 450;
+    public canvasWidth: number = 450;
+    public sizingMethod: SizingMethod = SizingMethod.Fixed;
+
+    public offsetX: number = 0;
+    public offsetY: number = 0;
+    
+    public autoExpandSize: number = 1;
+    public autoExpand: boolean = false;
 }
