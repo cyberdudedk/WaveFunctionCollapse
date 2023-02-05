@@ -275,7 +275,12 @@ class WFCRender {
         this.wfcCallback = (event) => {
             if (event.type != 'step' && event.type != "found")
                 console.log('event', event.type, event.data);
-            this.draw();
+            if (event.type == 'step') {
+                this.draw(event.data.affectedTiles);
+            }
+            else {
+                this.draw();
+            }
             if (event.type == 'found' && this.config.autoExpand) {
                 if (this.config.runMethod == _RunMethod__WEBPACK_IMPORTED_MODULE_6__.RunMethod.UntilExpand) {
                     this.waitingContinueForExpand = true;
@@ -453,12 +458,41 @@ class WFCRender {
         this.draw();
         this.wfcRunner.start(interval);
     }
-    draw() {
+    draw(tiles = undefined) {
         this.ctx.save();
-        this.drawTiles();
+        if (tiles != undefined) {
+            this.drawTiles(tiles);
+        }
+        else {
+            this.drawAllTiles();
+        }
         this.ctx.restore();
     }
-    drawTiles() {
+    drawTiles(positions) {
+        for (let pos of positions) {
+            let columnIndex = pos.x;
+            let rowIndex = pos.y;
+            let column = this.wfc.tiles[columnIndex];
+            let tile = column[rowIndex];
+            if (tile) {
+                if (!this.config.fast) {
+                    if (tile.validPieces) {
+                        this.clearTile(columnIndex, rowIndex);
+                        this.drawSuperImposed(columnIndex, rowIndex, tile);
+                    }
+                }
+                if (tile.key != undefined) {
+                    this.clearTile(columnIndex, rowIndex);
+                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
+                }
+                else if (tile.temporary) {
+                    this.clearTile(columnIndex, rowIndex);
+                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
+                }
+            }
+        }
+    }
+    drawAllTiles() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         for (let columnIndex = -this.config.offsetX; columnIndex < this.config.tilesWidth - this.config.offsetX; columnIndex++) {
             let column = this.wfc.tiles[columnIndex];
@@ -467,13 +501,16 @@ class WFCRender {
                 if (tile) {
                     if (!this.config.fast) {
                         if (tile.validPieces) {
+                            //this.clearTile(columnIndex, rowIndex);
                             this.drawSuperImposed(columnIndex, rowIndex, tile);
                         }
                     }
                     if (tile.key != undefined) {
+                        //this.clearTile(columnIndex, rowIndex);
                         this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
                     }
                     else if (tile.temporary) {
+                        //this.clearTile(columnIndex, rowIndex);
                         this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
                     }
                 }
@@ -590,6 +627,11 @@ class WFCRender {
         this.ctx.rotate((rotation * 90) * (Math.PI / 180));
         this.ctx.drawImage(img, -this.halfScaleWidth, -this.halfScaleHeight, this.config.tileScale, this.config.tileScale);
         this.ctx.restore();
+    }
+    clearTile(x, y) {
+        //this.ctx.save();
+        this.ctx.clearRect((this.config.tileScale * (x + this.config.offsetX)), (this.config.tileScale * (y + this.config.offsetY)), this.config.tileScale, this.config.tileScale);
+        //this.ctx.restore();
     }
     drawTile(img, x, y, rotation, alpha = 1) {
         this.drawImgGrid(img, x, y, rotation, alpha);
@@ -738,6 +780,8 @@ class WFCRunner {
         }
     }
     runWFC() {
+        let pickedPos = [];
+        let allAffectedTiles = [];
         for (var i = 0; (i < this.config.runLoop) || this.config.fast; i++) {
             let stop = this.checkForStop();
             if (stop) {
@@ -763,9 +807,14 @@ class WFCRunner {
             if (placed == false) {
                 break;
             }
+            pickedPos.push(pos);
+            if (placed != undefined && placed !== true) {
+                allAffectedTiles = allAffectedTiles.concat(placed);
+            }
         }
         if (!this.config.fast) {
-            this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('step'));
+            let allAffectedTilesSet = Array.from(new Set(allAffectedTiles));
+            this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTilesSet }));
         }
     }
     placeTilePosition(x, y) {
@@ -780,11 +829,11 @@ class WFCRunner {
                 this.noValidFound();
                 return false;
             }
-            let placed = this.placeTile(x, y, tileKey);
-            if (!placed) {
+            let affectedTiles = this.placeTile(x, y, tileKey);
+            if (affectedTiles == null) {
                 return false;
             }
-            return true;
+            return affectedTiles;
         }
     }
     cycleTile(x, y) {
@@ -816,16 +865,23 @@ class WFCRunner {
         let piece = this.wfc.piecesMap[tileKey];
         this.wfc.tiles[x][y] = Object.assign(this.wfc.tiles[x][y], piece);
         this.recalculateEntropyGroup(x, y);
-        this.runValidationLoop(x, y, [piece]);
+        let affectedTiles = this.runValidationLoop(x, y, [piece]);
+        if (affectedTiles == null) {
+            affectedTiles = [{ x: x, y: y }];
+        }
+        else {
+            affectedTiles.push({ x: x, y: y });
+        }
         this.wfc.tileCounters[piece.name].count += 1;
         this.checkForMaximumTiles(piece.name);
         this.placedTiles += 1;
-        return true;
+        return affectedTiles;
     }
     runValidationLoop(x, y, pieces) {
         let validation = this.runValidation(x, y, pieces);
+        let runValidationLoopPosititions = validation;
         if (validation == null) {
-            return false;
+            return null;
         }
         let depth = 0;
         while (validation.length > 0 && depth < this.config.maxDepth) {
@@ -840,8 +896,10 @@ class WFCRunner {
             let newValidationsSet = Array.from(new Set(newValidationsConcat));
             depth += 1;
             validation = newValidationsSet;
+            runValidationLoopPosititions = runValidationLoopPosititions.concat(newValidationsSet);
         }
-        return true;
+        let runValidationLoopPosititionsSet = Array.from(new Set(runValidationLoopPosititions));
+        return runValidationLoopPosititionsSet;
     }
     validatePosition(x, y) {
         let validationTile = this.wfc.tiles[x][y];

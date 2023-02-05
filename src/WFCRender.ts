@@ -91,8 +91,14 @@ export class WFCRender {
     private waitingContinueForExpand: boolean = false;
 
     private wfcCallback = (event: WFCEvent) : boolean => {
+        
         if(event.type != 'step' && event.type != "found") console.log('event', event.type, event.data);
-        this.draw();
+        if(event.type == 'step') {
+            this.draw(event.data.affectedTiles);
+        } else {
+            this.draw();
+        }
+        
 
         if(event.type == 'found' && this.config.autoExpand) {
             if(this.config.runMethod == RunMethod.UntilExpand) {
@@ -245,13 +251,44 @@ export class WFCRender {
         this.wfcRunner.start(interval);
     }
 
-    public draw() {
+    public draw(tiles: {x: number, y: number}[] | undefined = undefined) {
         this.ctx.save();
-        this.drawTiles();
+        if(tiles != undefined) {
+            this.drawTiles(tiles);
+        }
+        else {
+            this.drawAllTiles();
+        }
+        
         this.ctx.restore();
     }
 
-    public drawTiles() {
+    public drawTiles(positions: {x: number, y: number}[]) {
+        for(let pos of positions) {
+            let columnIndex = pos.x;
+            let rowIndex = pos.y;
+            let column = this.wfc.tiles[columnIndex];
+            
+            let tile = column[rowIndex];
+            if(tile) {
+                if (!this.config.fast) {
+                    if (tile.validPieces) {
+                        this.clearTile(columnIndex, rowIndex);
+                        this.drawSuperImposed(columnIndex, rowIndex, tile);
+                    }
+                }
+                if (tile.key != undefined) {
+                    this.clearTile(columnIndex, rowIndex);
+                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
+                } else if(tile.temporary) {
+                    this.clearTile(columnIndex, rowIndex);
+                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
+                }
+            }
+        }
+    }
+
+    public drawAllTiles() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         for(let columnIndex = -this.config.offsetX; columnIndex < this.config.tilesWidth - this.config.offsetX; columnIndex++) {
             let column = this.wfc.tiles[columnIndex];
@@ -260,12 +297,15 @@ export class WFCRender {
                 if(tile) {
                     if (!this.config.fast) {
                         if (tile.validPieces) {
+                            //this.clearTile(columnIndex, rowIndex);
                             this.drawSuperImposed(columnIndex, rowIndex, tile);
                         }
                     }
                     if (tile.key != undefined) {
+                        //this.clearTile(columnIndex, rowIndex);
                         this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
                     } else if(tile.temporary) {
+                        //this.clearTile(columnIndex, rowIndex);
                         this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
                     }
                 }
@@ -392,6 +432,17 @@ export class WFCRender {
         this.ctx.rotate((rotation * 90) * (Math.PI / 180));
         this.ctx.drawImage(img, -this.halfScaleWidth, -this.halfScaleHeight, this.config.tileScale, this.config.tileScale);
         this.ctx.restore();
+    }
+
+    private clearTile(x: number, y: number) {
+        //this.ctx.save();
+        
+        this.ctx.clearRect(
+            (this.config.tileScale * (x + this.config.offsetX)), 
+            (this.config.tileScale * (y + this.config.offsetY)), 
+            this.config.tileScale, this.config.tileScale
+        );
+        //this.ctx.restore();
     }
 
     private drawTile(img: CanvasImageSource, x: number, y: number, rotation: number, alpha: number = 1) {

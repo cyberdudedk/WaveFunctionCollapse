@@ -115,6 +115,8 @@ export class WFCRunner {
     }
 
     public runWFC() {
+        let pickedPos = [];
+        let allAffectedTiles: {x: number, y: number}[] = [];
         for (var i = 0; (i < this.config.runLoop) || this.config.fast; i++) {
             let stop = this.checkForStop();
             if (stop) {
@@ -142,14 +144,20 @@ export class WFCRunner {
             if(placed == false) {
                 break;
             }
-
+            pickedPos.push(pos);
+            if(placed != undefined && placed !== true) {
+                allAffectedTiles = allAffectedTiles.concat(placed);
+            }
         }
         if( !this.config.fast ) {
-            this.hasRunWFC(new WFCEvent('step'));
+            let allAffectedTilesSet = Array.from(new Set(allAffectedTiles));
+            this.hasRunWFC(
+                new WFCEvent('step', {'pickedPos': pickedPos, 'affectedTiles': allAffectedTilesSet})
+            );
         }
     }
 
-    public placeTilePosition(x: number, y: number) : boolean | undefined {
+    public placeTilePosition(x: number, y: number) : boolean | {x: number, y: number}[] | undefined {
         let currentTile = this.wfc.tiles[x][y];
         if (currentTile.validPieces != undefined) {
             if (currentTile.validPieces.length == 0) {
@@ -163,11 +171,11 @@ export class WFCRunner {
                 return false;
             }
 
-            let placed = this.placeTile(x, y, tileKey);
-            if(!placed) {
+            let affectedTiles = this.placeTile(x, y, tileKey);
+            if(affectedTiles == null) {
                 return false;
             }
-            return true;
+            return affectedTiles;
         }
     }
 
@@ -198,23 +206,29 @@ export class WFCRunner {
         this.placeTile(x, y, temporary.key);
     }
 
-    public placeTile(x: number, y: number, tileKey: string) {
+    public placeTile(x: number, y: number, tileKey: string) : {x: number, y: number}[] | null {
         let piece = this.wfc.piecesMap[tileKey];
         this.wfc.tiles[x][y] = Object.assign(this.wfc.tiles[x][y],  piece);
         this.recalculateEntropyGroup(x, y);
-        this.runValidationLoop(x, y, [piece]);
+        let affectedTiles = this.runValidationLoop(x, y, [piece]);
+        if(affectedTiles == null) {
+            affectedTiles = [{x: x, y: y}];
+        } else {
+            affectedTiles.push({x: x, y: y});
+        }
         this.wfc.tileCounters[piece.name].count += 1;
         this.checkForMaximumTiles(piece.name);
         
         this.placedTiles+=1;
 
-        return true;
+        return affectedTiles;
     }
 
-    public runValidationLoop(x: number, y: number, pieces: any[]) : boolean {
+    public runValidationLoop(x: number, y: number, pieces: any[]) : {x: number, y: number}[] | null {
         let validation = this.runValidation(x, y, pieces);
+        let runValidationLoopPosititions = validation;
         if (validation == null) {
-            return false;
+            return null;
         }
 
         let depth = 0;
@@ -230,9 +244,10 @@ export class WFCRunner {
             let newValidationsSet = Array.from(new Set(newValidationsConcat));
             depth += 1;
             validation = newValidationsSet;
+            runValidationLoopPosititions = runValidationLoopPosititions.concat(newValidationsSet);
         }
-
-        return true;
+        let runValidationLoopPosititionsSet = Array.from(new Set(runValidationLoopPosititions));
+        return runValidationLoopPosititionsSet;
     }
 
     public validatePosition(x: number, y: number) {
@@ -249,8 +264,8 @@ export class WFCRunner {
         return this.callback(event);
     };
 
-    public runValidation(x: number, y: number, pieces: any[], getPlaced: boolean = false) {
-        let recheck: any[] = [];
+    public runValidation(x: number, y: number, pieces: any[], getPlaced: boolean = false) : {x: number, y: number}[] {
+        let recheck: {x: number, y: number}[] = [];
         let neighbors = [];
         
         if (this.config.edgeWrapAround || y != -this.config.offsetY) {
