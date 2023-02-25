@@ -2,6 +2,7 @@ import { StartingPositions } from "./StartingPositions";
 import { SuperImposedState } from "./SuperImposedState";
 import { SizingMethod } from "./SizingMethod";
 import { RunMethod } from "./RunMethod";
+import { RenderType } from "./RenderType";
 
 export class WFCConfig {
     public maxRetryCount: number = 10;
@@ -13,7 +14,6 @@ export class WFCConfig {
 
     public tilesHeight: number = 30;
     public tilesWidth: number = 30;
-    public superImposed: SuperImposedState = SuperImposedState.Layered;
     public useMouse: boolean = false;
 
     public edgeWrapAround: boolean = false;
@@ -35,4 +35,13 @@ export class WFCConfig {
     public autoExpand: boolean = false;
 
     public runMethod: RunMethod = RunMethod.AutoRun;
+}
+
+export class WFCRenderConfig {
+    public superImposed: SuperImposedState = SuperImposedState.Layered;
+    public renderType: RenderType = RenderType.TilesAndSuperImposed;
+
+    public canvasHeight: number = 450;
+    public canvasWidth: number = 450;
+    public sizingMethod: SizingMethod = SizingMethod.Fixed;
 }

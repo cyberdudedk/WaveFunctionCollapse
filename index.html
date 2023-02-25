@@ -25,25 +25,33 @@
         <script type="module" src="/dist/bundle.js"></script>
         <script>
             var wfcRender = {};
-            var config = {
-                    
-            };
+            var config = {};
+            var renderConfig1 = {};
+            var renderConfig2 = {};
 
             function applyConfig() {
                 const queryParams = new URLSearchParams(window.location.search);
+                applyConfigs(queryParams, config, '');
+                applyConfigs(queryParams, renderConfig1, 'render1_');
+                applyConfigs(queryParams, renderConfig2, 'render2_');
+                document.location = "?" + queryParams.toString();
+            }
+
+            function applyConfigs(queryParams, config, prefix) {
                 for(var configItem in config) {
-                    var element = document.getElementById(configItem);
+                    let configName = prefix + configItem;
+                    var element = document.getElementById(configName);
                     if(!element) continue;
                     if(element.type == 'checkbox') {
-                        queryParams.set(configItem, element.checked ? 1 : 0);
+                        queryParams.set(configName, element.checked ? 1 : 0);
                     }
                     else if(element.type == 'text') {
                         var value = element.value;
-                        queryParams.set(configItem, value);
+                        queryParams.set(configName, value);
                     }
                     else if(configItem == "tileName" || configItem == "set") {
                         var value = element.value;
-                        queryParams.set(configItem, value);
+                        queryParams.set(configName, value);
                     } else {
                         var value = parseInt(element.value);
                         var min = parseInt(element.min);
@@ -55,10 +63,9 @@
                             
                             value = max;
                         }
-                        queryParams.set(configItem, value);
+                        queryParams.set(configName, value);
                     }
                 }
-                document.location = "?" + queryParams.toString();
             }
 
             function loadConfig() {
@@ -73,7 +80,7 @@
                 config.runLoop = parseInt((queryParams.get('runLoop') ?? 30));
                 config.tilesHeight = parseInt((queryParams.get('tilesHeight') ?? 15));
                 config.tilesWidth = parseInt((queryParams.get('tilesWidth') ?? 15));
-                config.superImposed = parseInt((queryParams.get('superImposed') ?? 1));
+                //config.superImposed = parseInt((queryParams.get('superImposed') ?? 1));
                 config.useMouse = parseInt((queryParams.get('useMouse') ?? 0));
                 config.edgeWrapAround = parseInt((queryParams.get('edgeWrapAround') ?? 0));
                 config.edgeSocket = queryParams.get('edgeSocket') ?? '';
@@ -84,30 +91,46 @@
                 config.autoExpand = parseInt((queryParams.get('autoExpand') ?? 0));
                 config.autoExpandSize = parseInt((queryParams.get('autoExpandSize') ?? 1));
                 config.runMethod = parseInt((queryParams.get('runMethod') ?? 0));
+
+                renderConfig1.superImposed = parseInt((queryParams.get('render1_superImposed') ?? 1));
+                renderConfig1.renderType = parseInt((queryParams.get('render1_renderType') ?? 1));
+
+                renderConfig2.superImposed = parseInt((queryParams.get('render2_superImposed') ?? 1));
+                renderConfig2.renderType = parseInt((queryParams.get('render2_renderType') ?? 1));
             }
 
             function loadConfigControls(config) {
                 dropDown("tileName", wfcRender.getAvailableTiles());
-                dropDown("superImposed", wfcRender.getSuperImposedStates(), true);
+                dropDown("render1_superImposed", wfcRender.getSuperImposedStates(), true);
+                dropDown("render2_superImposed", wfcRender.getSuperImposedStates(), true);
+                dropDown("render1_renderType", wfcRender.getRenderTypes(), true);
+                dropDown("render2_renderType", wfcRender.getRenderTypes(), true);
                 dropDown("startingPosition", wfcRender.getStartingPositions(), true);
                 dropDown("sizingMethod", wfcRender.getSizingMethods(), true);
                 dropDown("runMethod", wfcRender.getRunMethods(), true);
 
+                loadConfigControlsSetElements(config, '');
+                loadConfigControlsSetElements(renderConfig1, 'render1_');
+                loadConfigControlsSetElements(renderConfig2, 'render2_');
+
+                selectTile(document.getElementById('tileName'));
+                document.getElementById('set').value = config['set'];
+            }
+
+            function loadConfigControlsSetElements(config, prefix) {
                 for(var configItem in config) {
-                    let element = document.getElementById(configItem);
+                    let configName = prefix + configItem;
+                    let element = document.getElementById(configName);
                     if(!element) {
                         continue;
                     }
                     let type = element.type;
                     if(type == 'checkbox') {
-                        document.getElementById(configItem).checked = config[configItem];
+                        document.getElementById(configName).checked = config[configItem];
                     } else {
-                        document.getElementById(configItem).value = config[configItem];
+                        document.getElementById(configName).value = config[configItem];
                     }
                 }
-
-                selectTile(document.getElementById('tileName'));
-                document.getElementById('set').value = config['set'];
             }
 
             function dropDown(controlId, states, isEnum = false) {
@@ -131,14 +154,59 @@
             }
 
             window.addEventListener("load", async function(){
+                //console.clear();
                 loadConfig();
+                
                 wfcRender = getWFCRender('draw');
-                await wfcRender.init(config);
-                loadConfigControls(config);
+                wfcRender2 = getWFCRender('draw2');
 
-                await wfcRender.getWFC().initTileData();
+                this.wfc = getWFC();
+                this.wfc.init(config);
+
+                this.wfcRunner = getWFCRunner(config, this.wfc);
+                this.wfcRunner.addCallback(this.wfcCallback);
+                
+                await wfcRender.init(config, renderConfig1, this.wfc, this.wfcRunner);
+                await wfcRender2.init(config, renderConfig2, this.wfc, this.wfcRunner);
+                
+                await wfcRender.initImageData();
+                await wfcRender2.initImageData();
+                
+                loadConfigControls(config);
+                
+                await this.wfc.initTileData();
+                wfcRunner.reset();
                 wfcRender.initDraw();
+                wfcRender2.initDraw();
+                console.log('renderConfig1', renderConfig1);
+                console.log('renderConfig2', renderConfig2);
             });
+
+            var waitingContinueForExpand = false;
+
+
+            function autoExpand() {
+                this.wfcRunner.expand();
+                this.wfcRender.expand();
+                this.wfcRender2.expand();
+            }
+
+            function wfcCallback(event) {
+                if(event.type == 'found' && this.config.autoExpand) {
+                    if(this.config.runMethod == 3) { //RunMethod.UntilExpand
+                        this.waitingContinueForExpand = true;
+                        return false;
+                    } else {
+                        autoExpand();
+                        return true;
+                    }
+                    
+                }
+                else {
+                    return false;
+                }
+            };
+
 
             function saveImage() {
                 downloadImage(wfcRender.getImage(), 'wfctile.png');
@@ -152,7 +220,11 @@
             }
 
             function continueRun() {
-                wfcRender.continueRun();
+                if(waitingContinueForExpand) {
+                    waitingContinueForExpand = false;
+                    autoExpand();
+                }
+                this.wfcRunner.continueRun();
             }
         </script>
     </head>
@@ -165,7 +237,7 @@
                         <tr>
                             <td>tileName</td><td><select id="tileName" onchange="selectTile(this)"></select></td>
                             <td>set</td><td><select value="all" id="set"></select></td>
-                            <td>superImposed</td><td><select id="superImposed"></select></td>
+                            <td></td><td></td>
                         </tr>
                         <tr>
                             <td>tilesHeight</td><td><input type="number" min="0" max="200" id="tilesHeight"></td>
@@ -198,6 +270,16 @@
                             <td>runMethod</td><td><select id="runMethod"></select></td>
                         </tr>
                         <tr>
+                            <td>R1 renderType</td><td><select id="render1_renderType"></select></td>
+                            <td>R1 superImposed</td><td><select id="render1_superImposed"></select></td>
+
+                        </tr>
+                        <tr>
+                            <td>R2 renderType</td><td><select id="render2_renderType"></select></td>
+                            <td>R2 superImposed</td><td><select id="render2_superImposed"></select></td>
+
+                        </tr>
+                        <tr>
                             <td><button id="apply" onclick="applyConfig()">Apply</button></td>
                             <td><button id="save" onclick="saveImage()" >Save</button></td>
                             <td><button id="continue" onclick="continueRun()" >Continue</button></td>
@@ -208,6 +290,8 @@
         </div>
         <br>
         <canvas id="draw">
+        </canvas>
+        <canvas id="draw2">
         </canvas>
     </body>
 </html>

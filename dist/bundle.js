@@ -51,6 +51,28 @@ class PieceObject {
 
 /***/ }),
 
+/***/ "./src/RenderType.ts":
+/*!***************************!*\
+  !*** ./src/RenderType.ts ***!
+  \***************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "RenderType": () => (/* binding */ RenderType)
+/* harmony export */ });
+var RenderType;
+(function (RenderType) {
+    RenderType[RenderType["None"] = 0] = "None";
+    RenderType[RenderType["TilesAndSuperImposed"] = 1] = "TilesAndSuperImposed";
+    RenderType[RenderType["TilesOnly"] = 2] = "TilesOnly";
+    RenderType[RenderType["SuperImposedOnly"] = 3] = "SuperImposedOnly";
+})(RenderType || (RenderType = {}));
+
+
+/***/ }),
+
 /***/ "./src/RunMethod.ts":
 /*!**************************!*\
   !*** ./src/RunMethod.ts ***!
@@ -136,12 +158,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 var SuperImposedState;
 (function (SuperImposedState) {
-    SuperImposedState[SuperImposedState["None"] = 0] = "None";
-    SuperImposedState[SuperImposedState["Layered"] = 1] = "Layered";
-    SuperImposedState[SuperImposedState["LayeredSorted"] = 2] = "LayeredSorted";
-    SuperImposedState[SuperImposedState["Grid"] = 3] = "Grid";
-    SuperImposedState[SuperImposedState["GridScaled"] = 4] = "GridScaled";
-    SuperImposedState[SuperImposedState["GridAlpha"] = 5] = "GridAlpha";
+    SuperImposedState[SuperImposedState["Layered"] = 0] = "Layered";
+    SuperImposedState[SuperImposedState["LayeredSorted"] = 1] = "LayeredSorted";
+    SuperImposedState[SuperImposedState["Grid"] = 2] = "Grid";
+    SuperImposedState[SuperImposedState["GridScaled"] = 3] = "GridScaled";
+    SuperImposedState[SuperImposedState["GridAlpha"] = 4] = "GridAlpha";
 })(SuperImposedState || (SuperImposedState = {}));
 
 
@@ -156,12 +177,15 @@ var SuperImposedState;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "WFCConfig": () => (/* binding */ WFCConfig)
+/* harmony export */   "WFCConfig": () => (/* binding */ WFCConfig),
+/* harmony export */   "WFCRenderConfig": () => (/* binding */ WFCRenderConfig)
 /* harmony export */ });
 /* harmony import */ var _StartingPositions__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./StartingPositions */ "./src/StartingPositions.ts");
 /* harmony import */ var _SuperImposedState__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./SuperImposedState */ "./src/SuperImposedState.ts");
 /* harmony import */ var _SizingMethod__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./SizingMethod */ "./src/SizingMethod.ts");
 /* harmony import */ var _RunMethod__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./RunMethod */ "./src/RunMethod.ts");
+/* harmony import */ var _RenderType__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./RenderType */ "./src/RenderType.ts");
+
 
 
 
@@ -176,7 +200,6 @@ class WFCConfig {
         this.runLoop = 30;
         this.tilesHeight = 30;
         this.tilesWidth = 30;
-        this.superImposed = _SuperImposedState__WEBPACK_IMPORTED_MODULE_1__.SuperImposedState.Layered;
         this.useMouse = false;
         this.edgeWrapAround = false;
         this.edgeSocket = "";
@@ -191,6 +214,15 @@ class WFCConfig {
         this.autoExpandSize = 1;
         this.autoExpand = false;
         this.runMethod = _RunMethod__WEBPACK_IMPORTED_MODULE_3__.RunMethod.AutoRun;
+    }
+}
+class WFCRenderConfig {
+    constructor() {
+        this.superImposed = _SuperImposedState__WEBPACK_IMPORTED_MODULE_1__.SuperImposedState.Layered;
+        this.renderType = _RenderType__WEBPACK_IMPORTED_MODULE_4__.RenderType.TilesAndSuperImposed;
+        this.canvasHeight = 450;
+        this.canvasWidth = 450;
+        this.sizingMethod = _SizingMethod__WEBPACK_IMPORTED_MODULE_2__.SizingMethod.Fixed;
     }
 }
 
@@ -254,9 +286,9 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _StartingPositions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./StartingPositions */ "./src/StartingPositions.ts");
 /* harmony import */ var _SizingMethod__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./SizingMethod */ "./src/SizingMethod.ts");
 /* harmony import */ var _WFCConfig__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCConfig */ "./src/WFCConfig.ts");
-/* harmony import */ var _WFCRunner__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./WFCRunner */ "./src/WFCRunner.ts");
-/* harmony import */ var _WFCTiles__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./WFCTiles */ "./src/WFCTiles.ts");
-/* harmony import */ var _RunMethod__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./RunMethod */ "./src/RunMethod.ts");
+/* harmony import */ var _WFCTiles__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./WFCTiles */ "./src/WFCTiles.ts");
+/* harmony import */ var _RunMethod__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./RunMethod */ "./src/RunMethod.ts");
+/* harmony import */ var _RenderType__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./RenderType */ "./src/RenderType.ts");
 
 
 
@@ -267,33 +299,24 @@ __webpack_require__.r(__webpack_exports__);
 class WFCRender {
     constructor(canvasId) {
         this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_3__.WFCConfig();
-        this.wfc = new _WFCTiles__WEBPACK_IMPORTED_MODULE_5__.WFCTiles();
+        this.renderConfig = new _WFCConfig__WEBPACK_IMPORTED_MODULE_3__.WFCRenderConfig();
+        this.wfc = new _WFCTiles__WEBPACK_IMPORTED_MODULE_4__.WFCTiles();
         this.halfScaleHeight = this.config.tileScale / 2;
         this.halfScaleWidth = this.config.tileScale / 2;
         this.imagesMap = {};
-        this.waitingContinueForExpand = false;
         this.wfcCallback = (event) => {
             if (event.type != 'step' && event.type != "found")
                 console.log('event', event.type, event.data);
             if (event.type == 'step') {
                 this.draw(event.data.affectedTiles);
             }
+            else if (event.type == 'reset') {
+                this.startOver();
+            }
             else {
                 this.draw();
             }
-            if (event.type == 'found' && this.config.autoExpand) {
-                if (this.config.runMethod == _RunMethod__WEBPACK_IMPORTED_MODULE_6__.RunMethod.UntilExpand) {
-                    this.waitingContinueForExpand = true;
-                    return false;
-                }
-                else {
-                    this.autoExpand();
-                    return true;
-                }
-            }
-            else {
-                return false;
-            }
+            return true;
         };
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext("2d");
@@ -320,7 +343,10 @@ class WFCRender {
         return _SizingMethod__WEBPACK_IMPORTED_MODULE_2__.SizingMethod;
     }
     getRunMethods() {
-        return _RunMethod__WEBPACK_IMPORTED_MODULE_6__.RunMethod;
+        return _RunMethod__WEBPACK_IMPORTED_MODULE_5__.RunMethod;
+    }
+    getRenderTypes() {
+        return _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType;
     }
     getAvailableSets(tileName) {
         var sets = this.wfc.wfcData.tileSets[tileName];
@@ -331,32 +357,15 @@ class WFCRender {
     getTileSets() {
         return this.wfc.wfcData.tileSets;
     }
-    getWFCData() {
-        return this.wfc.wfcData;
-    }
-    getWFC() {
-        return this.wfc;
-    }
-    getWFCRunner() {
-        return this.wfcRunner;
-    }
-    continueRun() {
-        if (this.waitingContinueForExpand) {
-            this.waitingContinueForExpand = false;
-            this.autoExpand();
-        }
-        this.wfcRunner.continueRun();
-    }
-    async init(config) {
-        console.clear();
+    async init(config, renderConfig, wfc, wfcRunner) {
         this.config = config;
+        this.renderConfig = renderConfig;
         this.resizeCanvas();
         this.ctx.fillStyle = "transparent";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.wfc = new _WFCTiles__WEBPACK_IMPORTED_MODULE_5__.WFCTiles();
-        this.wfc.init(config);
-        await this.initImageData();
-        this.wfcRunner = new _WFCRunner__WEBPACK_IMPORTED_MODULE_4__.WFCRunner(config, this.wfc, this.wfcCallback);
+        this.wfc = wfc;
+        this.wfcRunner = wfcRunner;
+        this.wfcRunner.addCallback(this.wfcCallback);
     }
     resizeCanvas() {
         if (this.config.sizingMethod == _SizingMethod__WEBPACK_IMPORTED_MODULE_2__.SizingMethod.CalcCanvasSize) {
@@ -400,22 +409,13 @@ class WFCRender {
         this.startOver();
     }
     startOver() {
-        this.wfcRunner.reset();
+        //this.wfcRunner.reset();
         this.reset();
         this.startWFCLoop(this.config.runSpeed);
     }
-    autoExpand() {
-        this.config.tilesHeight += this.config.autoExpandSize * 2;
-        this.config.tilesWidth += this.config.autoExpandSize * 2;
-        this.config.offsetX += this.config.autoExpandSize * 1;
-        this.config.offsetY += this.config.autoExpandSize * 1;
-        this.expand();
-        this.getWFCRunner().expand();
-        this.draw();
-    }
     expand() {
         this.resizeCanvas();
-        //this.draw();
+        this.draw();
     }
     reset() {
         this.ctx.fillStyle = "white";
@@ -518,24 +518,28 @@ class WFCRender {
         }
     }
     drawSuperImposed(columnIndex, rowIndex, tile) {
-        let validCount = tile.validPieces.length;
-        if (validCount > 0) {
-            switch (this.config.superImposed) {
-                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Layered:
-                    this.drawSuperImposed_Layered(columnIndex, rowIndex, tile, validCount);
-                    break;
-                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridScaled:
-                    this.drawSuperImposed_GridScaled(columnIndex, rowIndex, tile, validCount);
-                    break;
-                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Grid:
-                    this.drawSuperImposed_Grid(columnIndex, rowIndex, tile, validCount);
-                    break;
-                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.LayeredSorted:
-                    this.drawSuperImposed_LayeredSorted(columnIndex, rowIndex, tile, validCount);
-                    break;
-                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridAlpha:
-                    this.drawSuperImposed_GridAlpha(columnIndex, rowIndex, tile, validCount);
-                    break;
+        if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed || this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.SuperImposedOnly) {
+            if (tile.key != undefined)
+                return;
+            let validCount = tile.validPieces.length;
+            if (validCount > 0) {
+                switch (this.renderConfig.superImposed) {
+                    case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Layered:
+                        this.drawSuperImposed_Layered(columnIndex, rowIndex, tile, validCount);
+                        break;
+                    case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridScaled:
+                        this.drawSuperImposed_GridScaled(columnIndex, rowIndex, tile, validCount);
+                        break;
+                    case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Grid:
+                        this.drawSuperImposed_Grid(columnIndex, rowIndex, tile, validCount);
+                        break;
+                    case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.LayeredSorted:
+                        this.drawSuperImposed_LayeredSorted(columnIndex, rowIndex, tile, validCount);
+                        break;
+                    case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridAlpha:
+                        this.drawSuperImposed_GridAlpha(columnIndex, rowIndex, tile, validCount);
+                        break;
+                }
             }
         }
     }
@@ -634,7 +638,9 @@ class WFCRender {
         //this.ctx.restore();
     }
     drawTile(img, x, y, rotation, alpha = 1) {
-        this.drawImgGrid(img, x, y, rotation, alpha);
+        if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed || this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesOnly) {
+            this.drawImgGrid(img, x, y, rotation, alpha);
+        }
     }
     drawSuperimposed(img, x, y, rotation, possible) {
         this.drawImgGrid(img, x, y, rotation, 0.9 / possible);
@@ -685,22 +691,32 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class WFCRunner {
-    constructor(config, wfc, callback) {
+    constructor(config, wfc) {
         this.retryCount = 0;
         this.stopRunning = true;
         this.wfcLoop = undefined;
+        this.callbacks = [];
         this.pickFirstTile = true;
         this.placedTiles = 0;
         this.hasRunWFC = (event) => {
-            return this.callback(event);
+            let results = this.callbacks.map((callback) => {
+                return callback(event);
+            });
+            return results.every(Boolean);
         };
         this.entropyGroupsPositions = {};
         this.entropyPositions = {};
         this.config = config;
         this.wfc = wfc;
-        this.callback = callback;
+    }
+    addCallback(callback) {
+        this.callbacks.push(callback);
     }
     expand() {
+        this.config.tilesHeight += this.config.autoExpandSize * 2;
+        this.config.tilesWidth += this.config.autoExpandSize * 2;
+        this.config.offsetX += this.config.autoExpandSize * 1;
+        this.config.offsetY += this.config.autoExpandSize * 1;
         let newCells = this.wfc.expand();
         newCells.forEach((cell) => {
             let placedNeighbors = this.runValidation(cell.x, cell.y, [], true);
@@ -989,6 +1005,8 @@ class WFCRunner {
         this.setStartTiles();
         this.pickFirstTile = true;
         this.placedTiles = 0;
+        console.log('reset');
+        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('reset'));
         this.recalculateEntropyGroups();
     }
     recalculateEntropyGroup(x, y) {
@@ -1906,6 +1924,8 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _WFCTiles__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./WFCTiles */ "./src/WFCTiles.ts");
 /* harmony import */ var _WFCRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./WFCRender */ "./src/WFCRender.ts");
+/* harmony import */ var _WFCRunner__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCRunner */ "./src/WFCRunner.ts");
+
 
 
 window.getWFCRender = function getWFCRender(canvasId) {
@@ -1913,6 +1933,9 @@ window.getWFCRender = function getWFCRender(canvasId) {
 };
 window.getWFC = function getWFC() {
     return new _WFCTiles__WEBPACK_IMPORTED_MODULE_0__.WFCTiles();
+};
+window.getWFCRunner = function getWFCRunner(config, wfc) {
+    return new _WFCRunner__WEBPACK_IMPORTED_MODULE_2__.WFCRunner(config, wfc);
 };
 
 })();

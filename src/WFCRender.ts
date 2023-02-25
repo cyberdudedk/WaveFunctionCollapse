@@ -1,15 +1,18 @@
 import { SuperImposedState } from './SuperImposedState';
 import { StartingPositions } from './StartingPositions';
 import { SizingMethod } from './SizingMethod';
-import { WFCConfig } from './WFCConfig';
+import { WFCConfig, WFCRenderConfig } from './WFCConfig';
 import { WFCData } from './WFCData';
 import { WFCRunner } from './WFCRunner';
 import { WFCTiles } from './WFCTiles';
 import { WFCEvent } from './WFCEvent';
 import { RunMethod } from './RunMethod';
+import { RenderType } from './RenderType';
 
 export class WFCRender {
     public config: WFCConfig = new WFCConfig();
+    public renderConfig: WFCRenderConfig = new WFCRenderConfig();
+
     public wfc: WFCTiles = new WFCTiles();
     public wfcRunner!: WFCRunner;
 
@@ -57,6 +60,10 @@ export class WFCRender {
         return RunMethod;
     }
 
+    public getRenderTypes() {
+        return RenderType;
+    }
+
     public getAvailableSets(tileName: string) {
         var sets = this.wfc.wfcData.tileSets[tileName];
         if (sets == null)
@@ -67,67 +74,33 @@ export class WFCRender {
     public getTileSets(): { [name: string]: any; } {
         return this.wfc.wfcData.tileSets;
     }
-
-    public getWFCData(): WFCData {
-        return this.wfc.wfcData;
-    }
-
-    public getWFC(): WFCTiles {
-        return this.wfc;
-    }
-
-    public getWFCRunner(): WFCRunner {
-        return this.wfcRunner;
-    }
-
-    public continueRun() {
-        if(this.waitingContinueForExpand) {
-            this.waitingContinueForExpand = false;
-            this.autoExpand();
-        }
-        this.wfcRunner.continueRun();
-    }
-
-    private waitingContinueForExpand: boolean = false;
-
+   
     private wfcCallback = (event: WFCEvent) : boolean => {
-        
         if(event.type != 'step' && event.type != "found") console.log('event', event.type, event.data);
         if(event.type == 'step') {
             this.draw(event.data.affectedTiles);
+        } else if(event.type == 'reset') {
+            this.startOver();
         } else {
             this.draw();
         }
         
-
-        if(event.type == 'found' && this.config.autoExpand) {
-            if(this.config.runMethod == RunMethod.UntilExpand) {
-                this.waitingContinueForExpand = true;
-                return false;
-            } else {
-                this.autoExpand();
-                return true;
-            }
-            
-        }
-        else {
-            return false;
-        }
+        return true;
     };
 
-    public async init(config: WFCConfig) {
-        console.clear();
+    public async init(config: WFCConfig, renderConfig: WFCRenderConfig, wfc: WFCTiles, wfcRunner: WFCRunner) {
         this.config = config;
-        
+        this.renderConfig = renderConfig;
+
         this.resizeCanvas();
 
         this.ctx.fillStyle = "transparent";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);        
         
-        this.wfc = new WFCTiles();
-        this.wfc.init(config);
-        await this.initImageData();
-        this.wfcRunner = new WFCRunner(config, this.wfc, this.wfcCallback);
+        this.wfc = wfc;
+
+        this.wfcRunner = wfcRunner;
+        this.wfcRunner.addCallback(this.wfcCallback);
     }
 
     public resizeCanvas() {
@@ -184,25 +157,15 @@ export class WFCRender {
     }
 
     public startOver() {
-        this.wfcRunner.reset();
+        //this.wfcRunner.reset();
         this.reset();
 
         this.startWFCLoop(this.config.runSpeed);
     }
 
-    public autoExpand() {
-        this.config.tilesHeight+= this.config.autoExpandSize * 2;
-        this.config.tilesWidth+=this.config.autoExpandSize * 2;
-        this.config.offsetX+=this.config.autoExpandSize * 1;
-        this.config.offsetY+=this.config.autoExpandSize * 1;
-        this.expand();
-        this.getWFCRunner().expand();
-        this.draw();
-    }
-
     public expand() {
         this.resizeCanvas();
-        //this.draw();
+        this.draw();
     }
 
 
@@ -314,24 +277,28 @@ export class WFCRender {
     }
 
     private drawSuperImposed(columnIndex: number, rowIndex: number, tile: any) {
-        let validCount = tile.validPieces.length;
-        if (validCount > 0) {
-            switch (this.config.superImposed) {
-                case SuperImposedState.Layered:
-                    this.drawSuperImposed_Layered(columnIndex, rowIndex, tile, validCount);
-                    break;
-                case SuperImposedState.GridScaled:
-                    this.drawSuperImposed_GridScaled(columnIndex, rowIndex, tile, validCount);
-                    break;
-                case  SuperImposedState.Grid:
-                    this.drawSuperImposed_Grid(columnIndex, rowIndex, tile, validCount);
-                    break;
-                case SuperImposedState.LayeredSorted:
-                    this.drawSuperImposed_LayeredSorted(columnIndex, rowIndex, tile, validCount);
-                    break;
-                case  SuperImposedState.GridAlpha:
-                    this.drawSuperImposed_GridAlpha(columnIndex, rowIndex, tile, validCount);
-                    break;
+        if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || this.renderConfig.renderType == RenderType.SuperImposedOnly) {
+            if(tile.key != undefined) return;
+            let validCount = tile.validPieces.length;
+
+            if (validCount > 0) {
+                switch (this.renderConfig.superImposed) {
+                    case SuperImposedState.Layered:
+                        this.drawSuperImposed_Layered(columnIndex, rowIndex, tile, validCount);
+                        break;
+                    case SuperImposedState.GridScaled:
+                        this.drawSuperImposed_GridScaled(columnIndex, rowIndex, tile, validCount);
+                        break;
+                    case  SuperImposedState.Grid:
+                        this.drawSuperImposed_Grid(columnIndex, rowIndex, tile, validCount);
+                        break;
+                    case SuperImposedState.LayeredSorted:
+                        this.drawSuperImposed_LayeredSorted(columnIndex, rowIndex, tile, validCount);
+                        break;
+                    case  SuperImposedState.GridAlpha:
+                        this.drawSuperImposed_GridAlpha(columnIndex, rowIndex, tile, validCount);
+                        break;
+                }
             }
         }
     }
@@ -446,7 +413,9 @@ export class WFCRender {
     }
 
     private drawTile(img: CanvasImageSource, x: number, y: number, rotation: number, alpha: number = 1) {
-        this.drawImgGrid(img, x, y, rotation, alpha);
+        if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || this.renderConfig.renderType == RenderType.TilesOnly) {
+            this.drawImgGrid(img, x, y, rotation, alpha);
+        }
     }
 
     private drawSuperimposed(img: CanvasImageSource, x: number, y: number, rotation: number, possible: number) {

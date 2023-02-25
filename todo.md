@@ -2,9 +2,12 @@
 
 ## 1.1 Ideas
 
+## Bugs
+- Bugs now present when having preset tiles (minimum config):
+Cannot convert undefined or null to object
+    at WFCRunner.recalculateEntropyGroup
+- Bug on clickCanvas, not repaiting both canvases.
 ## 2.2 Renders
-- Configuarable (only draw superImposed states)
-- Multiple renders at the same time
 - Pixel-based color render
 - JSON output render (e.g for unity)
   

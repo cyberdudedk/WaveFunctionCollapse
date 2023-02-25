@@ -1,4 +1,3 @@
-import { PieceObject } from './PieceObject';
 import { RunMethod } from './RunMethod';
 import { StartingPositions } from './StartingPositions';
 import { WFCConfig } from './WFCConfig';
@@ -14,20 +13,28 @@ export class WFCRunner {
     public stopRunning = true;
     public wfcLoop: NodeJS.Timer | undefined = undefined;
 
-    public callback: (event: WFCEvent) => boolean;
+    public callbacks: {(event: WFCEvent): boolean; }[] = [];
     
     private pickFirstTile = true;
 
     private placedTiles: number = 0;
 
-    public constructor(config: WFCConfig, wfc: WFCTiles, callback: (event: WFCEvent) => boolean) {
+    public constructor(config: WFCConfig, wfc: WFCTiles) {
         this.config = config;
         this.wfc = wfc;
+    }
 
-        this.callback = callback;
+    public addCallback(callback: (event: WFCEvent) => boolean) {
+        this.callbacks.push(callback);
     }
 
     public expand() {
+        this.config.tilesHeight+= this.config.autoExpandSize * 2;
+        this.config.tilesWidth+=this.config.autoExpandSize * 2;
+        this.config.offsetX+=this.config.autoExpandSize * 1;
+        this.config.offsetY+=this.config.autoExpandSize * 1;
+
+
         let newCells = this.wfc.expand();
         newCells.forEach((cell) => {
             let placedNeighbors = this.runValidation(cell.x, cell.y, [], true);
@@ -260,14 +267,18 @@ export class WFCRunner {
         return innerValidation;
     }
 
-    public hasRunWFC = (event: WFCEvent) : Boolean => {
-        return this.callback(event);
+    public hasRunWFC = (event: WFCEvent) : boolean => {
+        let results = this.callbacks.map((callback) => {
+            return callback(event);
+        });
+
+        return results.every(Boolean);
     };
 
     public runValidation(x: number, y: number, pieces: any[], getPlaced: boolean = false) : {x: number, y: number}[] {
         let recheck: {x: number, y: number}[] = [];
         let neighbors = [];
-        
+                
         if (this.config.edgeWrapAround || y != -this.config.offsetY) {
             let offsettedNeighborY = ((y+this.config.offsetY - 1 + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY;
             neighbors.push(
@@ -359,7 +370,8 @@ export class WFCRunner {
 
         this.pickFirstTile = true;
         this.placedTiles = 0;
-
+        console.log('reset');
+        this.hasRunWFC(new WFCEvent('reset'))
         this.recalculateEntropyGroups();
     }
 
