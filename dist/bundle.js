@@ -69,6 +69,8 @@ var RenderType;
     RenderType[RenderType["TilesOnly"] = 2] = "TilesOnly";
     RenderType[RenderType["SuperImposedOnly"] = 3] = "SuperImposedOnly";
     RenderType[RenderType["ColorOnly"] = 4] = "ColorOnly";
+    RenderType[RenderType["PixelBasedColorDominant"] = 5] = "PixelBasedColorDominant";
+    RenderType[RenderType["PixelBasedColorAverage"] = 6] = "PixelBasedColorAverage";
 })(RenderType || (RenderType = {}));
 
 
@@ -344,6 +346,56 @@ class WFCRender {
             resolve(image);
         });
     }
+    preloadPixelColorImage(src) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = (event) => {
+                const colorImage = new Image();
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext("2d");
+                const colorCanvas = document.createElement('canvas');
+                const colorCtx = colorCanvas.getContext("2d");
+                let r = 0;
+                let g = 0;
+                let b = 0;
+                if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorDominant) {
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.drawImage(image, 0, 0, 1, 1);
+                    const dominantColor = ctx.getImageData(0, 0, 1, 1).data.slice(0, 3);
+                    r = dominantColor[0];
+                    g = dominantColor[1];
+                    b = dominantColor[2];
+                }
+                else if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorAverage) {
+                    var blockSize = 5, // only visit every 5 pixels
+                    data, width, height, i = -4, length, rgb = { r: 0, g: 0, b: 0 }, count = 0;
+                    height = canvas.height = image.naturalHeight || image.offsetHeight || image.height;
+                    width = canvas.width = image.naturalWidth || image.offsetWidth || image.width;
+                    ctx.drawImage(image, 0, 0);
+                    data = ctx.getImageData(0, 0, width, height);
+                    length = data.data.length;
+                    while ((i += blockSize * 4) < length) {
+                        ++count;
+                        rgb.r += data.data[i];
+                        rgb.g += data.data[i + 1];
+                        rgb.b += data.data[i + 2];
+                    }
+                    // ~~ used to floor values
+                    r = ~~(rgb.r / count);
+                    g = ~~(rgb.g / count);
+                    b = ~~(rgb.b / count);
+                }
+                colorCanvas.width = 10;
+                colorCanvas.height = 10;
+                colorCtx.fillStyle = "rgba(" + r + ", " + g + ", " + b + ", 1)";
+                colorCtx.fillRect(0, 0, 10, 10);
+                colorImage.src = colorCanvas.toDataURL();
+                resolve(colorImage);
+            };
+            image.onerror = (event) => reject();
+            image.src = src;
+        });
+    }
     getAvailableTiles() {
         return Object.keys(this.wfc.wfcData.tileSets);
     }
@@ -419,6 +471,15 @@ class WFCRender {
                 return {
                     name: x.name,
                     img: await this.preloadColorImage(tileImageMap[x.name])
+                };
+            });
+        }
+        else if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorDominant ||
+            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorAverage) {
+            loadImagesAsync = pieces.map(async (x) => {
+                return {
+                    name: x.name,
+                    img: await this.preloadPixelColorImage('tiles/' + this.config.tileName + '/' + tileImageMap[x.name])
                 };
             });
         }
@@ -670,7 +731,9 @@ class WFCRender {
     drawTile(img, x, y, rotation, alpha = 1) {
         if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed ||
             this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesOnly ||
-            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.ColorOnly) {
+            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.ColorOnly ||
+            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorAverage ||
+            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorDominant) {
             this.drawImgGrid(img, x, y, rotation, alpha);
         }
     }

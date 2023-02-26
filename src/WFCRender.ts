@@ -55,6 +55,63 @@ export class WFCRender {
         });
     }
 
+    private preloadPixelColorImage(src: string): Promise<CanvasImageSource> {
+        return new Promise((resolve, reject) => {
+
+            const image = new Image();
+            image.onload = (event) => {
+                const colorImage = new Image();
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext("2d")!;
+                const colorCanvas = document.createElement('canvas');
+                const colorCtx = colorCanvas.getContext("2d")!;
+                let r = 0;
+                let g = 0;
+                let b = 0;
+
+                if(this.renderConfig.renderType == RenderType.PixelBasedColorDominant) {
+                    ctx.imageSmoothingEnabled = true;
+                    ctx!.drawImage(image, 0, 0, 1, 1);
+                    const dominantColor = ctx!.getImageData(0, 0, 1, 1).data.slice(0,3);
+                    r = dominantColor[0];
+                    g = dominantColor[1];
+                    b = dominantColor[2];
+                } else if(this.renderConfig.renderType == RenderType.PixelBasedColorAverage) {
+                    var blockSize = 5, // only visit every 5 pixels
+                    data, width, height,
+                    i = -4,
+                    length,
+                    rgb = {r:0,g:0,b:0},
+                    count = 0;
+                    height = canvas.height = image.naturalHeight || image.offsetHeight || image.height;
+                    width = canvas.width = image.naturalWidth || image.offsetWidth || image.width;
+                    ctx.drawImage(image, 0, 0);
+                    data = ctx.getImageData(0, 0, width, height);
+                    length = data.data.length;
+                    while ( (i += blockSize * 4) < length ) {
+                        ++count;
+                        rgb.r += data.data[i];
+                        rgb.g += data.data[i+1];
+                        rgb.b += data.data[i+2];
+                    }
+            
+                    // ~~ used to floor values
+                    r = ~~(rgb.r/count);
+                    g = ~~(rgb.g/count);
+                    b = ~~(rgb.b/count);
+                }
+                colorCanvas.width = 10;
+                colorCanvas.height = 10;
+                colorCtx.fillStyle = "rgba(" + r + ", " + g + ", " + b + ", 1)"; 
+                colorCtx.fillRect(0, 0, 10, 10);
+                colorImage.src = colorCanvas.toDataURL();
+                resolve(colorImage);
+            }
+            image.onerror = (event) => reject();
+            image.src = src;
+        });
+    }
+
    
 
 
@@ -174,7 +231,16 @@ export class WFCRender {
                     img: await this.preloadColorImage(tileImageMap[x.name])
                 };
             });
-        } else {
+        } else if(this.renderConfig.renderType == RenderType.PixelBasedColorDominant || 
+            this.renderConfig.renderType == RenderType.PixelBasedColorAverage) {
+            loadImagesAsync = pieces.map(async (x: any): Promise<{ name: string; img: CanvasImageSource; }> => {
+                return {
+                    name: x.name,
+                    img: await this.preloadPixelColorImage('tiles/' + this.config.tileName + '/' + tileImageMap[x.name])
+                };
+            });
+        } 
+        else {
             loadImagesAsync = pieces.map(async (x: any): Promise<{ name: string; img: CanvasImageSource; }> => {
                 return {
                     name: x.name,
@@ -454,7 +520,9 @@ export class WFCRender {
     private drawTile(img: CanvasImageSource, x: number, y: number, rotation: number, alpha: number = 1) {
         if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || 
             this.renderConfig.renderType == RenderType.TilesOnly ||
-            this.renderConfig.renderType == RenderType.ColorOnly
+            this.renderConfig.renderType == RenderType.ColorOnly ||
+            this.renderConfig.renderType == RenderType.PixelBasedColorAverage ||
+            this.renderConfig.renderType == RenderType.PixelBasedColorDominant
             ) {
             this.drawImgGrid(img, x, y, rotation, alpha);
         }

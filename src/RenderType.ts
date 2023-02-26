@@ -3,5 +3,7 @@ export enum RenderType {
     TilesAndSuperImposed,
     TilesOnly,
     SuperImposedOnly,
-    ColorOnly
+    ColorOnly,
+    PixelBasedColorDominant,
+    PixelBasedColorAverage
 }
