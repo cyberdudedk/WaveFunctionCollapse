@@ -28,12 +28,14 @@
             var config = {};
             var renderConfig1 = {};
             var renderConfig2 = {};
+            var renderConfig3 = {};
 
             function applyConfig() {
                 const queryParams = new URLSearchParams(window.location.search);
                 applyConfigs(queryParams, config, '');
                 applyConfigs(queryParams, renderConfig1, 'render1_');
                 applyConfigs(queryParams, renderConfig2, 'render2_');
+                applyConfigs(queryParams, renderConfig3, 'render3_');
                 document.location = "?" + queryParams.toString();
             }
 
@@ -97,14 +99,19 @@
 
                 renderConfig2.superImposed = parseInt((queryParams.get('render2_superImposed') ?? 1));
                 renderConfig2.renderType = parseInt((queryParams.get('render2_renderType') ?? 1));
+
+                renderConfig3.superImposed = parseInt((queryParams.get('render3_superImposed') ?? 1));
+                renderConfig3.renderType = parseInt((queryParams.get('render3_renderType') ?? 1));
             }
 
             function loadConfigControls(config) {
                 dropDown("tileName", wfcRender.getAvailableTiles());
                 dropDown("render1_superImposed", wfcRender.getSuperImposedStates(), true);
                 dropDown("render2_superImposed", wfcRender.getSuperImposedStates(), true);
+                dropDown("render3_superImposed", wfcRender.getSuperImposedStates(), true);
                 dropDown("render1_renderType", wfcRender.getRenderTypes(), true);
                 dropDown("render2_renderType", wfcRender.getRenderTypes(), true);
+                dropDown("render3_renderType", wfcRender.getRenderTypes(), true);
                 dropDown("startingPosition", wfcRender.getStartingPositions(), true);
                 dropDown("sizingMethod", wfcRender.getSizingMethods(), true);
                 dropDown("runMethod", wfcRender.getRunMethods(), true);
@@ -112,6 +119,7 @@
                 loadConfigControlsSetElements(config, '');
                 loadConfigControlsSetElements(renderConfig1, 'render1_');
                 loadConfigControlsSetElements(renderConfig2, 'render2_');
+                loadConfigControlsSetElements(renderConfig3, 'render3_');
 
                 selectTile(document.getElementById('tileName'));
                 document.getElementById('set').value = config['set'];
@@ -159,6 +167,7 @@
                 
                 wfcRender = getWFCRender('draw');
                 wfcRender2 = getWFCRender('draw2');
+                wfcRender3 = getWFCRender('draw3');
 
                 this.wfc = getWFC();
                 this.wfc.init(config);
@@ -168,9 +177,11 @@
                 
                 await wfcRender.init(config, renderConfig1, this.wfc, this.wfcRunner);
                 await wfcRender2.init(config, renderConfig2, this.wfc, this.wfcRunner);
+                await wfcRender3.init(config, renderConfig3, this.wfc, this.wfcRunner);
                 
                 await wfcRender.initImageData();
                 await wfcRender2.initImageData();
+                await wfcRender3.initImageData();
                 
                 loadConfigControls(config);
                 
@@ -178,8 +189,7 @@
                 wfcRunner.reset();
                 wfcRender.initDraw();
                 wfcRender2.initDraw();
-                console.log('renderConfig1', renderConfig1);
-                console.log('renderConfig2', renderConfig2);
+                wfcRender3.initDraw();
             });
 
             var waitingContinueForExpand = false;
@@ -189,6 +199,7 @@
                 this.wfcRunner.expand();
                 this.wfcRender.expand();
                 this.wfcRender2.expand();
+                this.wfcRender3.expand();
             }
 
             function wfcCallback(event) {
@@ -277,7 +288,10 @@
                         <tr>
                             <td>R2 renderType</td><td><select id="render2_renderType"></select></td>
                             <td>R2 superImposed</td><td><select id="render2_superImposed"></select></td>
-
+                        </tr>
+                        <tr>
+                            <td>R3 renderType</td><td><select id="render3_renderType"></select></td>
+                            <td>R3 superImposed</td><td><select id="render3_superImposed"></select></td>
                         </tr>
                         <tr>
                             <td><button id="apply" onclick="applyConfig()">Apply</button></td>
@@ -292,6 +306,8 @@
         <canvas id="draw">
         </canvas>
         <canvas id="draw2">
+        </canvas>
+        <canvas id="draw3">
         </canvas>
     </body>
 </html>

@@ -1,74 +1,95 @@
 [
     {
         "name": "div",
-        "imgsrc": "div.png"
+        "imgsrc": "div.png",
+        "color": "grey"
     },
     {
         "name": "divt",
-        "imgsrc": "divt.png"
+        "imgsrc": "divt.png",
+        "color": "grey"
+        
     },
     {
         "name": "divturn",
-        "imgsrc": "divturn.png"
+        "imgsrc": "divturn.png",
+        "color": "grey"
     },
     {
         "name": "door",
-        "imgsrc": "door.png"
+        "imgsrc": "door.png",
+        "color": "grey"
+        
     },
     {
         "name": "empty",
-        "imgsrc": "empty.png"
+        "imgsrc": "empty.png",
+        "color": "white"
     },
     {
         "name": "floor",
-        "imgsrc": "floor.png"
+        "imgsrc": "floor.png",
+        "color": "lightgrey"
     },
     {
         "name": "glass",
-        "imgsrc": "glass.png"
+        "imgsrc": "glass.png",
+        "color": "#373737"
     },
     {
         "name": "halfglass",
-        "imgsrc": "halfglass.png"
+        "imgsrc": "halfglass.png",
+        "color": "#373737"
+        
     },
     {
         "name": "halfglass2",
-        "imgsrc": "halfglass2.png"
+        "imgsrc": "halfglass2.png",
+        "color": "#373737"
     },
     {
         "name": "in",
-        "imgsrc": "in.png"
+        "imgsrc": "in.png",
+        "color": "black"
     },
     {
         "name": "out",
-        "imgsrc": "out.png"
+        "imgsrc": "out.png",
+        "color": "black"
     },
     {
         "name": "stairs",
-        "imgsrc": "stairs.png"
+        "imgsrc": "stairs.png",
+        "color": "blue"
     },
     {
         "name": "table",
-        "imgsrc": "table.png"
+        "imgsrc": "table.png",
+        "color": "lightblue"
     },
     {
         "name": "vent",
-        "imgsrc": "vent.png"
+        "imgsrc": "vent.png",
+        "color": "cyan"
     },
     {
         "name": "w",
-        "imgsrc": "w.png"
+        "imgsrc": "w.png",
+        "color": "black"
     },
     {
         "name": "wall",
-        "imgsrc": "wall.png"
+        "imgsrc": "wall.png",
+        "color": "black"
     },
     {
         "name": "walldiv",
-        "imgsrc": "walldiv.png"
+        "imgsrc": "walldiv.png",
+        "color": "black"
     },
     {
         "name": "window",
-        "imgsrc": "window.png"
+        "imgsrc": "window.png",
+        "color": "#373737"
     }
 ]

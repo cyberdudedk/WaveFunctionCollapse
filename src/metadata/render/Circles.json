@@ -1,34 +1,42 @@
 [
     {
         "name": "b_half",
-        "imgsrc": "b_half.png"
+        "imgsrc": "b_half.png",
+        "color": "white"
     },
     {
         "name": "b_i",
-        "imgsrc": "b_i.png"
+        "imgsrc": "b_i.png",
+        "color": "black"
     },
     {
         "name": "b_quarter",
-        "imgsrc": "b_quarter.png"
+        "imgsrc": "b_quarter.png",
+        "color": "grey"
     },
     {
         "name": "b",
-        "imgsrc": "b.png"
+        "imgsrc": "b.png",
+        "color": "black"
     },
     {
         "name": "w_half",
-        "imgsrc": "w_half.png"
+        "imgsrc": "w_half.png",
+        "color": "white"
     },
     {
         "name": "w_i",
-        "imgsrc": "w_i.png"
+        "imgsrc": "w_i.png",
+        "color": "white"
     },
     {
         "name": "w_quarter",
-        "imgsrc": "w_quarter.png"
+        "imgsrc": "w_quarter.png",
+        "color": "lightgrey"
     },
     {
         "name": "w",
-        "imgsrc": "w.png"
+        "imgsrc": "w.png",
+        "color": "white"
     }
 ]

@@ -8,7 +8,7 @@ Cannot convert undefined or null to object
     at WFCRunner.recalculateEntropyGroup
 - Bug on clickCanvas, not repaiting both canvases.
 ## 2.2 Renders
-- Pixel-based color render
+- Pixel-based color render (Color rendered added, pixel-based should calculate average color of image)
 - JSON output render (e.g for unity)
   
 ## 2.3 More rule options

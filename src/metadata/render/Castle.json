@@ -1,46 +1,58 @@
 [
     {
         "name": "bridge",
-        "imgsrc": "bridge.png"
+        "imgsrc": "bridge.png",
+        "color": "orange"
     },
     {
         "name": "ground",
-        "imgsrc": "ground.png"
+        "imgsrc": "ground.png",
+        "color":"green"
     },
     {
         "name": "river",
-        "imgsrc": "river.png"
+        "imgsrc": "river.png",
+        "color": "blue"
     },
     {
         "name": "riverturn",
-        "imgsrc": "riverturn.png"
+        "imgsrc": "riverturn.png",
+        "color": "blue"
     },
     {
         "name": "road",
-        "imgsrc": "road.png"
+        "imgsrc": "road.png",
+        "color": "lightgreen"
     },
     {
         "name": "roadturn",
-        "imgsrc": "roadturn.png"
+        "imgsrc": "roadturn.png",
+        "color": "lightgreen"
     },
     {
         "name": "t",
-        "imgsrc": "t.png"
+        "imgsrc": "t.png",
+        "color": "lightgreen"
     },
     {
         "name": "tower",
-        "imgsrc": "tower.png"
+        "imgsrc": "tower.png",
+        "color": "darkgrey"
     },
     {
         "name": "wall",
-        "imgsrc": "wall.png"
+        "imgsrc": "wall.png",
+        "color": "lightgrey"
+
     },
     {
         "name": "wallriver",
-        "imgsrc": "wallriver.png"
+        "imgsrc": "wallriver.png",
+        "color": "lightgrey"
     },
     {
         "name": "wallroad",
-        "imgsrc": "wallroad.png"
+        "imgsrc": "wallroad.png",
+        "color": "lightgrey"
     }
 ]

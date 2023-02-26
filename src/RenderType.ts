@@ -2,5 +2,6 @@ export enum RenderType {
     None,
     TilesAndSuperImposed,
     TilesOnly,
-    SuperImposedOnly
+    SuperImposedOnly,
+    ColorOnly
 }

@@ -1,162 +1,203 @@
 [
     {
         "name": "cliff 0",
-        "imgsrc": "cliff 0.png"
+        "imgsrc": "cliff 0.png",
+        "color": "brown"
+        
     },
     {
         "name": "cliff 1",
-        "imgsrc": "cliff 1.png"
+        "imgsrc": "cliff 1.png",
+        "color": "brown"
     },
     {
         "name": "cliff 2",
-        "imgsrc": "cliff 2.png"
+        "imgsrc": "cliff 2.png",
+        "color": "brown"
     },
     {
         "name": "cliff 3",
-        "imgsrc": "cliff 3.png"
+        "imgsrc": "cliff 3.png",
+        "color": "brown"
     },            
     {
         "name": "cliffcorner 0",
-        "imgsrc": "cliffcorner 0.png"
+        "imgsrc": "cliffcorner 0.png",
+        "color": "brown"
     },
     {
         "name": "cliffcorner 1",
-        "imgsrc": "cliffcorner 1.png"
+        "imgsrc": "cliffcorner 1.png",
+        "color": "brown"
     },
     {
         "name": "cliffcorner 2",
-        "imgsrc": "cliffcorner 2.png"
+        "imgsrc": "cliffcorner 2.png",
+        "color": "brown"
     },
     {
         "name": "cliffcorner 3",
-        "imgsrc": "cliffcorner 3.png"
+        "imgsrc": "cliffcorner 3.png",
+        "color": "brown"
     },
     {
         "name": "cliffturn 0",
-        "imgsrc": "cliffturn 0.png"
+        "imgsrc": "cliffturn 0.png",
+        "color": "brown"
     },
     {
         "name": "cliffturn 1",
-        "imgsrc": "cliffturn 1.png"
+        "imgsrc": "cliffturn 1.png",
+        "color": "brown"
     },
     {
         "name": "cliffturn 2",
-        "imgsrc": "cliffturn 2.png"
+        "imgsrc": "cliffturn 2.png",
+        "color": "brown"
     },
     {
         "name": "cliffturn 3",
-        "imgsrc": "cliffturn 3.png"
+        "imgsrc": "cliffturn 3.png",
+        "color": "brown"
     },
     {
         "name": "grass 0",
-        "imgsrc": "grass 0.png"
+        "imgsrc": "grass 0.png",
+        "color": "green"
     },
     {
         "name": "grasscorner 0",
-        "imgsrc": "grasscorner 0.png"
+        "imgsrc": "grasscorner 0.png",
+        "color": "yellow"
     },
     {
         "name": "grasscorner 1",
-        "imgsrc": "grasscorner 1.png"
+        "imgsrc": "grasscorner 1.png",
+        "color": "yellow"
     },
     {
         "name": "grasscorner 2",
-        "imgsrc": "grasscorner 2.png"
+        "imgsrc": "grasscorner 2.png",
+        "color": "yellow"
     },
     {
         "name": "grasscorner 3",
-        "imgsrc": "grasscorner 3.png"
+        "imgsrc": "grasscorner 3.png",
+        "color": "yellow"
     },
     {
         "name": "road 0",
-        "imgsrc": "road 0.png"
+        "imgsrc": "road 0.png",
+        "color": "yellow"
     },
     {
         "name": "road 1",
-        "imgsrc": "road 1.png"
+        "imgsrc": "road 1.png",
+        "color": "yellow"
     },
     {
         "name": "road 2",
-        "imgsrc": "road 2.png"
+        "imgsrc": "road 2.png",
+        "color": "yellow"
     },
     {
         "name": "road 3",
-        "imgsrc": "road 3.png"
+        "imgsrc": "road 3.png",
+        "color": "yellow"
     },
     {
         "name": "roadturn 0",
-        "imgsrc": "roadturn 0.png"
+        "imgsrc": "roadturn 0.png",
+        "color": "yellow"
     },
     {
         "name": "roadturn 1",
-        "imgsrc": "roadturn 1.png"
+        "imgsrc": "roadturn 1.png",
+        "color": "yellow"
     },
     {
         "name": "roadturn 2",
-        "imgsrc": "roadturn 2.png"
+        "imgsrc": "roadturn 2.png",
+        "color": "yellow"
     },
     {
         "name": "roadturn 3",
-        "imgsrc": "roadturn 3.png"
+        "imgsrc": "roadturn 3.png",
+        "color": "yellow"
     },
     {
         "name": "water_a 0",
-        "imgsrc": "water_a 0.png"
+        "imgsrc": "water_a 0.png",
+        "color": "blue"
     },
     {
         "name": "water_b 0",
-        "imgsrc": "water_b 0.png"
+        "imgsrc": "water_b 0.png",
+        "color": "blue"
     },
     {
         "name": "water_c 0",
-        "imgsrc": "water_c 0.png"
+        "imgsrc": "water_c 0.png",
+        "color": "blue"
     },
     {
         "name": "watercorner 0",
-        "imgsrc": "watercorner 0.png"
+        "imgsrc": "watercorner 0.png",
+        "color": "darkblue"
     },
     {
         "name": "watercorner 1",
-        "imgsrc": "watercorner 1.png"
+        "imgsrc": "watercorner 1.png",
+        "color": "darkblue"
     },
     {
         "name": "watercorner 2",
-        "imgsrc": "watercorner 2.png"
+        "imgsrc": "watercorner 2.png",
+        "color": "darkblue"
     },
     {
         "name": "watercorner 3",
-        "imgsrc": "watercorner 3.png"
+        "imgsrc": "watercorner 3.png",
+        "color": "darkblue"
     },
     {
         "name": "waterside 0",
-        "imgsrc": "waterside 0.png"
+        "imgsrc": "waterside 0.png",
+        "color": "darkblue"
     },
     {
         "name": "waterside 1",
-        "imgsrc": "waterside 1.png"
+        "imgsrc": "waterside 1.png",
+        "color": "darkblue"
     },
     {
         "name": "waterside 2",
-        "imgsrc": "waterside 2.png"
+        "imgsrc": "waterside 2.png",
+        "color": "darkblue"
     },
     {
         "name": "waterside 3",
-        "imgsrc": "waterside 3.png"
+        "imgsrc": "waterside 3.png",
+        "color": "darkblue"
     },
     {
         "name": "waterturn 0",
-        "imgsrc": "waterturn 0.png"
+        "imgsrc": "waterturn 0.png",
+        "color": "cyan"
     },
     {
         "name": "waterturn 1",
-        "imgsrc": "waterturn 1.png"
+        "imgsrc": "waterturn 1.png",
+        "color": "cyan"
     },
     {
         "name": "waterturn 2",
-        "imgsrc": "waterturn 2.png"
+        "imgsrc": "waterturn 2.png",
+        "color": "cyan"
     },
     {
         "name": "waterturn 3",
-        "imgsrc": "waterturn 3.png"
+        "imgsrc": "waterturn 3.png",
+        "color": "cyan"
     }
 ]

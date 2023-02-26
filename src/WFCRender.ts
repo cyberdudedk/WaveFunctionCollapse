@@ -36,9 +36,27 @@ export class WFCRender {
             image.onload = (event) => resolve(image);
             image.onerror = (event) => reject();
             image.src = src;
+            
             return image;
         });
     }
+
+    private preloadColorImage(color: string): Promise<CanvasImageSource> {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext("2d")!;
+            canvas.width = 10;
+            canvas.height = 10;
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, 10, 10);
+            image.src = canvas.toDataURL();
+            resolve(image);
+        });
+    }
+
+   
+
 
     public getAvailableTiles() {
         return Object.keys(this.wfc.wfcData.tileSets);
@@ -134,16 +152,37 @@ export class WFCRender {
         let pieces: any[] = this.wfc.wfcData.tilePieces[this.config.tileName];
         let tileImages = require('./metadata/render/' + this.config.tileName + '.json');
         let tileImageMap = tileImages.reduce((tileMap: any, tileImage: any) => {
-            tileMap[tileImage.name] = tileImage.imgsrc;
+            if(this.renderConfig.renderType == RenderType.ColorOnly) {
+                tileMap[tileImage.name] = tileImage.color;
+            } else {
+                tileMap[tileImage.name] = tileImage.imgsrc;
+            }
             return tileMap;
         }, <{ [name: string]: string; }>{});
 
-        let loadImagesAsync = pieces.map(async (x: any): Promise<{ name: string; img: CanvasImageSource; }> => {
-            return {
-                name: x.name,
-                img: await this.preloadImage('tiles/' + this.config.tileName + '/' + tileImageMap[x.name])
-            };
-        });
+        
+        let loadImagesAsync: Promise<{
+            name: string;
+            img: CanvasImageSource;
+        }>[] = [];
+        
+
+        if(this.renderConfig.renderType == RenderType.ColorOnly) {
+            loadImagesAsync = pieces.map(async (x: any): Promise<{ name: string; img: CanvasImageSource; }> => {
+                return {
+                    name: x.name,
+                    img: await this.preloadColorImage(tileImageMap[x.name])
+                };
+            });
+        } else {
+            loadImagesAsync = pieces.map(async (x: any): Promise<{ name: string; img: CanvasImageSource; }> => {
+                return {
+                    name: x.name,
+                    img: await this.preloadImage('tiles/' + this.config.tileName + '/' + tileImageMap[x.name])
+                };
+            });
+        }
+        
 
         this.imagesMap = (await Promise.all(loadImagesAsync)).reduce((piecesMap, piece) => {
             piecesMap[piece.name] = piece.img;
@@ -413,7 +452,10 @@ export class WFCRender {
     }
 
     private drawTile(img: CanvasImageSource, x: number, y: number, rotation: number, alpha: number = 1) {
-        if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || this.renderConfig.renderType == RenderType.TilesOnly) {
+        if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || 
+            this.renderConfig.renderType == RenderType.TilesOnly ||
+            this.renderConfig.renderType == RenderType.ColorOnly
+            ) {
             this.drawImgGrid(img, x, y, rotation, alpha);
         }
     }

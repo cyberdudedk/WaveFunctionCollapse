@@ -68,6 +68,7 @@ var RenderType;
     RenderType[RenderType["TilesAndSuperImposed"] = 1] = "TilesAndSuperImposed";
     RenderType[RenderType["TilesOnly"] = 2] = "TilesOnly";
     RenderType[RenderType["SuperImposedOnly"] = 3] = "SuperImposedOnly";
+    RenderType[RenderType["ColorOnly"] = 4] = "ColorOnly";
 })(RenderType || (RenderType = {}));
 
 
@@ -330,6 +331,19 @@ class WFCRender {
             return image;
         });
     }
+    preloadColorImage(color) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            var canvas = document.createElement('canvas');
+            var ctx = canvas.getContext("2d");
+            canvas.width = 10;
+            canvas.height = 10;
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, 10, 10);
+            image.src = canvas.toDataURL();
+            resolve(image);
+        });
+    }
     getAvailableTiles() {
         return Object.keys(this.wfc.wfcData.tileSets);
     }
@@ -391,15 +405,31 @@ class WFCRender {
         let pieces = this.wfc.wfcData.tilePieces[this.config.tileName];
         let tileImages = __webpack_require__("./src/metadata/render sync recursive ^\\.\\/.*\\.json$")("./" + this.config.tileName + ".json");
         let tileImageMap = tileImages.reduce((tileMap, tileImage) => {
-            tileMap[tileImage.name] = tileImage.imgsrc;
+            if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.ColorOnly) {
+                tileMap[tileImage.name] = tileImage.color;
+            }
+            else {
+                tileMap[tileImage.name] = tileImage.imgsrc;
+            }
             return tileMap;
         }, {});
-        let loadImagesAsync = pieces.map(async (x) => {
-            return {
-                name: x.name,
-                img: await this.preloadImage('tiles/' + this.config.tileName + '/' + tileImageMap[x.name])
-            };
-        });
+        let loadImagesAsync = [];
+        if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.ColorOnly) {
+            loadImagesAsync = pieces.map(async (x) => {
+                return {
+                    name: x.name,
+                    img: await this.preloadColorImage(tileImageMap[x.name])
+                };
+            });
+        }
+        else {
+            loadImagesAsync = pieces.map(async (x) => {
+                return {
+                    name: x.name,
+                    img: await this.preloadImage('tiles/' + this.config.tileName + '/' + tileImageMap[x.name])
+                };
+            });
+        }
         this.imagesMap = (await Promise.all(loadImagesAsync)).reduce((piecesMap, piece) => {
             piecesMap[piece.name] = piece.img;
             return piecesMap;
@@ -638,7 +668,9 @@ class WFCRender {
         //this.ctx.restore();
     }
     drawTile(img, x, y, rotation, alpha = 1) {
-        if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed || this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesOnly) {
+        if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed ||
+            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesOnly ||
+            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.ColorOnly) {
             this.drawImgGrid(img, x, y, rotation, alpha);
         }
     }
@@ -1634,7 +1666,7 @@ webpackContext.id = "./src/metadata/tiles sync recursive ^\\.\\/.*\\.json$";
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png"},{"name":"ground","imgsrc":"ground.png"},{"name":"river","imgsrc":"river.png"},{"name":"riverturn","imgsrc":"riverturn.png"},{"name":"road","imgsrc":"road.png"},{"name":"roadturn","imgsrc":"roadturn.png"},{"name":"t","imgsrc":"t.png"},{"name":"tower","imgsrc":"tower.png"},{"name":"wall","imgsrc":"wall.png"},{"name":"wallriver","imgsrc":"wallriver.png"},{"name":"wallroad","imgsrc":"wallroad.png"}]');
+module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png","color":"orange"},{"name":"ground","imgsrc":"ground.png","color":"green"},{"name":"river","imgsrc":"river.png","color":"blue"},{"name":"riverturn","imgsrc":"riverturn.png","color":"blue"},{"name":"road","imgsrc":"road.png","color":"lightgreen"},{"name":"roadturn","imgsrc":"roadturn.png","color":"lightgreen"},{"name":"t","imgsrc":"t.png","color":"lightgreen"},{"name":"tower","imgsrc":"tower.png","color":"darkgrey"},{"name":"wall","imgsrc":"wall.png","color":"lightgrey"},{"name":"wallriver","imgsrc":"wallriver.png","color":"lightgrey"},{"name":"wallroad","imgsrc":"wallroad.png","color":"lightgrey"}]');
 
 /***/ }),
 
@@ -1645,7 +1677,7 @@ module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png"},{"name":"g
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"b_half","imgsrc":"b_half.png"},{"name":"b_i","imgsrc":"b_i.png"},{"name":"b_quarter","imgsrc":"b_quarter.png"},{"name":"b","imgsrc":"b.png"},{"name":"w_half","imgsrc":"w_half.png"},{"name":"w_i","imgsrc":"w_i.png"},{"name":"w_quarter","imgsrc":"w_quarter.png"},{"name":"w","imgsrc":"w.png"}]');
+module.exports = JSON.parse('[{"name":"b_half","imgsrc":"b_half.png","color":"white"},{"name":"b_i","imgsrc":"b_i.png","color":"black"},{"name":"b_quarter","imgsrc":"b_quarter.png","color":"grey"},{"name":"b","imgsrc":"b.png","color":"black"},{"name":"w_half","imgsrc":"w_half.png","color":"white"},{"name":"w_i","imgsrc":"w_i.png","color":"white"},{"name":"w_quarter","imgsrc":"w_quarter.png","color":"lightgrey"},{"name":"w","imgsrc":"w.png","color":"white"}]');
 
 /***/ }),
 
@@ -1656,7 +1688,7 @@ module.exports = JSON.parse('[{"name":"b_half","imgsrc":"b_half.png"},{"name":"b
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png"},{"name":"connection","imgsrc":"connection.png"},{"name":"dskew","imgsrc":"dskew.png"},{"name":"skew","imgsrc":"skew.png"},{"name":"substrate","imgsrc":"substrate.png"},{"name":"t","imgsrc":"t.png"},{"name":"track","imgsrc":"track.png"},{"name":"transition","imgsrc":"transition.png"},{"name":"turn","imgsrc":"turn.png"},{"name":"viad","imgsrc":"viad.png"},{"name":"vias","imgsrc":"vias.png"},{"name":"wire","imgsrc":"wire.png"},{"name":"component","imgsrc":"component.png"},{"name":"corner","imgsrc":"corner.png"}]');
+module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png","color":"lightgrey"},{"name":"connection","imgsrc":"connection.png","color":"grey"},{"name":"dskew","imgsrc":"dskew.png","color":"lightgreen"},{"name":"skew","imgsrc":"skew.png","color":"lightgreen"},{"name":"substrate","imgsrc":"substrate.png","color":"darkgreen"},{"name":"t","imgsrc":"t.png","color":"lightgreen"},{"name":"track","imgsrc":"track.png","color":"lightgreen"},{"name":"transition","imgsrc":"transition.png","color":"lightgrey"},{"name":"turn","imgsrc":"turn.png","color":"lightgreen"},{"name":"viad","imgsrc":"viad.png","color":"darkgrey"},{"name":"vias","imgsrc":"vias.png","color":"darkgrey"},{"name":"wire","imgsrc":"wire.png","color":"lightgray"},{"name":"component","imgsrc":"component.png","color":"black"},{"name":"corner","imgsrc":"corner.png","color":"darkgreen"}]');
 
 /***/ }),
 
@@ -1667,7 +1699,7 @@ module.exports = JSON.parse('[{"name":"bridge","imgsrc":"bridge.png"},{"name":"c
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"div","imgsrc":"div.png"},{"name":"divt","imgsrc":"divt.png"},{"name":"divturn","imgsrc":"divturn.png"},{"name":"door","imgsrc":"door.png"},{"name":"empty","imgsrc":"empty.png"},{"name":"floor","imgsrc":"floor.png"},{"name":"glass","imgsrc":"glass.png"},{"name":"halfglass","imgsrc":"halfglass.png"},{"name":"halfglass2","imgsrc":"halfglass2.png"},{"name":"in","imgsrc":"in.png"},{"name":"out","imgsrc":"out.png"},{"name":"stairs","imgsrc":"stairs.png"},{"name":"table","imgsrc":"table.png"},{"name":"vent","imgsrc":"vent.png"},{"name":"w","imgsrc":"w.png"},{"name":"wall","imgsrc":"wall.png"},{"name":"walldiv","imgsrc":"walldiv.png"},{"name":"window","imgsrc":"window.png"}]');
+module.exports = JSON.parse('[{"name":"div","imgsrc":"div.png","color":"grey"},{"name":"divt","imgsrc":"divt.png","color":"grey"},{"name":"divturn","imgsrc":"divturn.png","color":"grey"},{"name":"door","imgsrc":"door.png","color":"grey"},{"name":"empty","imgsrc":"empty.png","color":"white"},{"name":"floor","imgsrc":"floor.png","color":"lightgrey"},{"name":"glass","imgsrc":"glass.png","color":"#373737"},{"name":"halfglass","imgsrc":"halfglass.png","color":"#373737"},{"name":"halfglass2","imgsrc":"halfglass2.png","color":"#373737"},{"name":"in","imgsrc":"in.png","color":"black"},{"name":"out","imgsrc":"out.png","color":"black"},{"name":"stairs","imgsrc":"stairs.png","color":"blue"},{"name":"table","imgsrc":"table.png","color":"lightblue"},{"name":"vent","imgsrc":"vent.png","color":"cyan"},{"name":"w","imgsrc":"w.png","color":"black"},{"name":"wall","imgsrc":"wall.png","color":"black"},{"name":"walldiv","imgsrc":"walldiv.png","color":"black"},{"name":"window","imgsrc":"window.png","color":"#373737"}]');
 
 /***/ }),
 
@@ -1678,7 +1710,7 @@ module.exports = JSON.parse('[{"name":"div","imgsrc":"div.png"},{"name":"divt","
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"corner","imgsrc":"corner.png"},{"name":"cross","imgsrc":"cross.png"},{"name":"empty","imgsrc":"empty.png"},{"name":"line","imgsrc":"line.png"},{"name":"t","imgsrc":"t.png"}]');
+module.exports = JSON.parse('[{"name":"corner","imgsrc":"corner.png","color":"#c0ffc0"},{"name":"cross","imgsrc":"cross.png","color":"#00ff00"},{"name":"empty","imgsrc":"empty.png","color":"#c0c0c0"},{"name":"line","imgsrc":"line.png","color":"#51ff51"},{"name":"t","imgsrc":"t.png","color":"#c0e6c0"}]');
 
 /***/ }),
 
@@ -1689,7 +1721,7 @@ module.exports = JSON.parse('[{"name":"corner","imgsrc":"corner.png"},{"name":"c
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"bend","imgsrc":"bend.png"},{"name":"corner","imgsrc":"corner.png"},{"name":"corridor","imgsrc":"corridor.png"},{"name":"door","imgsrc":"door.png"},{"name":"empty","imgsrc":"empty.png"},{"name":"side","imgsrc":"side.png"},{"name":"t","imgsrc":"t.png"},{"name":"turn","imgsrc":"turn.png"},{"name":"wall","imgsrc":"wall.png"}]');
+module.exports = JSON.parse('[{"name":"bend","imgsrc":"bend.png","color":"black"},{"name":"corner","imgsrc":"corner.png","color":"black"},{"name":"corridor","imgsrc":"corridor.png","color":"grey"},{"name":"door","imgsrc":"door.png","color":"grey"},{"name":"empty","imgsrc":"empty.png","color":"lightgrey"},{"name":"side","imgsrc":"side.png","color":"grey"},{"name":"t","imgsrc":"t.png","color":"lightgrey"},{"name":"turn","imgsrc":"turn.png","color":"grey"},{"name":"wall","imgsrc":"wall.png","color":"black"}]');
 
 /***/ }),
 
@@ -1700,7 +1732,7 @@ module.exports = JSON.parse('[{"name":"bend","imgsrc":"bend.png"},{"name":"corne
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"cliff 0","imgsrc":"cliff 0.png"},{"name":"cliff 1","imgsrc":"cliff 1.png"},{"name":"cliff 2","imgsrc":"cliff 2.png"},{"name":"cliff 3","imgsrc":"cliff 3.png"},{"name":"cliffcorner 0","imgsrc":"cliffcorner 0.png"},{"name":"cliffcorner 1","imgsrc":"cliffcorner 1.png"},{"name":"cliffcorner 2","imgsrc":"cliffcorner 2.png"},{"name":"cliffcorner 3","imgsrc":"cliffcorner 3.png"},{"name":"cliffturn 0","imgsrc":"cliffturn 0.png"},{"name":"cliffturn 1","imgsrc":"cliffturn 1.png"},{"name":"cliffturn 2","imgsrc":"cliffturn 2.png"},{"name":"cliffturn 3","imgsrc":"cliffturn 3.png"},{"name":"grass 0","imgsrc":"grass 0.png"},{"name":"grasscorner 0","imgsrc":"grasscorner 0.png"},{"name":"grasscorner 1","imgsrc":"grasscorner 1.png"},{"name":"grasscorner 2","imgsrc":"grasscorner 2.png"},{"name":"grasscorner 3","imgsrc":"grasscorner 3.png"},{"name":"road 0","imgsrc":"road 0.png"},{"name":"road 1","imgsrc":"road 1.png"},{"name":"road 2","imgsrc":"road 2.png"},{"name":"road 3","imgsrc":"road 3.png"},{"name":"roadturn 0","imgsrc":"roadturn 0.png"},{"name":"roadturn 1","imgsrc":"roadturn 1.png"},{"name":"roadturn 2","imgsrc":"roadturn 2.png"},{"name":"roadturn 3","imgsrc":"roadturn 3.png"},{"name":"water_a 0","imgsrc":"water_a 0.png"},{"name":"water_b 0","imgsrc":"water_b 0.png"},{"name":"water_c 0","imgsrc":"water_c 0.png"},{"name":"watercorner 0","imgsrc":"watercorner 0.png"},{"name":"watercorner 1","imgsrc":"watercorner 1.png"},{"name":"watercorner 2","imgsrc":"watercorner 2.png"},{"name":"watercorner 3","imgsrc":"watercorner 3.png"},{"name":"waterside 0","imgsrc":"waterside 0.png"},{"name":"waterside 1","imgsrc":"waterside 1.png"},{"name":"waterside 2","imgsrc":"waterside 2.png"},{"name":"waterside 3","imgsrc":"waterside 3.png"},{"name":"waterturn 0","imgsrc":"waterturn 0.png"},{"name":"waterturn 1","imgsrc":"waterturn 1.png"},{"name":"waterturn 2","imgsrc":"waterturn 2.png"},{"name":"waterturn 3","imgsrc":"waterturn 3.png"}]');
+module.exports = JSON.parse('[{"name":"cliff 0","imgsrc":"cliff 0.png","color":"brown"},{"name":"cliff 1","imgsrc":"cliff 1.png","color":"brown"},{"name":"cliff 2","imgsrc":"cliff 2.png","color":"brown"},{"name":"cliff 3","imgsrc":"cliff 3.png","color":"brown"},{"name":"cliffcorner 0","imgsrc":"cliffcorner 0.png","color":"brown"},{"name":"cliffcorner 1","imgsrc":"cliffcorner 1.png","color":"brown"},{"name":"cliffcorner 2","imgsrc":"cliffcorner 2.png","color":"brown"},{"name":"cliffcorner 3","imgsrc":"cliffcorner 3.png","color":"brown"},{"name":"cliffturn 0","imgsrc":"cliffturn 0.png","color":"brown"},{"name":"cliffturn 1","imgsrc":"cliffturn 1.png","color":"brown"},{"name":"cliffturn 2","imgsrc":"cliffturn 2.png","color":"brown"},{"name":"cliffturn 3","imgsrc":"cliffturn 3.png","color":"brown"},{"name":"grass 0","imgsrc":"grass 0.png","color":"green"},{"name":"grasscorner 0","imgsrc":"grasscorner 0.png","color":"yellow"},{"name":"grasscorner 1","imgsrc":"grasscorner 1.png","color":"yellow"},{"name":"grasscorner 2","imgsrc":"grasscorner 2.png","color":"yellow"},{"name":"grasscorner 3","imgsrc":"grasscorner 3.png","color":"yellow"},{"name":"road 0","imgsrc":"road 0.png","color":"yellow"},{"name":"road 1","imgsrc":"road 1.png","color":"yellow"},{"name":"road 2","imgsrc":"road 2.png","color":"yellow"},{"name":"road 3","imgsrc":"road 3.png","color":"yellow"},{"name":"roadturn 0","imgsrc":"roadturn 0.png","color":"yellow"},{"name":"roadturn 1","imgsrc":"roadturn 1.png","color":"yellow"},{"name":"roadturn 2","imgsrc":"roadturn 2.png","color":"yellow"},{"name":"roadturn 3","imgsrc":"roadturn 3.png","color":"yellow"},{"name":"water_a 0","imgsrc":"water_a 0.png","color":"blue"},{"name":"water_b 0","imgsrc":"water_b 0.png","color":"blue"},{"name":"water_c 0","imgsrc":"water_c 0.png","color":"blue"},{"name":"watercorner 0","imgsrc":"watercorner 0.png","color":"darkblue"},{"name":"watercorner 1","imgsrc":"watercorner 1.png","color":"darkblue"},{"name":"watercorner 2","imgsrc":"watercorner 2.png","color":"darkblue"},{"name":"watercorner 3","imgsrc":"watercorner 3.png","color":"darkblue"},{"name":"waterside 0","imgsrc":"waterside 0.png","color":"darkblue"},{"name":"waterside 1","imgsrc":"waterside 1.png","color":"darkblue"},{"name":"waterside 2","imgsrc":"waterside 2.png","color":"darkblue"},{"name":"waterside 3","imgsrc":"waterside 3.png","color":"darkblue"},{"name":"waterturn 0","imgsrc":"waterturn 0.png","color":"cyan"},{"name":"waterturn 1","imgsrc":"waterturn 1.png","color":"cyan"},{"name":"waterturn 2","imgsrc":"waterturn 2.png","color":"cyan"},{"name":"waterturn 3","imgsrc":"waterturn 3.png","color":"cyan"}]');
 
 /***/ }),
 

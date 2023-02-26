@@ -1,58 +1,72 @@
 [
     {
         "name": "bridge",
-        "imgsrc": "bridge.png"
+        "imgsrc": "bridge.png",
+        "color": "lightgrey"
     },
     {
         "name": "connection",
-        "imgsrc": "connection.png"
+        "imgsrc": "connection.png",
+        "color": "grey"
     },
     {
         "name": "dskew",
-        "imgsrc": "dskew.png"
+        "imgsrc": "dskew.png",
+        "color": "lightgreen"
     },
     {
         "name": "skew",
-        "imgsrc": "skew.png"
+        "imgsrc": "skew.png",
+        "color": "lightgreen"
     },
     {
         "name": "substrate",
-        "imgsrc": "substrate.png"
+        "imgsrc": "substrate.png",
+        "color": "darkgreen"
     },
     {
         "name": "t",
-        "imgsrc": "t.png"
+        "imgsrc": "t.png",
+        "color": "lightgreen"
     },
     {
         "name": "track",
-        "imgsrc": "track.png"
+        "imgsrc": "track.png",
+        "color": "lightgreen"
     },
     {
         "name": "transition",
-        "imgsrc": "transition.png"
+        "imgsrc": "transition.png",
+        "color": "lightgrey"
     },
     {
         "name": "turn",
-        "imgsrc": "turn.png"
+        "imgsrc": "turn.png",
+        "color": "lightgreen"
     },
     {
         "name": "viad",
-        "imgsrc": "viad.png"
+        "imgsrc": "viad.png",
+        "color": "darkgrey"
     },
     {
         "name": "vias",
-        "imgsrc": "vias.png"
+        "imgsrc": "vias.png",
+        "color": "darkgrey"
     },
     {
         "name": "wire",
-        "imgsrc": "wire.png"
+        "imgsrc": "wire.png",
+        "color": "lightgray"
     },
     {
         "name": "component",
-        "imgsrc": "component.png"
+        "imgsrc": "component.png",
+        "color": "black"
     },
     {
         "name": "corner",
-        "imgsrc": "corner.png"
+        "imgsrc": "corner.png",
+        "color": "darkgreen"
     }
 ]

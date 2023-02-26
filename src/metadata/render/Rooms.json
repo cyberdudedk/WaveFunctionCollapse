@@ -1,38 +1,48 @@
 [
     {
         "name": "bend",
-        "imgsrc": "bend.png"
+        "imgsrc": "bend.png",
+        "color": "black"
     },
     {
         "name": "corner",
-        "imgsrc": "corner.png"
+        "imgsrc": "corner.png",
+        "color": "black"
     },
     {
         "name": "corridor",
-        "imgsrc": "corridor.png"
+        "imgsrc": "corridor.png",
+        "color": "grey"
+        
     },
     {
         "name": "door",
-        "imgsrc": "door.png"
+        "imgsrc": "door.png",
+        "color": "grey"
     },
     {
         "name": "empty",
-        "imgsrc": "empty.png"
+        "imgsrc": "empty.png",
+        "color": "lightgrey"
     },
     {
         "name": "side",
-        "imgsrc": "side.png"
+        "imgsrc": "side.png",
+        "color": "grey"
     },
     {
         "name": "t",
-        "imgsrc": "t.png"
+        "imgsrc": "t.png",
+        "color": "lightgrey"
     },
     {
         "name": "turn",
-        "imgsrc": "turn.png"
+        "imgsrc": "turn.png",
+        "color": "grey"
     },
     {
         "name": "wall",
-        "imgsrc": "wall.png"
+        "imgsrc": "wall.png",
+        "color": "black"
     }
 ]

@@ -1,22 +1,27 @@
 [
     {
         "name": "corner",
-        "imgsrc": "corner.png"
+        "imgsrc": "corner.png",
+        "color": "#c0ffc0"
     },
     {
         "name": "cross",
-        "imgsrc": "cross.png"
+        "imgsrc": "cross.png",
+        "color": "#00ff00"
     },
     {
         "name": "empty",
-        "imgsrc": "empty.png"
+        "imgsrc": "empty.png",
+        "color": "#c0c0c0"
     },
     {
         "name": "line",
-        "imgsrc": "line.png"
+        "imgsrc": "line.png",
+        "color": "#51ff51"
     },
     {
         "name": "t",
-        "imgsrc": "t.png"
+        "imgsrc": "t.png",
+        "color": "#c0e6c0"
     }
 ]
