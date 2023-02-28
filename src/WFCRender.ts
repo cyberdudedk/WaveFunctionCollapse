@@ -341,16 +341,24 @@ export class WFCRender {
             if(tile) {
                 if (!this.config.fast) {
                     if (tile.validPieces) {
-                        this.clearTile(columnIndex, rowIndex);
-                        this.drawSuperImposed(columnIndex, rowIndex, tile);
+                        if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || this.renderConfig.renderType == RenderType.SuperImposedOnly) {
+                            this.clearTile(columnIndex, rowIndex);
+                            this.drawSuperImposed(columnIndex, rowIndex, tile);
+                        }
                     }
                 }
-                if (tile.key != undefined) {
-                    this.clearTile(columnIndex, rowIndex);
-                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
-                } else if(tile.temporary) {
-                    this.clearTile(columnIndex, rowIndex);
-                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
+                if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || 
+                    this.renderConfig.renderType == RenderType.TilesOnly ||
+                    this.renderConfig.renderType == RenderType.ColorOnly ||
+                    this.renderConfig.renderType == RenderType.PixelBasedColorAverage ||
+                    this.renderConfig.renderType == RenderType.PixelBasedColorDominant
+                    ) {
+                        this.clearTile(columnIndex, rowIndex);
+                        if (tile.key != undefined) {
+                            this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
+                        } else if(tile.temporary && this.renderConfig.renderType == RenderType.TilesAndSuperImposed) {
+                            this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
+                        }
                 }
             }
         }
@@ -365,16 +373,22 @@ export class WFCRender {
                 if(tile) {
                     if (!this.config.fast) {
                         if (tile.validPieces) {
-                            //this.clearTile(columnIndex, rowIndex);
-                            this.drawSuperImposed(columnIndex, rowIndex, tile);
+                            if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || this.renderConfig.renderType == RenderType.SuperImposedOnly) {
+                                this.drawSuperImposed(columnIndex, rowIndex, tile);
+                            }
                         }
                     }
-                    if (tile.key != undefined) {
-                        //this.clearTile(columnIndex, rowIndex);
-                        this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
-                    } else if(tile.temporary) {
-                        //this.clearTile(columnIndex, rowIndex);
-                        this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
+                    if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || 
+                        this.renderConfig.renderType == RenderType.TilesOnly ||
+                        this.renderConfig.renderType == RenderType.ColorOnly ||
+                        this.renderConfig.renderType == RenderType.PixelBasedColorAverage ||
+                        this.renderConfig.renderType == RenderType.PixelBasedColorDominant
+                        ) {
+                        if (tile.key != undefined) {
+                            this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
+                        } else if(tile.temporary && this.renderConfig.renderType == RenderType.TilesAndSuperImposed) {
+                            this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
+                        }
                     }
                 }
             }
@@ -382,7 +396,6 @@ export class WFCRender {
     }
 
     private drawSuperImposed(columnIndex: number, rowIndex: number, tile: any) {
-        if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || this.renderConfig.renderType == RenderType.SuperImposedOnly) {
             if(tile.key != undefined) return;
             let validCount = tile.validPieces.length;
 
@@ -405,7 +418,7 @@ export class WFCRender {
                         break;
                 }
             }
-        }
+        
     }
 
     private drawSuperImposed_Layered(columnIndex: number, rowIndex: number, tile: any, validCount: number) {
@@ -518,14 +531,7 @@ export class WFCRender {
     }
 
     private drawTile(img: CanvasImageSource, x: number, y: number, rotation: number, alpha: number = 1) {
-        if(this.renderConfig.renderType == RenderType.TilesAndSuperImposed || 
-            this.renderConfig.renderType == RenderType.TilesOnly ||
-            this.renderConfig.renderType == RenderType.ColorOnly ||
-            this.renderConfig.renderType == RenderType.PixelBasedColorAverage ||
-            this.renderConfig.renderType == RenderType.PixelBasedColorDominant
-            ) {
-            this.drawImgGrid(img, x, y, rotation, alpha);
-        }
+        this.drawImgGrid(img, x, y, rotation, alpha);
     }
 
     private drawSuperimposed(img: CanvasImageSource, x: number, y: number, rotation: number, possible: number) {

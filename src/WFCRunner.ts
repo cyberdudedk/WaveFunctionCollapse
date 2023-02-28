@@ -187,6 +187,8 @@ export class WFCRunner {
     }
 
     public cycleTile(x: number, y: number) {
+        
+
         let currentTile = this.wfc.tiles[x][y];
         if(currentTile.validPieces == undefined || currentTile.validPieces.length == 0) {
             return;
@@ -201,6 +203,13 @@ export class WFCRunner {
         let piece = this.wfc.piecesMap[tileKey];
         currentTile.temporary = piece;
 
+        let pos = {x: x, y: y};
+        let pickedPos = [pos];
+        let allAffectedTiles: {x: number, y: number}[] = [pos];
+        
+        this.hasRunWFC(
+            new WFCEvent('step', {'pickedPos': pickedPos, 'affectedTiles': allAffectedTiles})
+        );
     }
 
     public placeCycledTile(x: number, y: number) {
@@ -210,10 +219,16 @@ export class WFCRunner {
         }
         let temporary = currentTile.temporary;
         currentTile.temporary = undefined;
-        this.placeTile(x, y, temporary.key);
+        let allAffectedTiles: {x: number, y: number}[] = this.placeTile(x, y, temporary.key);
+        let pos = {x: x, y: y};
+        let pickedPos = [pos];
+        
+        this.hasRunWFC(
+            new WFCEvent('step', {'pickedPos': pickedPos, 'affectedTiles': allAffectedTiles})
+        );
     }
 
-    public placeTile(x: number, y: number, tileKey: string) : {x: number, y: number}[] | null {
+    public placeTile(x: number, y: number, tileKey: string) : {x: number, y: number}[] {
         let piece = this.wfc.piecesMap[tileKey];
         this.wfc.tiles[x][y] = Object.assign(this.wfc.tiles[x][y],  piece);
         this.recalculateEntropyGroup(x, y);

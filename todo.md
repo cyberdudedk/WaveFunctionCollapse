@@ -6,7 +6,6 @@
 - Bugs now present when having preset tiles (minimum config):
 Cannot convert undefined or null to object
     at WFCRunner.recalculateEntropyGroup
-- Bug on clickCanvas, not repaiting both canvases.
 ## 2.2 Renders
 - JSON output render (e.g for unity)
   

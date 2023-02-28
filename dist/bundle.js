@@ -568,17 +568,24 @@ class WFCRender {
             if (tile) {
                 if (!this.config.fast) {
                     if (tile.validPieces) {
-                        this.clearTile(columnIndex, rowIndex);
-                        this.drawSuperImposed(columnIndex, rowIndex, tile);
+                        if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed || this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.SuperImposedOnly) {
+                            this.clearTile(columnIndex, rowIndex);
+                            this.drawSuperImposed(columnIndex, rowIndex, tile);
+                        }
                     }
                 }
-                if (tile.key != undefined) {
+                if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed ||
+                    this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesOnly ||
+                    this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.ColorOnly ||
+                    this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorAverage ||
+                    this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorDominant) {
                     this.clearTile(columnIndex, rowIndex);
-                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
-                }
-                else if (tile.temporary) {
-                    this.clearTile(columnIndex, rowIndex);
-                    this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
+                    if (tile.key != undefined) {
+                        this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
+                    }
+                    else if (tile.temporary && this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed) {
+                        this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
+                    }
                 }
             }
         }
@@ -592,45 +599,48 @@ class WFCRender {
                 if (tile) {
                     if (!this.config.fast) {
                         if (tile.validPieces) {
-                            //this.clearTile(columnIndex, rowIndex);
-                            this.drawSuperImposed(columnIndex, rowIndex, tile);
+                            if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed || this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.SuperImposedOnly) {
+                                this.drawSuperImposed(columnIndex, rowIndex, tile);
+                            }
                         }
                     }
-                    if (tile.key != undefined) {
-                        //this.clearTile(columnIndex, rowIndex);
-                        this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
-                    }
-                    else if (tile.temporary) {
-                        //this.clearTile(columnIndex, rowIndex);
-                        this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
+                    if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed ||
+                        this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesOnly ||
+                        this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.ColorOnly ||
+                        this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorAverage ||
+                        this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorDominant) {
+                        if (tile.key != undefined) {
+                            this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
+                        }
+                        else if (tile.temporary && this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed) {
+                            this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
+                        }
                     }
                 }
             }
         }
     }
     drawSuperImposed(columnIndex, rowIndex, tile) {
-        if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed || this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.SuperImposedOnly) {
-            if (tile.key != undefined)
-                return;
-            let validCount = tile.validPieces.length;
-            if (validCount > 0) {
-                switch (this.renderConfig.superImposed) {
-                    case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Layered:
-                        this.drawSuperImposed_Layered(columnIndex, rowIndex, tile, validCount);
-                        break;
-                    case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridScaled:
-                        this.drawSuperImposed_GridScaled(columnIndex, rowIndex, tile, validCount);
-                        break;
-                    case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Grid:
-                        this.drawSuperImposed_Grid(columnIndex, rowIndex, tile, validCount);
-                        break;
-                    case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.LayeredSorted:
-                        this.drawSuperImposed_LayeredSorted(columnIndex, rowIndex, tile, validCount);
-                        break;
-                    case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridAlpha:
-                        this.drawSuperImposed_GridAlpha(columnIndex, rowIndex, tile, validCount);
-                        break;
-                }
+        if (tile.key != undefined)
+            return;
+        let validCount = tile.validPieces.length;
+        if (validCount > 0) {
+            switch (this.renderConfig.superImposed) {
+                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Layered:
+                    this.drawSuperImposed_Layered(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridScaled:
+                    this.drawSuperImposed_GridScaled(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.Grid:
+                    this.drawSuperImposed_Grid(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.LayeredSorted:
+                    this.drawSuperImposed_LayeredSorted(columnIndex, rowIndex, tile, validCount);
+                    break;
+                case _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState.GridAlpha:
+                    this.drawSuperImposed_GridAlpha(columnIndex, rowIndex, tile, validCount);
+                    break;
             }
         }
     }
@@ -729,13 +739,7 @@ class WFCRender {
         //this.ctx.restore();
     }
     drawTile(img, x, y, rotation, alpha = 1) {
-        if (this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed ||
-            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesOnly ||
-            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.ColorOnly ||
-            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorAverage ||
-            this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorDominant) {
-            this.drawImgGrid(img, x, y, rotation, alpha);
-        }
+        this.drawImgGrid(img, x, y, rotation, alpha);
     }
     drawSuperimposed(img, x, y, rotation, possible) {
         this.drawImgGrid(img, x, y, rotation, 0.9 / possible);
@@ -962,6 +966,10 @@ class WFCRunner {
         let tileKey = currentTile.validPieces[currentTile.cycle];
         let piece = this.wfc.piecesMap[tileKey];
         currentTile.temporary = piece;
+        let pos = { x: x, y: y };
+        let pickedPos = [pos];
+        let allAffectedTiles = [pos];
+        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTiles }));
     }
     placeCycledTile(x, y) {
         let currentTile = this.wfc.tiles[x][y];
@@ -970,7 +978,10 @@ class WFCRunner {
         }
         let temporary = currentTile.temporary;
         currentTile.temporary = undefined;
-        this.placeTile(x, y, temporary.key);
+        let allAffectedTiles = this.placeTile(x, y, temporary.key);
+        let pos = { x: x, y: y };
+        let pickedPos = [pos];
+        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTiles }));
     }
     placeTile(x, y, tileKey) {
         let piece = this.wfc.piecesMap[tileKey];
