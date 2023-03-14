@@ -112,9 +112,6 @@ export class WFCRender {
         });
     }
 
-   
-
-
     public getAvailableTiles() {
         return Object.keys(this.wfc.wfcData.tileSets);
     }
@@ -151,7 +148,11 @@ export class WFCRender {
     }
    
     private wfcCallback = (event: WFCEvent) : boolean => {
-        if(event.type != 'step' && event.type != "found") console.log('event', event.type, event.data);
+        if(event.type != 'step' && 
+            event.type != "found" && 
+            event.type != "stopped" &&
+            event.type != "reset"
+        ) console.log('event', event.type, event.data);
         if(event.type == 'step') {
             this.draw(event.data.affectedTiles);
         } else if(event.type == 'reset') {
@@ -262,9 +263,7 @@ export class WFCRender {
     }
 
     public startOver() {
-        //this.wfcRunner.reset();
         this.reset();
-
         this.startWFCLoop(this.config.runSpeed);
     }
 
@@ -315,7 +314,6 @@ export class WFCRender {
             });
         }
         this.draw();
-
         this.wfcRunner.start(interval);
     }
 
@@ -353,10 +351,11 @@ export class WFCRender {
                     this.renderConfig.renderType == RenderType.PixelBasedColorAverage ||
                     this.renderConfig.renderType == RenderType.PixelBasedColorDominant
                     ) {
-                        this.clearTile(columnIndex, rowIndex);
                         if (tile.key != undefined) {
+                            this.clearTile(columnIndex, rowIndex);
                             this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
                         } else if(tile.temporary && this.renderConfig.renderType == RenderType.TilesAndSuperImposed) {
+                            this.clearTile(columnIndex, rowIndex);
                             this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
                         }
                 }
@@ -520,14 +519,11 @@ export class WFCRender {
     }
 
     private clearTile(x: number, y: number) {
-        //this.ctx.save();
-        
         this.ctx.clearRect(
             (this.config.tileScale * (x + this.config.offsetX)), 
             (this.config.tileScale * (y + this.config.offsetY)), 
             this.config.tileScale, this.config.tileScale
         );
-        //this.ctx.restore();
     }
 
     private drawTile(img: CanvasImageSource, x: number, y: number, rotation: number, alpha: number = 1) {

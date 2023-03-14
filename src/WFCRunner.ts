@@ -110,11 +110,9 @@ export class WFCRunner {
                 if (entropyKeys.length == 0) {
                     return null;
                 }
-                
                 let lowestEntropyKey = Number(entropyKeys[0]);
                 let lowestEntroyGroup = entropyGroups[lowestEntropyKey];
                 let lowestEntropyGroupPositions = Object.keys(lowestEntroyGroup);
-                
                 let randomKeyFromLowestEntropyGroup = this.getRandomElementFromArray(lowestEntropyGroupPositions);
                 let randomPositionFromLowestEntropyGroup = lowestEntroyGroup[randomKeyFromLowestEntropyGroup];
                 return randomPositionFromLowestEntropyGroup;
@@ -375,8 +373,8 @@ export class WFCRunner {
 
     public stopWFCLoop() {
         this.stopRunning = true;
-        console.log('stopWFCLoop');
         clearInterval(this.wfcLoop);
+        this.hasRunWFC(new WFCEvent('stopped'));
     }
 
     public reset() {
@@ -385,8 +383,7 @@ export class WFCRunner {
 
         this.pickFirstTile = true;
         this.placedTiles = 0;
-        console.log('reset');
-        this.hasRunWFC(new WFCEvent('reset'))
+        this.hasRunWFC(new WFCEvent('reset'));
         this.recalculateEntropyGroups();
     }
 
@@ -396,7 +393,7 @@ export class WFCRunner {
     private recalculateEntropyGroup(x: number, y: number) {
         let tile = this.wfc.tiles[x][y];
         let positionKey = x + ',' + y;
-        
+        let sameEntropy = false;
         let oldEntropy = this.entropyPositions[positionKey];
         if (tile.key == undefined) {
             let entropy = tile.validPieces.length;
@@ -406,16 +403,22 @@ export class WFCRunner {
 
             this.entropyGroupsPositions[entropy][positionKey] = { x: x, y: y };
             this.entropyPositions[positionKey] = entropy;
-            
+            if(oldEntropy && oldEntropy == entropy) {
+                sameEntropy = true;
+            }
         } else {
             delete this.entropyPositions[positionKey];
         }
 
-        if(oldEntropy != undefined) {
-            delete this.entropyGroupsPositions[oldEntropy][positionKey];
-        }
-        if(this.entropyGroupsPositions[oldEntropy] != undefined && Object.keys(this.entropyGroupsPositions[oldEntropy]).length == 0) {
-            delete this.entropyGroupsPositions[oldEntropy];
+        if(oldEntropy != undefined && sameEntropy == false) {
+            if(this.entropyGroupsPositions[oldEntropy] != undefined) {
+                if(this.entropyGroupsPositions[oldEntropy][positionKey] != undefined) {
+                    delete this.entropyGroupsPositions[oldEntropy][positionKey];
+                }
+                if(this.entropyGroupsPositions[oldEntropy] != undefined && Object.keys(this.entropyGroupsPositions[oldEntropy]).length == 0) {
+                    delete this.entropyGroupsPositions[oldEntropy];
+                }
+            }
         }
     }
 

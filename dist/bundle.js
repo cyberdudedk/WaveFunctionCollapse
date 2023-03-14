@@ -308,7 +308,10 @@ class WFCRender {
         this.halfScaleWidth = this.config.tileScale / 2;
         this.imagesMap = {};
         this.wfcCallback = (event) => {
-            if (event.type != 'step' && event.type != "found")
+            if (event.type != 'step' &&
+                event.type != "found" &&
+                event.type != "stopped" &&
+                event.type != "reset")
                 console.log('event', event.type, event.data);
             if (event.type == 'step') {
                 this.draw(event.data.affectedTiles);
@@ -500,7 +503,6 @@ class WFCRender {
         this.startOver();
     }
     startOver() {
-        //this.wfcRunner.reset();
         this.reset();
         this.startWFCLoop(this.config.runSpeed);
     }
@@ -579,11 +581,12 @@ class WFCRender {
                     this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.ColorOnly ||
                     this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorAverage ||
                     this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.PixelBasedColorDominant) {
-                    this.clearTile(columnIndex, rowIndex);
                     if (tile.key != undefined) {
+                        this.clearTile(columnIndex, rowIndex);
                         this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.key].name], columnIndex, rowIndex, tile.rotation);
                     }
                     else if (tile.temporary && this.renderConfig.renderType == _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.TilesAndSuperImposed) {
+                        this.clearTile(columnIndex, rowIndex);
                         this.drawTile(this.imagesMap[this.wfc.piecesMap[tile.temporary.key].name], columnIndex, rowIndex, tile.temporary.rotation, 0.8);
                     }
                 }
@@ -734,9 +737,7 @@ class WFCRender {
         this.ctx.restore();
     }
     clearTile(x, y) {
-        //this.ctx.save();
         this.ctx.clearRect((this.config.tileScale * (x + this.config.offsetX)), (this.config.tileScale * (y + this.config.offsetY)), this.config.tileScale, this.config.tileScale);
-        //this.ctx.restore();
     }
     drawTile(img, x, y, rotation, alpha = 1) {
         this.drawImgGrid(img, x, y, rotation, alpha);
@@ -1103,21 +1104,21 @@ class WFCRunner {
     }
     stopWFCLoop() {
         this.stopRunning = true;
-        console.log('stopWFCLoop');
         clearInterval(this.wfcLoop);
+        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('stopped'));
     }
     reset() {
         this.wfc.reset();
         this.setStartTiles();
         this.pickFirstTile = true;
         this.placedTiles = 0;
-        console.log('reset');
         this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('reset'));
         this.recalculateEntropyGroups();
     }
     recalculateEntropyGroup(x, y) {
         let tile = this.wfc.tiles[x][y];
         let positionKey = x + ',' + y;
+        let sameEntropy = false;
         let oldEntropy = this.entropyPositions[positionKey];
         if (tile.key == undefined) {
             let entropy = tile.validPieces.length;
@@ -1126,15 +1127,22 @@ class WFCRunner {
             }
             this.entropyGroupsPositions[entropy][positionKey] = { x: x, y: y };
             this.entropyPositions[positionKey] = entropy;
+            if (oldEntropy && oldEntropy == entropy) {
+                sameEntropy = true;
+            }
         }
         else {
             delete this.entropyPositions[positionKey];
         }
-        if (oldEntropy != undefined) {
-            delete this.entropyGroupsPositions[oldEntropy][positionKey];
-        }
-        if (this.entropyGroupsPositions[oldEntropy] != undefined && Object.keys(this.entropyGroupsPositions[oldEntropy]).length == 0) {
-            delete this.entropyGroupsPositions[oldEntropy];
+        if (oldEntropy != undefined && sameEntropy == false) {
+            if (this.entropyGroupsPositions[oldEntropy] != undefined) {
+                if (this.entropyGroupsPositions[oldEntropy][positionKey] != undefined) {
+                    delete this.entropyGroupsPositions[oldEntropy][positionKey];
+                }
+                if (this.entropyGroupsPositions[oldEntropy] != undefined && Object.keys(this.entropyGroupsPositions[oldEntropy]).length == 0) {
+                    delete this.entropyGroupsPositions[oldEntropy];
+                }
+            }
         }
     }
     recalculateEntropyGroups() {
