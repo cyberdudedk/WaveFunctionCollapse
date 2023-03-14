@@ -2,13 +2,6 @@
 
 ## 1.1 Ideas
 
-## Bugs
-- Bugs now present when having preset tiles (minimum config):
-Cannot convert undefined or null to object
-    at WFCRunner.recalculateEntropyGroup
-## 2.2 Renders
-- JSON output render (e.g for unity)
-  
 ## 2.3 More rule options
 - Restricting usage of same tile in vertical or horisontal
  -- Maybe instead of vertical and horisontal, we can expand on the idea of "chunks".

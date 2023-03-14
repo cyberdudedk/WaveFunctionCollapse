@@ -1280,6 +1280,139 @@ class WFCRunner {
 
 /***/ }),
 
+/***/ "./src/WFCTextRender.ts":
+/*!******************************!*\
+  !*** ./src/WFCTextRender.ts ***!
+  \******************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "WFCTextRender": () => (/* binding */ WFCTextRender)
+/* harmony export */ });
+/* harmony import */ var _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./SuperImposedState */ "./src/SuperImposedState.ts");
+/* harmony import */ var _StartingPositions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./StartingPositions */ "./src/StartingPositions.ts");
+/* harmony import */ var _SizingMethod__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./SizingMethod */ "./src/SizingMethod.ts");
+/* harmony import */ var _WFCConfig__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCConfig */ "./src/WFCConfig.ts");
+/* harmony import */ var _WFCTiles__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./WFCTiles */ "./src/WFCTiles.ts");
+/* harmony import */ var _RunMethod__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./RunMethod */ "./src/RunMethod.ts");
+/* harmony import */ var _RenderType__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./RenderType */ "./src/RenderType.ts");
+
+
+
+
+
+
+
+class WFCTextRender {
+    constructor(canvasId) {
+        this.config = new _WFCConfig__WEBPACK_IMPORTED_MODULE_3__.WFCConfig();
+        this.wfc = new _WFCTiles__WEBPACK_IMPORTED_MODULE_4__.WFCTiles();
+        this.wfcCallback = (event) => {
+            if (event.type != 'step' &&
+                event.type != "found" &&
+                event.type != "stopped" &&
+                event.type != "reset")
+                console.log('event', event.type, event.data);
+            if (event.type == 'step') {
+                this.draw(event.data.affectedTiles);
+            }
+            else if (event.type == 'reset') {
+            }
+            else {
+                this.draw();
+            }
+            return true;
+        };
+        this.textField = document.getElementById(canvasId);
+    }
+    getAvailableTiles() {
+        return Object.keys(this.wfc.wfcData.tileSets);
+    }
+    getSuperImposedStates() {
+        return _SuperImposedState__WEBPACK_IMPORTED_MODULE_0__.SuperImposedState;
+    }
+    getStartingPositions() {
+        return _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions;
+    }
+    getSizingMethods() {
+        return _SizingMethod__WEBPACK_IMPORTED_MODULE_2__.SizingMethod;
+    }
+    getRunMethods() {
+        return _RunMethod__WEBPACK_IMPORTED_MODULE_5__.RunMethod;
+    }
+    getRenderTypes() {
+        return _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType;
+    }
+    getAvailableSets(tileName) {
+        var sets = this.wfc.wfcData.tileSets[tileName];
+        if (sets == null)
+            return null;
+        return Object.keys(sets);
+    }
+    getTileSets() {
+        return this.wfc.wfcData.tileSets;
+    }
+    async init(config, wfc, wfcRunner) {
+        this.config = config;
+        this.resizeCanvas();
+        this.wfc = wfc;
+        this.wfcRunner = wfcRunner;
+        this.wfcRunner.addCallback(this.wfcCallback);
+    }
+    resizeCanvas() {
+        if (this.config.sizingMethod == _SizingMethod__WEBPACK_IMPORTED_MODULE_2__.SizingMethod.CalcCanvasSize) {
+            this.textField.style.height = (this.config.tilesHeight * this.config.tileScale) + "px";
+            this.textField.style.width = this.config.tilesWidth * this.config.tileScale + "px";
+        }
+        else {
+            this.textField.style.height = this.config.canvasHeight + "px";
+            this.textField.style.width = this.config.canvasWidth + "px";
+        }
+        //TODO: Move this check to the config
+        if (this.config.sizingMethod == _SizingMethod__WEBPACK_IMPORTED_MODULE_2__.SizingMethod.CalcTileSize) {
+            this.config.tilesHeight = Math.floor(this.config.canvasHeight / this.config.tileScale);
+            this.config.tilesWidth = Math.floor(this.config.canvasWidth / this.config.tileScale);
+        }
+        else if (this.config.sizingMethod == _SizingMethod__WEBPACK_IMPORTED_MODULE_2__.SizingMethod.CalcTileScale) {
+            this.config.tileScale = Math.max(Math.floor(this.config.canvasHeight) / this.config.tilesHeight, Math.floor(this.config.canvasWidth / this.config.tilesWidth));
+        }
+    }
+    expand() {
+        this.resizeCanvas();
+        this.draw();
+    }
+    draw(tiles = undefined) {
+        this.drawAllTiles();
+    }
+    drawAllTiles() {
+        let result = [];
+        for (let columnIndex = -this.config.offsetX; columnIndex < this.config.tilesWidth - this.config.offsetX; columnIndex++) {
+            let columIndexPos = columnIndex + this.config.offsetX;
+            if (result[columIndexPos] == undefined) {
+                let row = [];
+                result[columIndexPos] = row;
+            }
+            let column = this.wfc.tiles[columnIndex];
+            for (let rowIndex = -this.config.offsetY; rowIndex < this.config.tilesHeight - this.config.offsetY; rowIndex++) {
+                let tile = column[rowIndex];
+                if (tile) {
+                    if (tile.key != undefined) {
+                        let tileStr = tile.key;
+                        result[columIndexPos].push(tileStr);
+                    }
+                }
+            }
+        }
+        let jsonStr = JSON.stringify(result, null, 2);
+        this.textField.innerHTML = "<pre>" + jsonStr + "</pre>";
+    }
+}
+
+
+/***/ }),
+
 /***/ "./src/WFCTiles.ts":
 /*!*************************!*\
   !*** ./src/WFCTiles.ts ***!
@@ -2038,18 +2171,23 @@ var __webpack_exports__ = {};
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _WFCTiles__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./WFCTiles */ "./src/WFCTiles.ts");
 /* harmony import */ var _WFCRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./WFCRender */ "./src/WFCRender.ts");
-/* harmony import */ var _WFCRunner__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCRunner */ "./src/WFCRunner.ts");
+/* harmony import */ var _WFCTextRender__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCTextRender */ "./src/WFCTextRender.ts");
+/* harmony import */ var _WFCRunner__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCRunner */ "./src/WFCRunner.ts");
+
 
 
 
 window.getWFCRender = function getWFCRender(canvasId) {
     return new _WFCRender__WEBPACK_IMPORTED_MODULE_1__.WFCRender(canvasId);
 };
+window.getWFCTextRender = function getWFCTextRender(canvasId) {
+    return new _WFCTextRender__WEBPACK_IMPORTED_MODULE_2__.WFCTextRender(canvasId);
+};
 window.getWFC = function getWFC() {
     return new _WFCTiles__WEBPACK_IMPORTED_MODULE_0__.WFCTiles();
 };
 window.getWFCRunner = function getWFCRunner(config, wfc) {
-    return new _WFCRunner__WEBPACK_IMPORTED_MODULE_2__.WFCRunner(config, wfc);
+    return new _WFCRunner__WEBPACK_IMPORTED_MODULE_3__.WFCRunner(config, wfc);
 };
 
 })();

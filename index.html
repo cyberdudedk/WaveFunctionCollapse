@@ -168,6 +168,7 @@
                 wfcRender = getWFCRender('draw');
                 wfcRender2 = getWFCRender('draw2');
                 wfcRender3 = getWFCRender('draw3');
+                wfcRenderText = getWFCTextRender('textrender');
 
                 this.wfc = getWFC();
                 this.wfc.init(config);
@@ -178,6 +179,7 @@
                 await wfcRender.init(config, renderConfig1, this.wfc, this.wfcRunner);
                 await wfcRender2.init(config, renderConfig2, this.wfc, this.wfcRunner);
                 await wfcRender3.init(config, renderConfig3, this.wfc, this.wfcRunner);
+                await wfcRenderText.init(config, this.wfc, this.wfcRunner);
                 
                 await wfcRender.initImageData();
                 await wfcRender2.initImageData();
@@ -300,11 +302,18 @@
             </div>
         </div>
         <br>
+
         <canvas id="draw">
         </canvas>
         <canvas id="draw2">
         </canvas>
         <canvas id="draw3">
         </canvas>
+        <br>
+        <div id="textrender" style="overflow-y: scroll;">
+        </div>
+     
+        
+        <!--<textarea id="log" rows="10" cols="100" style="width: 100%;"></textarea>-->
     </body>
 </html>
