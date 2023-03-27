@@ -1,0 +1,47 @@
+[
+    {
+        "name": "1",
+        "imgsrc": "1.png",
+        "color": "#c0ffc0"
+    },
+    {
+        "name": "2",
+        "imgsrc": "2.png",
+        "color": "#00ff00"
+    },
+    {
+        "name": "3",
+        "imgsrc": "3.png",
+        "color": "#c0c0c0"
+    },
+    {
+        "name": "4",
+        "imgsrc": "4.png",
+        "color": "#51ff51"
+    },
+    {
+        "name": "5",
+        "imgsrc": "5.png",
+        "color": "#c0e6c0"
+    },
+    {
+        "name": "6",
+        "imgsrc": "6.png",
+        "color": "#c0e6c0"
+    },
+    {
+        "name": "7",
+        "imgsrc": "7.png",
+        "color": "#c0e6c0"
+    },
+    {
+        "name": "8",
+        "imgsrc": "8.png",
+        "color": "#c0e6c0"
+    },
+    {
+        "name": "9",
+        "imgsrc": "9.png",
+        "color": "#c0e6c0"
+    }
+]

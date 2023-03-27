@@ -217,6 +217,8 @@ class WFCConfig {
         this.autoExpandSize = 1;
         this.autoExpand = false;
         this.runMethod = _RunMethod__WEBPACK_IMPORTED_MODULE_3__.RunMethod.AutoRun;
+        this.neighborDistance = 1;
+        this.gridSize = 0;
     }
 }
 class WFCRenderConfig {
@@ -1033,8 +1035,67 @@ class WFCRunner {
         let innerValidation = this.runValidation(x, y, pieces);
         return innerValidation;
     }
-    runValidation(x, y, pieces, getPlaced = false) {
-        let recheck = [];
+    getNeighbors(x, y, count) {
+        let neighbors = [];
+        if (this.config.edgeWrapAround || y != -this.config.offsetY) {
+            for (let index = 0; index > -count; index--) {
+                let offsettedNeighborY = this.config.edgeWrapAround ?
+                    ((y + this.config.offsetY + index - 1 + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY :
+                    y + index - 1;
+                if (offsettedNeighborY >= -this.config.offsetY) {
+                    neighbors.push({ direction: 'top', tile: this.wfc.tiles[x][offsettedNeighborY], x: x, y: offsettedNeighborY });
+                }
+            }
+        }
+        if (this.config.edgeWrapAround || y != this.config.tilesHeight - this.config.offsetY - 1) {
+            for (let index = 0; index < count; index++) {
+                let offsettedNeighborY = this.config.edgeWrapAround ?
+                    ((y + this.config.offsetY + index + 1 + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY :
+                    y + index + 1;
+                if (offsettedNeighborY <= this.config.tilesHeight - this.config.offsetY - 1) {
+                    neighbors.push({ direction: 'bottom', tile: this.wfc.tiles[x][offsettedNeighborY], x: x, y: offsettedNeighborY });
+                }
+            }
+        }
+        if (this.config.edgeWrapAround || x != this.config.tilesWidth - this.config.offsetX - 1) {
+            for (let index = 0; index < count; index++) {
+                let offsettedNeighborX = this.config.edgeWrapAround ?
+                    ((x + this.config.offsetX + index + 1 + this.config.tilesWidth) % this.config.tilesWidth) - this.config.offsetX :
+                    x + index + 1;
+                if (offsettedNeighborX <= this.config.tilesWidth - this.config.offsetX - 1) {
+                    neighbors.push({ direction: 'right', tile: this.wfc.tiles[offsettedNeighborX][y], x: offsettedNeighborX, y: y });
+                }
+            }
+        }
+        if (this.config.edgeWrapAround || x != -this.config.offsetX) {
+            for (let index = 0; index > -count; index--) {
+                let offsettedNeighborX = this.config.edgeWrapAround ?
+                    ((x + this.config.offsetX + index - 1 + this.config.tilesWidth) % this.config.tilesWidth) - this.config.offsetX :
+                    x + index - 1;
+                if (offsettedNeighborX >= -this.config.offsetX) {
+                    neighbors.push({ direction: 'left', tile: this.wfc.tiles[offsettedNeighborX][y], x: offsettedNeighborX, y: y });
+                }
+            }
+        }
+        return neighbors;
+    }
+    getNeighbors_grid(x, y, xGrid, yGrid) {
+        let neighbors = [];
+        let offsettedX = ((x + this.config.offsetX + this.config.tilesWidth) % this.config.tilesWidth) - this.config.offsetX;
+        let offsettedY = ((y + this.config.offsetY + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY;
+        let fromX = Math.floor(offsettedX / xGrid) * xGrid;
+        let fromY = Math.floor(offsettedY / yGrid) * yGrid;
+        for (let indexX = fromX; indexX < fromX + xGrid; indexX++) {
+            for (let indexY = fromY; indexY < fromY + yGrid; indexY++) {
+                let neighbor = this.wfc.tiles[indexX][indexY];
+                if (neighbor.x != x && neighbor.y != y) {
+                    neighbors.push({ direction: 'bottom', tile: neighbor, x: indexX, y: indexY });
+                }
+            }
+        }
+        return neighbors;
+    }
+    getNeighbors_normal(x, y) {
         let neighbors = [];
         if (this.config.edgeWrapAround || y != -this.config.offsetY) {
             let offsettedNeighborY = ((y + this.config.offsetY - 1 + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY;
@@ -1051,6 +1112,15 @@ class WFCRunner {
         if (this.config.edgeWrapAround || x != -this.config.offsetX) {
             let offsettedNeighborX = ((x + this.config.offsetX - 1 + this.config.tilesWidth) % this.config.tilesWidth) - this.config.offsetX;
             neighbors.push({ direction: 'left', tile: this.wfc.tiles[offsettedNeighborX][y], x: offsettedNeighborX, y: y });
+        }
+        return neighbors;
+    }
+    runValidation(x, y, pieces, getPlaced = false) {
+        let recheck = [];
+        let neighbors = [];
+        neighbors = neighbors.concat(this.getNeighbors(x, y, this.config.neighborDistance));
+        if (this.config.gridSize > 0) {
+            neighbors = neighbors.concat(this.getNeighbors_grid(x, y, this.config.gridSize, this.config.gridSize));
         }
         neighbors.forEach((neighbor) => {
             if (!getPlaced && neighbor.tile.validPieces) {
@@ -1459,7 +1529,7 @@ class WFCTiles {
         this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
         this.wfcData.tilePieces = {};
         this.wfcData.tileSets = {};
-        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms", "Summer"];
+        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms", "Summer", "Sudoku"];
         for (let tileIndex in tileNames) {
             const tile = tileNames[tileIndex];
             this.wfcData.tilePieces[tile] = __webpack_require__("./src/metadata/tiles sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
@@ -1773,6 +1843,7 @@ var map = {
 	"./FloorPlan.json": "./src/metadata/render/FloorPlan.json",
 	"./Knots.json": "./src/metadata/render/Knots.json",
 	"./Rooms.json": "./src/metadata/render/Rooms.json",
+	"./Sudoku.json": "./src/metadata/render/Sudoku.json",
 	"./Summer.json": "./src/metadata/render/Summer.json"
 };
 
@@ -1811,6 +1882,7 @@ var map = {
 	"./FloorPlan.json": "./src/metadata/sets/FloorPlan.json",
 	"./Knots.json": "./src/metadata/sets/Knots.json",
 	"./Rooms.json": "./src/metadata/sets/Rooms.json",
+	"./Sudoku.json": "./src/metadata/sets/Sudoku.json",
 	"./Summer.json": "./src/metadata/sets/Summer.json"
 };
 
@@ -1849,6 +1921,7 @@ var map = {
 	"./FloorPlan.json": "./src/metadata/tiles/FloorPlan.json",
 	"./Knots.json": "./src/metadata/tiles/Knots.json",
 	"./Rooms.json": "./src/metadata/tiles/Rooms.json",
+	"./Sudoku.json": "./src/metadata/tiles/Sudoku.json",
 	"./Summer.json": "./src/metadata/tiles/Summer.json"
 };
 
@@ -1940,6 +2013,17 @@ module.exports = JSON.parse('[{"name":"bend","imgsrc":"bend.png","color":"black"
 
 /***/ }),
 
+/***/ "./src/metadata/render/Sudoku.json":
+/*!*****************************************!*\
+  !*** ./src/metadata/render/Sudoku.json ***!
+  \*****************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('[{"name":"1","imgsrc":"1.png","color":"#c0ffc0"},{"name":"2","imgsrc":"2.png","color":"#00ff00"},{"name":"3","imgsrc":"3.png","color":"#c0c0c0"},{"name":"4","imgsrc":"4.png","color":"#51ff51"},{"name":"5","imgsrc":"5.png","color":"#c0e6c0"},{"name":"6","imgsrc":"6.png","color":"#c0e6c0"},{"name":"7","imgsrc":"7.png","color":"#c0e6c0"},{"name":"8","imgsrc":"8.png","color":"#c0e6c0"},{"name":"9","imgsrc":"9.png","color":"#c0e6c0"}]');
+
+/***/ }),
+
 /***/ "./src/metadata/render/Summer.json":
 /*!*****************************************!*\
   !*** ./src/metadata/render/Summer.json ***!
@@ -2017,6 +2101,17 @@ module.exports = JSON.parse('{"all":{"bend":{},"corner":{},"corridor":{},"door":
 
 /***/ }),
 
+/***/ "./src/metadata/sets/Sudoku.json":
+/*!***************************************!*\
+  !*** ./src/metadata/sets/Sudoku.json ***!
+  \***************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('{"all":{"1":{},"2":{},"3":{},"4":{},"5":{},"6":{},"7":{},"8":{},"9":{}}}');
+
+/***/ }),
+
 /***/ "./src/metadata/sets/Summer.json":
 /*!***************************************!*\
   !*** ./src/metadata/sets/Summer.json ***!
@@ -2091,6 +2186,17 @@ module.exports = JSON.parse('[{"name":"corner","rotations":[0,1,2,3],"weight":1,
 
 "use strict";
 module.exports = JSON.parse('[{"name":"bend","rotations":[0,1,2,3],"weight":1,"socket":{"top":"100","right":"001","bottom":"111","left":"111"}},{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"001","right":"100","bottom":"000","left":"000"}},{"name":"corridor","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"door","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"100","bottom":"010","left":"001"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"side","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"001","bottom":"111","left":"100"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}},{"name":"turn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"wall","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}}]');
+
+/***/ }),
+
+/***/ "./src/metadata/tiles/Sudoku.json":
+/*!****************************************!*\
+  !*** ./src/metadata/tiles/Sudoku.json ***!
+  \****************************************/
+/***/ ((module) => {
+
+"use strict";
+module.exports = JSON.parse('[{"name":"1","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"1":[0]},"right":{"1":[0]},"top":{"1":[0]},"left":{"1":[0]}}},{"name":"2","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"2":[0]},"right":{"2":[0]},"top":{"2":[0]},"left":{"2":[0]}}},{"name":"3","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"3":[0]},"right":{"3":[0]},"top":{"3":[0]},"left":{"3":[0]}}},{"name":"4","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"4":[0]},"right":{"4":[0]},"top":{"4":[0]},"left":{"4":[0]}}},{"name":"5","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"5":[0]},"right":{"5":[0]},"top":{"5":[0]},"left":{"5":[0]}}},{"name":"6","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"6":[0]},"right":{"6":[0]},"top":{"6":[0]},"left":{"6":[0]}}},{"name":"7","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"7":[0]},"right":{"7":[0]},"top":{"7":[0]},"left":{"7":[0]}}},{"name":"8","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"8":[0]},"right":{"8":[0]},"top":{"8":[0]},"left":{"8":[0]}}},{"name":"9","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"9":[0]},"right":{"9":[0]},"top":{"9":[0]},"left":{"9":[0]}}}]');
 
 /***/ }),
 

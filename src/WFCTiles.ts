@@ -39,7 +39,7 @@ export class WFCTiles {
         this.wfcData.tilePieces = {};
         this.wfcData.tileSets = {};
         
-        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms","Summer"];
+        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms","Summer", "Sudoku"];
         for(let tileIndex in tileNames) {
             const tile = tileNames[tileIndex];
             this.wfcData.tilePieces[tile] = require('./metadata/tiles/'+tile+'.json');

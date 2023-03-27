@@ -92,6 +92,8 @@
                 config.sizingMethod = parseInt((queryParams.get('sizingMethod') ?? 0));
                 config.autoExpand = parseInt((queryParams.get('autoExpand') ?? 0));
                 config.autoExpandSize = parseInt((queryParams.get('autoExpandSize') ?? 1));
+                config.neighborDistance = parseInt((queryParams.get('neighborDistance') ?? 1));
+                config.gridSize = parseInt((queryParams.get('gridSize') ?? 0));
                 config.runMethod = parseInt((queryParams.get('runMethod') ?? 0));
 
                 renderConfig1.superImposed = parseInt((queryParams.get('render1_superImposed') ?? 1));
@@ -261,7 +263,7 @@
                         </tr>
                         <tr>
                             <td>maxRetryCount</td><td><input type="number" min="0" max="100" id="maxRetryCount"></td>
-                            <td>maxDepth</td><td><input type="number" min="1" max="500" id="maxDepth"></td>
+                            <td>maxDepth</td><td><input type="number" min="0" max="500" id="maxDepth"></td>
                             <td>useMouse</td><td><input type="checkbox" id="useMouse" value="useMouse"></td>
                         </tr>
                         <tr>
@@ -282,11 +284,12 @@
                         <tr>
                             <td>R1 renderType</td><td><select id="render1_renderType"></select></td>
                             <td>R1 superImposed</td><td><select id="render1_superImposed"></select></td>
-
+<                            <td>Neighbor dist.</td><td><input type="number" min="1" max="100" id="neighborDistance"></td>
                         </tr>
                         <tr>
                             <td>R2 renderType</td><td><select id="render2_renderType"></select></td>
                             <td>R2 superImposed</td><td><select id="render2_superImposed"></select></td>
+                            <td>Gridsize</td><td><input type="number" min="0" max="100" value="0" id="gridSize"></td>
                         </tr>
                         <tr>
                             <td>R3 renderType</td><td><select id="render3_renderType"></select></td>

@@ -288,10 +288,93 @@ export class WFCRunner {
         return results.every(Boolean);
     };
 
-    public runValidation(x: number, y: number, pieces: any[], getPlaced: boolean = false) : {x: number, y: number}[] {
-        let recheck: {x: number, y: number}[] = [];
-        let neighbors = [];
-                
+    public getNeighbors(x: number, y: number, count: number) : {direction: string, tile: any, x: number, y: number}[] {
+        let neighbors: {direction: string, tile: any, x: number, y: number}[] = [];
+
+        if (this.config.edgeWrapAround || y != -this.config.offsetY) {
+            for(let index: number = 0; index > -count; index--) {
+                let offsettedNeighborY = this.config.edgeWrapAround ? 
+                        ((y+this.config.offsetY+index-1 + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY :
+                        y+index-1
+   
+                if(offsettedNeighborY >= -this.config.offsetY) {
+                    neighbors.push(
+                        { direction: 'top', tile: this.wfc.tiles[x][offsettedNeighborY], x: x, y: offsettedNeighborY  }
+                    );
+                }
+            }
+        }
+
+        if (this.config.edgeWrapAround || y != this.config.tilesHeight - this.config.offsetY - 1) {
+            for(let index: number = 0; index < count; index++) {
+                let offsettedNeighborY = this.config.edgeWrapAround ? 
+                        ((y+this.config.offsetY+index + 1 + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY :
+                        y+index+1
+
+                if(offsettedNeighborY <= this.config.tilesHeight - this.config.offsetY - 1) {
+                    neighbors.push(
+                        { direction: 'bottom', tile: this.wfc.tiles[x][offsettedNeighborY], x: x, y: offsettedNeighborY  }
+                    );
+                }
+            }
+        }
+
+        if (this.config.edgeWrapAround || x != this.config.tilesWidth - this.config.offsetX - 1) {
+            for(let index: number = 0; index < count; index++) {
+                let offsettedNeighborX = this.config.edgeWrapAround ? 
+                    ((x+this.config.offsetX+index + 1 + this.config.tilesWidth) % this.config.tilesWidth) - this.config.offsetX :
+                    x+index+1;
+
+                if(offsettedNeighborX <= this.config.tilesWidth - this.config.offsetX - 1) {
+                    neighbors.push(
+                        { direction: 'right', tile: this.wfc.tiles[offsettedNeighborX][y], x: offsettedNeighborX, y: y }
+                    );
+                }
+            }
+        }
+
+        if (this.config.edgeWrapAround || x != -this.config.offsetX) {
+            for(let index: number = 0; index > -count; index--) {
+                let offsettedNeighborX = this.config.edgeWrapAround ? 
+                    ((x+this.config.offsetX+index - 1 + this.config.tilesWidth) % this.config.tilesWidth) - this.config.offsetX :
+                    x+index-1
+
+                    if(offsettedNeighborX >= -this.config.offsetX) {
+                        neighbors.push(
+                            { direction: 'left', tile: this.wfc.tiles[offsettedNeighborX][y], x: offsettedNeighborX, y: y }
+                        );
+                    }
+            }
+        }
+
+        return neighbors;
+    }
+
+    public getNeighbors_grid(x: number, y: number, xGrid: number, yGrid: number) : {direction: string, tile: any, x: number, y: number}[] {
+        let neighbors: {direction: string, tile: any, x: number, y: number}[] = [];
+
+        let offsettedX = ((x+this.config.offsetX + this.config.tilesWidth) % this.config.tilesWidth) - this.config.offsetX;
+        let offsettedY = ((y+this.config.offsetY + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY;
+
+        let fromX = Math.floor(offsettedX / xGrid) * xGrid;
+        let fromY = Math.floor(offsettedY / yGrid) * yGrid;
+        for(let indexX: number = fromX; indexX < fromX + xGrid; indexX++) {
+            for(let indexY: number = fromY; indexY < fromY + yGrid; indexY++) {
+                let neighbor = this.wfc.tiles[indexX][indexY];
+                if(neighbor.x != x && neighbor.y != y) {
+                    neighbors.push(
+                        { direction: 'bottom', tile: neighbor, x: indexX, y: indexY }
+                    );
+                }
+            }
+        }
+
+        return neighbors;
+    }
+
+
+    public getNeighbors_normal(x: number, y: number) : {direction: string, tile: any, x: number, y: number}[] {
+        let neighbors: {direction: string, tile: any, x: number, y: number}[] = [];
         if (this.config.edgeWrapAround || y != -this.config.offsetY) {
             let offsettedNeighborY = ((y+this.config.offsetY - 1 + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY;
             neighbors.push(
@@ -320,6 +403,18 @@ export class WFCRunner {
             );
         }
 
+        return neighbors;
+    }
+
+    public runValidation(x: number, y: number, pieces: any[], getPlaced: boolean = false) : {x: number, y: number}[] {
+        let recheck: {x: number, y: number}[] = [];
+        let neighbors: {direction: string, tile: any, x: number, y: number}[] = [];
+
+        neighbors = neighbors.concat(this.getNeighbors(x, y, this.config.neighborDistance));
+        if(this.config.gridSize > 0) {
+            neighbors = neighbors.concat(this.getNeighbors_grid(x, y, this.config.gridSize, this.config.gridSize));
+        }
+        
         neighbors.forEach((neighbor) => {
             if (!getPlaced && neighbor.tile.validPieces) {
                 let validBefore = neighbor.tile.validPieces.length;

@@ -35,6 +35,9 @@ export class WFCConfig {
     public autoExpand: boolean = false;
 
     public runMethod: RunMethod = RunMethod.AutoRun;
+
+    public neighborDistance: number = 1;
+    public gridSize: number = 0;
 }
 
 export class WFCRenderConfig {
