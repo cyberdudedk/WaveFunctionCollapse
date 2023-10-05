@@ -3,6 +3,7 @@ import { SuperImposedState } from "./SuperImposedState";
 import { SizingMethod } from "./SizingMethod";
 import { RunMethod } from "./RunMethod";
 import { RenderType } from "./RenderType";
+import { Backtracking } from "./Backtracking";
 
 export class WFCConfig {
     public maxRetryCount: number = 10;
@@ -38,6 +39,8 @@ export class WFCConfig {
 
     public neighborDistance: number = 1;
     public gridSize: number = 0;
+
+    public backtracking: Backtracking = Backtracking.None;
 }
 
 export class WFCRenderConfig {

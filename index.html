@@ -3,8 +3,8 @@
         <style>
             table tr td:nth-child(2n-1) {
                 width: 15%;
-
             }
+
             table tr td:nth-child(2n) {
                 width: 10%;
                 padding-right: 10px;
@@ -95,6 +95,7 @@
                 config.neighborDistance = parseInt((queryParams.get('neighborDistance') ?? 1));
                 config.gridSize = parseInt((queryParams.get('gridSize') ?? 0));
                 config.runMethod = parseInt((queryParams.get('runMethod') ?? 0));
+                config.backtracking = parseInt((queryParams.get('backtracking') ?? 0));
 
                 renderConfig1.superImposed = parseInt((queryParams.get('render1_superImposed') ?? 1));
                 renderConfig1.renderType = parseInt((queryParams.get('render1_renderType') ?? 1));
@@ -117,6 +118,7 @@
                 dropDown("startingPosition", wfcRender.getStartingPositions(), true);
                 dropDown("sizingMethod", wfcRender.getSizingMethods(), true);
                 dropDown("runMethod", wfcRender.getRunMethods(), true);
+                dropDown("backtracking", wfcRender.getBacktrackingMethods(), true);
 
                 loadConfigControlsSetElements(config, '');
                 loadConfigControlsSetElements(renderConfig1, 'render1_');
@@ -284,7 +286,7 @@
                         <tr>
                             <td>R1 renderType</td><td><select id="render1_renderType"></select></td>
                             <td>R1 superImposed</td><td><select id="render1_superImposed"></select></td>
-<                            <td>Neighbor dist.</td><td><input type="number" min="1" max="100" id="neighborDistance"></td>
+                            <td>Neighbor dist.</td><td><input type="number" min="1" max="100" id="neighborDistance"></td>
                         </tr>
                         <tr>
                             <td>R2 renderType</td><td><select id="render2_renderType"></select></td>
@@ -294,12 +296,15 @@
                         <tr>
                             <td>R3 renderType</td><td><select id="render3_renderType"></select></td>
                             <td>R3 superImposed</td><td><select id="render3_superImposed"></select></td>
+                            <td>backtracking</td><td><select id="backtracking"></select></td>
                         </tr>
+
                         <tr>
                             <td><button id="apply" onclick="applyConfig()">Apply</button></td>
                             <td><button id="save" onclick="saveImage()" >Save</button></td>
                             <td><button id="continue" onclick="continueRun()" >Continue</button></td>
                         </tr>
+                        
                     </tbody>
                 </table>
             </div>

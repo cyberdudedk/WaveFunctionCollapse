@@ -1,9 +1,9 @@
+import { Backtracking } from './Backtracking';
 import { RunMethod } from './RunMethod';
 import { StartingPositions } from './StartingPositions';
 import { WFCConfig } from './WFCConfig';
 import { WFCEvent } from './WFCEvent';
 import { WFCTiles } from './WFCTiles';
-
 
 export class WFCRunner {
     public config: WFCConfig;
@@ -18,6 +18,8 @@ export class WFCRunner {
     private pickFirstTile = true;
 
     private placedTiles: number = 0;
+    private lastPosition: {x: number, y: number} | undefined = undefined;
+    private replay: {x: number, y: number, key: string}[] = [];
 
     public constructor(config: WFCConfig, wfc: WFCTiles) {
         this.config = config;
@@ -72,16 +74,40 @@ export class WFCRunner {
         this.retryCount++;
         this.stopWFCLoop();
         if (this.retryCount <= this.config.maxRetryCount) {
-            if(!this.config.fast) {
-                this.hasRunWFC(new WFCEvent('retry'));
+            if(this.config.backtracking != Backtracking.None) {
+                this.backtrack();
+            } else {
+                if(!this.config.fast) {
+                    this.hasRunWFC(new WFCEvent('retry'));
+                }
+                this.reset();
+                this.startWFCLoop(this.config.runSpeed);
             }
             
-            this.reset();
-            this.startWFCLoop(this.config.runSpeed);
         } else {
             console.log('not possible to solve within ' + this.config.maxRetryCount + ' retries');
-            this.hasRunWFC(new WFCEvent('unsolvable'));
+            //this.hasRunWFC(new WFCEvent('unsolvable'));
         }
+    }
+
+    private backtrack() {
+        var splicedReplay: { x: number; y: number; key: string; }[] = [];
+        if(this.config.backtracking == Backtracking.Linear) {
+            splicedReplay = this.replay.slice(0, -this.retryCount);
+        } else if(this.config.backtracking == Backtracking.Exponential) {
+            splicedReplay = this.replay.slice(0, -(this.retryCount * this.retryCount));
+        }
+        
+        
+        console.log('backtracking from', this.lastPosition, 'number of replays', splicedReplay.length);
+        this.replay = [];
+        this.reset(false, false);
+
+        splicedReplay.forEach((value: {x: number, y: number, key: string}, index: number, array: {x: number, y: number, key: string}[]) => {
+            this.placeTile(value.x, value.y, value.key);
+        });
+        this.hasRunWFC(new WFCEvent('backtracked'));
+        this.continueRun();
     }
 
     private pickPosition(position: StartingPositions): {x: number, y: number} | null {
@@ -182,11 +208,10 @@ export class WFCRunner {
             }
             return affectedTiles;
         }
+        console.log('reached end of placetileposition, validpieces is undefined', currentTile, currentTile.validPieces);
     }
 
     public cycleTile(x: number, y: number) {
-        
-
         let currentTile = this.wfc.tiles[x][y];
         if(currentTile.validPieces == undefined || currentTile.validPieces.length == 0) {
             return;
@@ -237,6 +262,9 @@ export class WFCRunner {
             affectedTiles.push({x: x, y: y});
         }
         this.wfc.tileCounters[piece.name].count += 1;
+        this.wfc.tiles[x][y].pickedFrom = this.lastPosition;
+        this.lastPosition = {x: x, y: y};
+        this.replay.push({x: x, y: y, key: tileKey});
         this.checkForMaximumTiles(piece.name);
         
         this.placedTiles+=1;
@@ -355,9 +383,14 @@ export class WFCRunner {
 
         let offsettedX = ((x+this.config.offsetX + this.config.tilesWidth) % this.config.tilesWidth) - this.config.offsetX;
         let offsettedY = ((y+this.config.offsetY + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY;
-
+        
+        
         let fromX = Math.floor(offsettedX / xGrid) * xGrid;
         let fromY = Math.floor(offsettedY / yGrid) * yGrid;
+        console.log('x', y, 'y', y);
+        console.log('this.config.offsetX', this.config.offsetX, 'this.config.offsetY', this.config.offsetX)
+        console.log('offsettedX', offsettedX, 'fromX', fromX);
+        console.log('offsettedY', offsettedY, 'fromY', fromY);
         for(let indexX: number = fromX; indexX < fromX + xGrid; indexX++) {
             for(let indexY: number = fromY; indexY < fromY + yGrid; indexY++) {
                 let neighbor = this.wfc.tiles[indexX][indexY];
@@ -472,13 +505,13 @@ export class WFCRunner {
         this.hasRunWFC(new WFCEvent('stopped'));
     }
 
-    public reset() {
+    public reset(refresh: boolean = true, setStartTiles: boolean = true) {
         this.wfc.reset();
-        this.setStartTiles();
+        if(setStartTiles) this.setStartTiles();
 
         this.pickFirstTile = true;
         this.placedTiles = 0;
-        this.hasRunWFC(new WFCEvent('reset'));
+        if(refresh) this.hasRunWFC(new WFCEvent('reset'));
         this.recalculateEntropyGroups();
     }
 
@@ -610,12 +643,16 @@ export class WFCRunner {
     public continueRun() {
         this.stopRunning = false;
         if (this.config.runMethod == RunMethod.Step) {
-
             this.runWFC();
         } else {
-            this.wfcLoop = setInterval(() => {
+            if(this.config.fast == true) {
                 this.runWFC();
-            }, this.config.runSpeed);
+            } else {
+                this.wfcLoop = setInterval(() => {
+                    this.runWFC();
+                }, this.config.runSpeed);
+            }
+            
         }
         
     }

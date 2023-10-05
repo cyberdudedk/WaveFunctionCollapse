@@ -1,6 +1,30 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/Backtracking.ts":
+/*!*****************************!*\
+  !*** ./src/Backtracking.ts ***!
+  \*****************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Backtracking": () => (/* binding */ Backtracking)
+/* harmony export */ });
+var Backtracking;
+(function (Backtracking) {
+    Backtracking[Backtracking["None"] = 0] = "None";
+    //Full,
+    Backtracking[Backtracking["Linear"] = 1] = "Linear";
+    Backtracking[Backtracking["Exponential"] = 2] = "Exponential";
+    //Grid,
+    //Combination
+})(Backtracking || (Backtracking = {}));
+
+
+/***/ }),
+
 /***/ "./src/Direction.ts":
 /*!**************************!*\
   !*** ./src/Direction.ts ***!
@@ -188,6 +212,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _SizingMethod__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./SizingMethod */ "./src/SizingMethod.ts");
 /* harmony import */ var _RunMethod__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./RunMethod */ "./src/RunMethod.ts");
 /* harmony import */ var _RenderType__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./RenderType */ "./src/RenderType.ts");
+/* harmony import */ var _Backtracking__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./Backtracking */ "./src/Backtracking.ts");
+
 
 
 
@@ -219,6 +245,7 @@ class WFCConfig {
         this.runMethod = _RunMethod__WEBPACK_IMPORTED_MODULE_3__.RunMethod.AutoRun;
         this.neighborDistance = 1;
         this.gridSize = 0;
+        this.backtracking = _Backtracking__WEBPACK_IMPORTED_MODULE_5__.Backtracking.None;
     }
 }
 class WFCRenderConfig {
@@ -294,6 +321,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _WFCTiles__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./WFCTiles */ "./src/WFCTiles.ts");
 /* harmony import */ var _RunMethod__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./RunMethod */ "./src/RunMethod.ts");
 /* harmony import */ var _RenderType__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./RenderType */ "./src/RenderType.ts");
+/* harmony import */ var _Backtracking__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./Backtracking */ "./src/Backtracking.ts");
+
 
 
 
@@ -418,6 +447,9 @@ class WFCRender {
     }
     getRenderTypes() {
         return _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType;
+    }
+    getBacktrackingMethods() {
+        return _Backtracking__WEBPACK_IMPORTED_MODULE_7__.Backtracking;
     }
     getAvailableSets(tileName) {
         var sets = this.wfc.wfcData.tileSets[tileName];
@@ -786,9 +818,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "WFCRunner": () => (/* binding */ WFCRunner)
 /* harmony export */ });
-/* harmony import */ var _RunMethod__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./RunMethod */ "./src/RunMethod.ts");
-/* harmony import */ var _StartingPositions__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./StartingPositions */ "./src/StartingPositions.ts");
-/* harmony import */ var _WFCEvent__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./WFCEvent */ "./src/WFCEvent.ts");
+/* harmony import */ var _Backtracking__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Backtracking */ "./src/Backtracking.ts");
+/* harmony import */ var _RunMethod__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./RunMethod */ "./src/RunMethod.ts");
+/* harmony import */ var _StartingPositions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./StartingPositions */ "./src/StartingPositions.ts");
+/* harmony import */ var _WFCEvent__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCEvent */ "./src/WFCEvent.ts");
+
 
 
 
@@ -800,6 +834,8 @@ class WFCRunner {
         this.callbacks = [];
         this.pickFirstTile = true;
         this.placedTiles = 0;
+        this.lastPosition = undefined;
+        this.replay = [];
         this.hasRunWFC = (event) => {
             let results = this.callbacks.map((callback) => {
                 return callback(event);
@@ -852,38 +888,60 @@ class WFCRunner {
         this.retryCount++;
         this.stopWFCLoop();
         if (this.retryCount <= this.config.maxRetryCount) {
-            if (!this.config.fast) {
-                this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('retry'));
+            if (this.config.backtracking != _Backtracking__WEBPACK_IMPORTED_MODULE_0__.Backtracking.None) {
+                this.backtrack();
             }
-            this.reset();
-            this.startWFCLoop(this.config.runSpeed);
+            else {
+                if (!this.config.fast) {
+                    this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('retry'));
+                }
+                this.reset();
+                this.startWFCLoop(this.config.runSpeed);
+            }
         }
         else {
             console.log('not possible to solve within ' + this.config.maxRetryCount + ' retries');
-            this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('unsolvable'));
+            //this.hasRunWFC(new WFCEvent('unsolvable'));
         }
+    }
+    backtrack() {
+        var splicedReplay = [];
+        if (this.config.backtracking == _Backtracking__WEBPACK_IMPORTED_MODULE_0__.Backtracking.Linear) {
+            splicedReplay = this.replay.slice(0, -this.retryCount);
+        }
+        else if (this.config.backtracking == _Backtracking__WEBPACK_IMPORTED_MODULE_0__.Backtracking.Exponential) {
+            splicedReplay = this.replay.slice(0, -(this.retryCount * this.retryCount));
+        }
+        console.log('backtracking from', this.lastPosition, 'number of replays', splicedReplay.length);
+        this.replay = [];
+        this.reset(false, false);
+        splicedReplay.forEach((value, index, array) => {
+            this.placeTile(value.x, value.y, value.key);
+        });
+        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('backtracked'));
+        this.continueRun();
     }
     pickPosition(position) {
         switch (position) {
-            case _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.TopLeft:
+            case _StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.TopLeft:
                 return { x: -this.config.offsetX, y: -this.config.offsetY };
-            case _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.TopCenter:
+            case _StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.TopCenter:
                 return { x: Math.floor(this.config.tilesWidth / 2) - this.config.offsetX, y: -this.config.offsetY };
-            case _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.TopRight:
+            case _StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.TopRight:
                 return { x: this.config.tilesWidth - this.config.offsetX - 1, y: -this.config.offsetY };
-            case _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.CenterLeft:
+            case _StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.CenterLeft:
                 return { x: -this.config.offsetX, y: Math.floor(this.config.tilesHeight / 2) - this.config.offsetY };
-            case _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.Mid:
+            case _StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.Mid:
                 return { x: Math.floor(this.config.tilesWidth / 2) - this.config.offsetX, y: Math.floor(this.config.tilesHeight / 2) - this.config.offsetY };
-            case _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.CenterRight:
+            case _StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.CenterRight:
                 return { x: this.config.tilesWidth - this.config.offsetX - 1, y: Math.floor(this.config.tilesHeight / 2) - this.config.offsetY };
-            case _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.BottomLeft:
+            case _StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.BottomLeft:
                 return { x: -this.config.offsetX, y: this.config.tilesHeight - this.config.offsetY - 1 };
-            case _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.BottomCenter:
+            case _StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.BottomCenter:
                 return { x: Math.floor(this.config.tilesWidth / 2) - this.config.offsetX, y: this.config.tilesHeight - this.config.offsetY - 1 };
-            case _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.BottomRight:
+            case _StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.BottomRight:
                 return { x: this.config.tilesWidth - this.config.offsetX - 1, y: this.config.tilesHeight - this.config.offsetY - 1 };
-            case _StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.Random:
+            case _StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.Random:
                 let entropyGroups = this.entropyGroupsPositions;
                 let entropyKeys = Object.keys(entropyGroups);
                 if (entropyKeys.length == 0) {
@@ -903,7 +961,7 @@ class WFCRunner {
         for (var i = 0; (i < this.config.runLoop) || this.config.fast; i++) {
             let stop = this.checkForStop();
             if (stop) {
-                this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('stop'));
+                this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('stop'));
                 return;
             }
             if (this.stopRunning)
@@ -914,7 +972,7 @@ class WFCRunner {
                 this.pickFirstTile = false;
             }
             else {
-                pos = this.pickPosition(_StartingPositions__WEBPACK_IMPORTED_MODULE_1__.StartingPositions.Random);
+                pos = this.pickPosition(_StartingPositions__WEBPACK_IMPORTED_MODULE_2__.StartingPositions.Random);
             }
             if (pos == null) {
                 console.log('noposition found stopping');
@@ -932,7 +990,7 @@ class WFCRunner {
         }
         if (!this.config.fast) {
             let allAffectedTilesSet = Array.from(new Set(allAffectedTiles));
-            this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTilesSet }));
+            this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTilesSet }));
         }
     }
     placeTilePosition(x, y) {
@@ -953,6 +1011,7 @@ class WFCRunner {
             }
             return affectedTiles;
         }
+        console.log('reached end of placetileposition, validpieces is undefined', currentTile, currentTile.validPieces);
     }
     cycleTile(x, y) {
         let currentTile = this.wfc.tiles[x][y];
@@ -972,7 +1031,7 @@ class WFCRunner {
         let pos = { x: x, y: y };
         let pickedPos = [pos];
         let allAffectedTiles = [pos];
-        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTiles }));
+        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTiles }));
     }
     placeCycledTile(x, y) {
         let currentTile = this.wfc.tiles[x][y];
@@ -984,7 +1043,7 @@ class WFCRunner {
         let allAffectedTiles = this.placeTile(x, y, temporary.key);
         let pos = { x: x, y: y };
         let pickedPos = [pos];
-        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTiles }));
+        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTiles }));
     }
     placeTile(x, y, tileKey) {
         let piece = this.wfc.piecesMap[tileKey];
@@ -998,6 +1057,9 @@ class WFCRunner {
             affectedTiles.push({ x: x, y: y });
         }
         this.wfc.tileCounters[piece.name].count += 1;
+        this.wfc.tiles[x][y].pickedFrom = this.lastPosition;
+        this.lastPosition = { x: x, y: y };
+        this.replay.push({ x: x, y: y, key: tileKey });
         this.checkForMaximumTiles(piece.name);
         this.placedTiles += 1;
         return affectedTiles;
@@ -1085,6 +1147,10 @@ class WFCRunner {
         let offsettedY = ((y + this.config.offsetY + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY;
         let fromX = Math.floor(offsettedX / xGrid) * xGrid;
         let fromY = Math.floor(offsettedY / yGrid) * yGrid;
+        console.log('x', y, 'y', y);
+        console.log('this.config.offsetX', this.config.offsetX, 'this.config.offsetY', this.config.offsetX);
+        console.log('offsettedX', offsettedX, 'fromX', fromX);
+        console.log('offsettedY', offsettedY, 'fromY', fromY);
         for (let indexX = fromX; indexX < fromX + xGrid; indexX++) {
             for (let indexY = fromY; indexY < fromY + yGrid; indexY++) {
                 let neighbor = this.wfc.tiles[indexX][indexY];
@@ -1160,7 +1226,7 @@ class WFCRunner {
         let stop = this.placedTiles >= this.config.tilesWidth * this.config.tilesHeight;
         if (stop) {
             console.log('Found solution after ' + this.retryCount + ' retries');
-            let continueRun = (_a = this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('found'))) !== null && _a !== void 0 ? _a : false;
+            let continueRun = (_a = this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('found'))) !== null && _a !== void 0 ? _a : false;
             if (!continueRun) {
                 console.log('stopWFCLoop');
                 this.stopWFCLoop();
@@ -1175,14 +1241,16 @@ class WFCRunner {
     stopWFCLoop() {
         this.stopRunning = true;
         clearInterval(this.wfcLoop);
-        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('stopped'));
+        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('stopped'));
     }
-    reset() {
+    reset(refresh = true, setStartTiles = true) {
         this.wfc.reset();
-        this.setStartTiles();
+        if (setStartTiles)
+            this.setStartTiles();
         this.pickFirstTile = true;
         this.placedTiles = 0;
-        this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_2__.WFCEvent('reset'));
+        if (refresh)
+            this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('reset'));
         this.recalculateEntropyGroups();
     }
     recalculateEntropyGroup(x, y) {
@@ -1297,19 +1365,24 @@ class WFCRunner {
     }
     continueRun() {
         this.stopRunning = false;
-        if (this.config.runMethod == _RunMethod__WEBPACK_IMPORTED_MODULE_0__.RunMethod.Step) {
+        if (this.config.runMethod == _RunMethod__WEBPACK_IMPORTED_MODULE_1__.RunMethod.Step) {
             this.runWFC();
         }
         else {
-            this.wfcLoop = setInterval(() => {
+            if (this.config.fast == true) {
                 this.runWFC();
-            }, this.config.runSpeed);
+            }
+            else {
+                this.wfcLoop = setInterval(() => {
+                    this.runWFC();
+                }, this.config.runSpeed);
+            }
         }
     }
     startWFCLoop(interval) {
         this.stopWFCLoop();
         this.stopRunning = false;
-        if (this.config.runMethod == _RunMethod__WEBPACK_IMPORTED_MODULE_0__.RunMethod.AutoStart) {
+        if (this.config.runMethod == _RunMethod__WEBPACK_IMPORTED_MODULE_1__.RunMethod.AutoStart) {
             this.wfcLoop = setInterval(() => {
                 this.runWFC();
             }, interval);

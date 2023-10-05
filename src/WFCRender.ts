@@ -8,6 +8,7 @@ import { WFCTiles } from './WFCTiles';
 import { WFCEvent } from './WFCEvent';
 import { RunMethod } from './RunMethod';
 import { RenderType } from './RenderType';
+import { Backtracking } from './Backtracking';
 
 export class WFCRender {
     public config: WFCConfig = new WFCConfig();
@@ -134,6 +135,10 @@ export class WFCRender {
 
     public getRenderTypes() {
         return RenderType;
+    }
+
+    public getBacktrackingMethods() {
+        return Backtracking;
     }
 
     public getAvailableSets(tileName: string) {
