@@ -87,6 +87,8 @@ export class WFCTiles {
 
                 Object.keys(Direction).forEach((direction: string, index: number) =>{
                     if (!isNaN(Number(direction))) return;
+                    //if(direction == 'grid') return;
+                    //if(direction == 'grid2') return;
                     let directionsCount = (Object.keys(Direction).length / 2);
                     let directionIndex = Direction[direction as keyof typeof Direction];
                     let rotationMoved = (directionIndex - rotation + directionsCount) % directionsCount;
@@ -179,17 +181,19 @@ export class WFCTiles {
                     top: [],
                     right: [],
                     bottom: [],
-                    left: []
+                    left: [],
+                    grid: []
                 };
-                
                 if(piece.socketmatching != undefined) {
                     if(piece.socketmatching[rotation] != undefined) {
                         let socketMatch = piece.socketmatching[rotation];
                         Object.entries(socketMatch).forEach((socketPair: [string, any]) => {
                             let socketDirection = socketPair[0];
+                            if(socketDirection == 'grid2') return;
                             let sockets = socketPair[1];
                             sockets.forEach((socket: string) => {
                                 if(socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
+                                    
                                     let validPiecesForSocket = socketBuckets[socket][socketDirection];
                                     validPiecesForSocket.forEach((validPiece: string) => {
                                         let blackList = piece.blacklistedNeighbors[rotation][socketDirection] ?? [];

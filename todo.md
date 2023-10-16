@@ -28,6 +28,3 @@ The problem is trying to get something that actually tries to solve the problem 
 - E.g auto detecting tile edges (pixel detection), and assigning to socket. Configurable, e.g color closeness.
 - Pixel-based WFC. Load in image, detect neighbors to pixels, and generate pieceMap with valid neighbors. Requires another render, that renders colors instead of images.
 - These require new seperate config objects.
-
-## 2.4 Bugs
-- Sudoku solving breaks using maxDepth that is larger than 0. Yet to find out why.

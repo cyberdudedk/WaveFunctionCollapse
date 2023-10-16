@@ -2,5 +2,7 @@ export enum Direction {
     top,
     right,
     bottom,
-    left
+    left,
+    grid,
+    grid2
 }

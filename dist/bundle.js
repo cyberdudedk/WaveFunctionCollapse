@@ -42,6 +42,8 @@ var Direction;
     Direction[Direction["right"] = 1] = "right";
     Direction[Direction["bottom"] = 2] = "bottom";
     Direction[Direction["left"] = 3] = "left";
+    Direction[Direction["grid"] = 4] = "grid";
+    Direction[Direction["grid2"] = 5] = "grid2";
 })(Direction || (Direction = {}));
 
 
@@ -1143,19 +1145,20 @@ class WFCRunner {
     }
     getNeighbors_grid(x, y, xGrid, yGrid) {
         let neighbors = [];
-        let offsettedX = ((x + this.config.offsetX + this.config.tilesWidth) % this.config.tilesWidth) - this.config.offsetX;
-        let offsettedY = ((y + this.config.offsetY + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY;
+        let offsettedX = x;
+        let offsettedY = y;
         let fromX = Math.floor(offsettedX / xGrid) * xGrid;
         let fromY = Math.floor(offsettedY / yGrid) * yGrid;
-        console.log('x', y, 'y', y);
-        console.log('this.config.offsetX', this.config.offsetX, 'this.config.offsetY', this.config.offsetX);
-        console.log('offsettedX', offsettedX, 'fromX', fromX);
-        console.log('offsettedY', offsettedY, 'fromY', fromY);
         for (let indexX = fromX; indexX < fromX + xGrid; indexX++) {
             for (let indexY = fromY; indexY < fromY + yGrid; indexY++) {
-                let neighbor = this.wfc.tiles[indexX][indexY];
-                if (neighbor.x != x && neighbor.y != y) {
-                    neighbors.push({ direction: 'bottom', tile: neighbor, x: indexX, y: indexY });
+                let columns = this.wfc.tiles[indexX];
+                if (columns != undefined) {
+                    let neighbor = columns[indexY];
+                    if (neighbor != undefined) {
+                        if (neighbor.position.x != x && neighbor.position.y != y) {
+                            neighbors.push({ direction: 'grid', tile: neighbor, x: indexX, y: indexY });
+                        }
+                    }
                 }
             }
         }
@@ -1195,7 +1198,8 @@ class WFCRunner {
                 pieces.forEach((piece) => {
                     validArray.push(neighbor.tile.validPieces
                         .filter((validPieceToCheck) => {
-                        return piece.validNeighbors[neighbor.direction].includes(validPieceToCheck);
+                        var _a;
+                        return (_a = piece.validNeighbors[neighbor.direction]) === null || _a === void 0 ? void 0 : _a.includes(validPieceToCheck);
                     }));
                 });
                 let validArrayConcat = [].concat.apply([], validArray);
@@ -1291,6 +1295,7 @@ class WFCRunner {
         }
     }
     setStartTiles() {
+        console.log('this.wfc.piecesMap', this.wfc.piecesMap);
         let failed = false;
         Object.entries(this.wfc.tileCounters).forEach((values) => {
             if (failed)
@@ -1646,6 +1651,8 @@ class WFCTiles {
                 Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).forEach((direction, index) => {
                     if (!isNaN(Number(direction)))
                         return;
+                    //if(direction == 'grid') return;
+                    //if(direction == 'grid2') return;
                     let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
                     let directionIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[direction];
                     let rotationMoved = (directionIndex - rotation + directionsCount) % directionsCount;
@@ -1726,13 +1733,16 @@ class WFCTiles {
                     top: [],
                     right: [],
                     bottom: [],
-                    left: []
+                    left: [],
+                    grid: []
                 };
                 if (piece.socketmatching != undefined) {
                     if (piece.socketmatching[rotation] != undefined) {
                         let socketMatch = piece.socketmatching[rotation];
                         Object.entries(socketMatch).forEach((socketPair) => {
                             let socketDirection = socketPair[0];
+                            if (socketDirection == 'grid2')
+                                return;
                             let sockets = socketPair[1];
                             sockets.forEach((socket) => {
                                 if (socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
@@ -2269,7 +2279,7 @@ module.exports = JSON.parse('[{"name":"bend","rotations":[0,1,2,3],"weight":1,"s
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"1","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"1":[0]},"right":{"1":[0]},"top":{"1":[0]},"left":{"1":[0]}}},{"name":"2","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"2":[0]},"right":{"2":[0]},"top":{"2":[0]},"left":{"2":[0]}}},{"name":"3","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"3":[0]},"right":{"3":[0]},"top":{"3":[0]},"left":{"3":[0]}}},{"name":"4","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"4":[0]},"right":{"4":[0]},"top":{"4":[0]},"left":{"4":[0]}}},{"name":"5","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"5":[0]},"right":{"5":[0]},"top":{"5":[0]},"left":{"5":[0]}}},{"name":"6","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"6":[0]},"right":{"6":[0]},"top":{"6":[0]},"left":{"6":[0]}}},{"name":"7","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"7":[0]},"right":{"7":[0]},"top":{"7":[0]},"left":{"7":[0]}}},{"name":"8","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"8":[0]},"right":{"8":[0]},"top":{"8":[0]},"left":{"8":[0]}}},{"name":"9","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0"},"blacklist":{"bottom":{"9":[0]},"right":{"9":[0]},"top":{"9":[0]},"left":{"9":[0]}}}]');
+module.exports = JSON.parse('[{"name":"1","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0","grid":"0","grid2":"0"},"blacklist":{"bottom":{"1":[0]},"right":{"1":[0]},"top":{"1":[0]},"left":{"1":[0]},"grid":{"1":[0]}}},{"name":"2","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0","grid":"0","grid2":"0"},"blacklist":{"bottom":{"2":[0]},"right":{"2":[0]},"top":{"2":[0]},"left":{"2":[0]},"grid":{"2":[0]}}},{"name":"3","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0","grid":"0","grid2":"0"},"blacklist":{"bottom":{"3":[0]},"right":{"3":[0]},"top":{"3":[0]},"left":{"3":[0]},"grid":{"3":[0]}}},{"name":"4","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0","grid":"0","grid2":"0"},"blacklist":{"bottom":{"4":[0]},"right":{"4":[0]},"top":{"4":[0]},"left":{"4":[0]},"grid":{"4":[0]}}},{"name":"5","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0","grid":"0","grid2":"0"},"blacklist":{"bottom":{"5":[0]},"right":{"5":[0]},"top":{"5":[0]},"left":{"5":[0]},"grid":{"5":[0]}}},{"name":"6","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0","grid":"0","grid2":"0"},"blacklist":{"bottom":{"6":[0]},"right":{"6":[0]},"top":{"6":[0]},"left":{"6":[0]},"grid":{"6":[0]}}},{"name":"7","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0","grid":"0","grid2":"0"},"blacklist":{"bottom":{"7":[0]},"right":{"7":[0]},"top":{"7":[0]},"left":{"7":[0]},"grid":{"7":[0]}}},{"name":"8","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0","grid":"0","grid2":"0"},"blacklist":{"bottom":{"8":[0]},"right":{"8":[0]},"top":{"8":[0]},"left":{"8":[0]},"grid":{"8":[0]}}},{"name":"9","rotations":[0],"weight":1,"socket":{"top":"0","right":"0","bottom":"0","left":"0","grid":"0","grid2":"0"},"blacklist":{"bottom":{"9":[0]},"right":{"9":[0]},"top":{"9":[0]},"left":{"9":[0]},"grid":{"9":[0]}}}]');
 
 /***/ }),
 

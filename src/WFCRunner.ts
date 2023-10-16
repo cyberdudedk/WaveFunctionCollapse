@@ -381,27 +381,26 @@ export class WFCRunner {
     public getNeighbors_grid(x: number, y: number, xGrid: number, yGrid: number) : {direction: string, tile: any, x: number, y: number}[] {
         let neighbors: {direction: string, tile: any, x: number, y: number}[] = [];
 
-        let offsettedX = ((x+this.config.offsetX + this.config.tilesWidth) % this.config.tilesWidth) - this.config.offsetX;
-        let offsettedY = ((y+this.config.offsetY + this.config.tilesHeight) % this.config.tilesHeight) - this.config.offsetY;
-        
+        let offsettedX = x;
+        let offsettedY = y;
         
         let fromX = Math.floor(offsettedX / xGrid) * xGrid;
         let fromY = Math.floor(offsettedY / yGrid) * yGrid;
-        console.log('x', y, 'y', y);
-        console.log('this.config.offsetX', this.config.offsetX, 'this.config.offsetY', this.config.offsetX)
-        console.log('offsettedX', offsettedX, 'fromX', fromX);
-        console.log('offsettedY', offsettedY, 'fromY', fromY);
         for(let indexX: number = fromX; indexX < fromX + xGrid; indexX++) {
             for(let indexY: number = fromY; indexY < fromY + yGrid; indexY++) {
-                let neighbor = this.wfc.tiles[indexX][indexY];
-                if(neighbor.x != x && neighbor.y != y) {
-                    neighbors.push(
-                        { direction: 'bottom', tile: neighbor, x: indexX, y: indexY }
-                    );
+                let columns = this.wfc.tiles[indexX];
+                if(columns != undefined) {
+                    let neighbor = columns[indexY];
+                    if(neighbor != undefined) {
+                        if(neighbor.position.x != x && neighbor.position.y != y) {
+                            neighbors.push(
+                                { direction: 'grid', tile: neighbor, x: indexX, y: indexY }
+                            );
+                        }
+                    }
                 }
             }
         }
-
         return neighbors;
     }
 
@@ -455,7 +454,7 @@ export class WFCRunner {
                 pieces.forEach((piece) => {
                     validArray.push(neighbor.tile.validPieces
                         .filter((validPieceToCheck: string) => {
-                            return piece.validNeighbors[neighbor.direction].includes(validPieceToCheck);
+                            return piece.validNeighbors[neighbor.direction]?.includes(validPieceToCheck);
                         }));
                 });
                 let validArrayConcat = [].concat.apply([], validArray);
@@ -559,6 +558,7 @@ export class WFCRunner {
     }
 
     public setStartTiles() {
+        console.log('this.wfc.piecesMap', this.wfc.piecesMap);
         let failed = false;
         Object.entries(this.wfc.tileCounters).forEach((values) => {
             if(failed) return;
