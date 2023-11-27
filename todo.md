@@ -9,7 +9,7 @@
   - This should avoid the retrying of same paths
 - Implement grid
   - Reset in a x*x grid around the problem area, essentially removing any of those positions from the replay.
-  - Nice to have tracking paths here also
+- Nice to have tracking paths on other implementations, linear, exponential, grid.
 - Implement combination
   - Not entire sure what to implement here. But suggestions on the internet was to use a combination of these implementation to get best results.
 

@@ -84,14 +84,29 @@ export class WFCTiles {
             piece.rotations.forEach((rotation: number) => { 
                 let socketMatchObject: { [name: string]: any } = {};
                 let blacklistedNeighbors: { [name: string]: string[] } = {};
-
+                let innerRotation = rotation;
+                //TODO: Fix grid fixes and innerRotation
+                if(rotation == 2) {
+                    innerRotation = 3;
+                }
+                else if(rotation == 3) {
+                    innerRotation = 5;
+                }
+                
                 Object.keys(Direction).forEach((direction: string, index: number) =>{
                     if (!isNaN(Number(direction))) return;
-                    //if(direction == 'grid') return;
-                    //if(direction == 'grid2') return;
+                    if(direction == 'grid') return;
+                    if(direction == 'grid2') return;
                     let directionsCount = (Object.keys(Direction).length / 2);
                     let directionIndex = Direction[direction as keyof typeof Direction];
-                    let rotationMoved = (directionIndex - rotation + directionsCount) % directionsCount;
+                    let rotationMoved = (directionIndex - innerRotation + directionsCount) % directionsCount;
+                    if((Direction[rotationMoved] == 'grid' || Direction[rotationMoved] == 'grid2') && innerRotation == 1) {
+                        rotationMoved = (rotationMoved - 1 + directionsCount) % directionsCount;
+                    }
+                    else if((Direction[rotationMoved] == 'grid' || Direction[rotationMoved] == 'grid2') && innerRotation == 5) {
+                        rotationMoved = (rotationMoved + 1 + directionsCount) % directionsCount;
+                    }
+                    
                     let flipped = directionIndex >= (directionsCount / 2);
                     let sockets = pieceSockets[Direction[rotationMoved]];
                     (Array.isArray(sockets) ? sockets : [sockets]).forEach((socket: string) => {
@@ -105,7 +120,7 @@ export class WFCTiles {
                         let blackListValue = blacklist[1];
                         let blackListIndex = Direction[blackListDirection as keyof typeof Direction];
                         let directionsCount = (Object.keys(Direction).length / 2);
-                        let rotationBlacklistingIndex = (blackListIndex + rotation) % directionsCount;
+                        let rotationBlacklistingIndex = (blackListIndex + rotation) % directionsCount;  // Fix rotation pointing at innerRotation instead?
                         let rotationBlacklisting = Direction[rotationBlacklistingIndex];
                         Object.entries(blackListValue).forEach((blacklistPiece: [string, any]) => {
                             let blackListPieceName = blacklistPiece[0];
@@ -137,7 +152,6 @@ export class WFCTiles {
             let pieceName = mappedPieceValue[0];
             let piece = mappedPieceValue[1];
             if(piece.socketmatching != undefined) {
-                
                 Object.entries(piece.socketmatching).forEach((socketMatchValue: [string, any]) => {
                     let socketDirection = parseInt(socketMatchValue[0]);
                     let socketMatch = socketMatchValue[1];
@@ -189,7 +203,7 @@ export class WFCTiles {
                         let socketMatch = piece.socketmatching[rotation];
                         Object.entries(socketMatch).forEach((socketPair: [string, any]) => {
                             let socketDirection = socketPair[0];
-                            if(socketDirection == 'grid2') return;
+                            //if(socketDirection == 'grid2') return;
                             let sockets = socketPair[1];
                             sockets.forEach((socket: string) => {
                                 if(socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
@@ -221,9 +235,7 @@ export class WFCTiles {
                         return Direction[newDir];
                     });
                 }
-
                 
-
                 piecesMap[pieceName] = new PieceObject(
                     piece.name + "_" + rotation,
                     piece.name, 

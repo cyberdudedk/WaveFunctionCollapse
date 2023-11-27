@@ -40,9 +40,9 @@ var Direction;
 (function (Direction) {
     Direction[Direction["top"] = 0] = "top";
     Direction[Direction["right"] = 1] = "right";
-    Direction[Direction["bottom"] = 2] = "bottom";
-    Direction[Direction["left"] = 3] = "left";
-    Direction[Direction["grid"] = 4] = "grid";
+    Direction[Direction["grid"] = 2] = "grid";
+    Direction[Direction["bottom"] = 3] = "bottom";
+    Direction[Direction["left"] = 4] = "left";
     Direction[Direction["grid2"] = 5] = "grid2";
 })(Direction || (Direction = {}));
 
@@ -98,6 +98,27 @@ var RenderType;
     RenderType[RenderType["PixelBasedColorDominant"] = 5] = "PixelBasedColorDominant";
     RenderType[RenderType["PixelBasedColorAverage"] = 6] = "PixelBasedColorAverage";
 })(RenderType || (RenderType = {}));
+
+
+/***/ }),
+
+/***/ "./src/Replay.ts":
+/*!***********************!*\
+  !*** ./src/Replay.ts ***!
+  \***********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "Replay": () => (/* binding */ Replay)
+/* harmony export */ });
+var Replay;
+(function (Replay) {
+    Replay[Replay["None"] = 0] = "None";
+    Replay[Replay["Backtrack"] = 1] = "Backtrack";
+    Replay[Replay["Preset"] = 2] = "Preset";
+})(Replay || (Replay = {}));
 
 
 /***/ }),
@@ -824,6 +845,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _RunMethod__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./RunMethod */ "./src/RunMethod.ts");
 /* harmony import */ var _StartingPositions__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./StartingPositions */ "./src/StartingPositions.ts");
 /* harmony import */ var _WFCEvent__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./WFCEvent */ "./src/WFCEvent.ts");
+/* harmony import */ var _Replay__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./Replay */ "./src/Replay.ts");
+
 
 
 
@@ -838,6 +861,8 @@ class WFCRunner {
         this.placedTiles = 0;
         this.lastPosition = undefined;
         this.replay = [];
+        this.replayPreset = [];
+        this.backtrackingSelections = [];
         this.hasRunWFC = (event) => {
             let results = this.callbacks.map((callback) => {
                 return callback(event);
@@ -917,8 +942,11 @@ class WFCRunner {
         console.log('backtracking from', this.lastPosition, 'number of replays', splicedReplay.length);
         this.replay = [];
         this.reset(false, false);
+        this.replayPreset.forEach((value, index, array) => {
+            this.placeTile(value.x, value.y, value.key, _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.None);
+        });
         splicedReplay.forEach((value, index, array) => {
-            this.placeTile(value.x, value.y, value.key);
+            this.placeTile(value.x, value.y, value.key, _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.Backtrack);
         });
         this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('backtracked'));
         this.continueRun();
@@ -992,6 +1020,7 @@ class WFCRunner {
         }
         if (!this.config.fast) {
             let allAffectedTilesSet = Array.from(new Set(allAffectedTiles));
+            console.log('allAffectedTilesSet', allAffectedTilesSet);
             this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTilesSet }));
         }
     }
@@ -1007,8 +1036,10 @@ class WFCRunner {
                 this.noValidFound();
                 return false;
             }
-            let affectedTiles = this.placeTile(x, y, tileKey);
+            let affectedTiles = this.placeTile(x, y, tileKey, _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.Backtrack);
+            console.log('placeTilePosition, affectedTiles', affectedTiles);
             if (affectedTiles == null) {
+                console.log('placeTilePosition, affectedTiles is null');
                 return false;
             }
             return affectedTiles;
@@ -1042,26 +1073,41 @@ class WFCRunner {
         }
         let temporary = currentTile.temporary;
         currentTile.temporary = undefined;
-        let allAffectedTiles = this.placeTile(x, y, temporary.key);
+        let allAffectedTiles = this.placeTile(x, y, temporary.key, _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.Preset);
         let pos = { x: x, y: y };
         let pickedPos = [pos];
         this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTiles }));
     }
-    placeTile(x, y, tileKey) {
+    placeTile(x, y, tileKey, replayType) {
+        console.log('placing tile', x, y, tileKey);
         let piece = this.wfc.piecesMap[tileKey];
+        console.log('piece', piece);
         this.wfc.tiles[x][y] = Object.assign(this.wfc.tiles[x][y], piece);
+        console.log('wfc.tiles[x][y]', this.wfc.tiles[x][y]);
         this.recalculateEntropyGroup(x, y);
         let affectedTiles = this.runValidationLoop(x, y, [piece]);
+        console.log('affectedTiles', affectedTiles);
         if (affectedTiles == null) {
             affectedTiles = [{ x: x, y: y }];
         }
         else {
             affectedTiles.push({ x: x, y: y });
         }
+        console.log('affectedTiles2', affectedTiles);
         this.wfc.tileCounters[piece.name].count += 1;
+        console.log('wfc.tileCounters', this.wfc.tileCounters);
         this.wfc.tiles[x][y].pickedFrom = this.lastPosition;
+        console.log('wfc.tiles[x][y].pickedFrom', this.wfc.tiles[x][y].pickedFrom);
         this.lastPosition = { x: x, y: y };
-        this.replay.push({ x: x, y: y, key: tileKey });
+        console.log('this.lastPosition', this.lastPosition);
+        if (replayType == _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.Backtrack) {
+            this.replay.push({ x: x, y: y, key: tileKey });
+            console.log('this.replay', this.replay);
+        }
+        else if (replayType == _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.Preset) {
+            this.replayPreset.push({ x: x, y: y, key: tileKey });
+            console.log('this.replayPreset', this.replayPreset);
+        }
         this.checkForMaximumTiles(piece.name);
         this.placedTiles += 1;
         return affectedTiles;
@@ -1155,7 +1201,7 @@ class WFCRunner {
                 if (columns != undefined) {
                     let neighbor = columns[indexY];
                     if (neighbor != undefined) {
-                        if (neighbor.position.x != x && neighbor.position.y != y) {
+                        if (neighbor.position.x != x || neighbor.position.y != y) {
                             neighbors.push({ direction: 'grid', tile: neighbor, x: indexX, y: indexY });
                         }
                     }
@@ -1319,7 +1365,7 @@ class WFCRunner {
                     if (counterTiles.length > 0) {
                         let randomIndex = Math.floor(Math.random() * counterTiles.length);
                         let placeTileKey = counterTiles[randomIndex];
-                        let placed = this.placeTile(x, y, placeTileKey);
+                        let placed = this.placeTile(x, y, placeTileKey, _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.Preset);
                         if (!placed) {
                             continue;
                         }
@@ -1648,14 +1694,30 @@ class WFCTiles {
             piece.rotations.forEach((rotation) => {
                 let socketMatchObject = {};
                 let blacklistedNeighbors = {};
+                let innerRotation = rotation;
+                //TODO: Fix grid fixes and innerRotation
+                if (rotation == 2) {
+                    innerRotation = 3;
+                }
+                else if (rotation == 3) {
+                    innerRotation = 5;
+                }
                 Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).forEach((direction, index) => {
                     if (!isNaN(Number(direction)))
                         return;
-                    //if(direction == 'grid') return;
-                    //if(direction == 'grid2') return;
+                    if (direction == 'grid')
+                        return;
+                    if (direction == 'grid2')
+                        return;
                     let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
                     let directionIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[direction];
-                    let rotationMoved = (directionIndex - rotation + directionsCount) % directionsCount;
+                    let rotationMoved = (directionIndex - innerRotation + directionsCount) % directionsCount;
+                    if ((_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved] == 'grid' || _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved] == 'grid2') && innerRotation == 1) {
+                        rotationMoved = (rotationMoved - 1 + directionsCount) % directionsCount;
+                    }
+                    else if ((_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved] == 'grid' || _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved] == 'grid2') && innerRotation == 5) {
+                        rotationMoved = (rotationMoved + 1 + directionsCount) % directionsCount;
+                    }
                     let flipped = directionIndex >= (directionsCount / 2);
                     let sockets = pieceSockets[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved]];
                     (Array.isArray(sockets) ? sockets : [sockets]).forEach((socket) => {
@@ -1668,7 +1730,7 @@ class WFCTiles {
                         let blackListValue = blacklist[1];
                         let blackListIndex = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[blackListDirection];
                         let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
-                        let rotationBlacklistingIndex = (blackListIndex + rotation) % directionsCount;
+                        let rotationBlacklistingIndex = (blackListIndex + rotation) % directionsCount; // Fix rotation pointing at innerRotation instead?
                         let rotationBlacklisting = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationBlacklistingIndex];
                         Object.entries(blackListValue).forEach((blacklistPiece) => {
                             let blackListPieceName = blacklistPiece[0];
@@ -1741,8 +1803,7 @@ class WFCTiles {
                         let socketMatch = piece.socketmatching[rotation];
                         Object.entries(socketMatch).forEach((socketPair) => {
                             let socketDirection = socketPair[0];
-                            if (socketDirection == 'grid2')
-                                return;
+                            //if(socketDirection == 'grid2') return;
                             let sockets = socketPair[1];
                             sockets.forEach((socket) => {
                                 if (socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
