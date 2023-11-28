@@ -1724,6 +1724,12 @@ class WFCTiles {
                         (socketMatchObject[direction] || (socketMatchObject[direction] = [])).push(flipped ? socket.split("").reverse().join("") : socket);
                     });
                 });
+                if (this.config.gridSize > 0) {
+                    var gridSockets = pieceSockets[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction.grid]];
+                    var gridSockets2 = pieceSockets[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction.grid2]];
+                    socketMatchObject[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction.grid]] = Array.isArray(gridSockets) ? gridSockets : [gridSockets];
+                    socketMatchObject[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction.grid2]] = Array.isArray(gridSockets2) ? gridSockets2 : [gridSockets2];
+                }
                 if (piece.blacklist) {
                     Object.entries(piece.blacklist).forEach((blacklist) => {
                         let blackListDirection = blacklist[0];
@@ -1796,14 +1802,14 @@ class WFCTiles {
                     right: [],
                     bottom: [],
                     left: [],
-                    grid: []
+                    grid: [],
+                    grid2: []
                 };
                 if (piece.socketmatching != undefined) {
                     if (piece.socketmatching[rotation] != undefined) {
                         let socketMatch = piece.socketmatching[rotation];
                         Object.entries(socketMatch).forEach((socketPair) => {
                             let socketDirection = socketPair[0];
-                            //if(socketDirection == 'grid2') return;
                             let sockets = socketPair[1];
                             sockets.forEach((socket) => {
                                 if (socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {

@@ -114,6 +114,13 @@ export class WFCTiles {
                     });
                 });
 
+                if(this.config.gridSize > 0) {
+                    var gridSockets = pieceSockets[Direction[Direction.grid]];
+                    var gridSockets2 = pieceSockets[Direction[Direction.grid2]];
+                    socketMatchObject[Direction[Direction.grid]] = Array.isArray(gridSockets) ? gridSockets : [gridSockets];
+                    socketMatchObject[Direction[Direction.grid2]] = Array.isArray(gridSockets2) ? gridSockets2 : [gridSockets2];
+                }
+
                 if(piece.blacklist) {
                     Object.entries(piece.blacklist).forEach((blacklist: [string, any]) => {
                         let blackListDirection = blacklist[0];
@@ -196,18 +203,19 @@ export class WFCTiles {
                     right: [],
                     bottom: [],
                     left: [],
-                    grid: []
+                    grid: [],
+                    grid2: []
                 };
+                
                 if(piece.socketmatching != undefined) {
+                    
                     if(piece.socketmatching[rotation] != undefined) {
                         let socketMatch = piece.socketmatching[rotation];
                         Object.entries(socketMatch).forEach((socketPair: [string, any]) => {
                             let socketDirection = socketPair[0];
-                            //if(socketDirection == 'grid2') return;
                             let sockets = socketPair[1];
                             sockets.forEach((socket: string) => {
                                 if(socketBuckets[socket] != undefined && socketBuckets[socket][socketDirection] != undefined) {
-                                    
                                     let validPiecesForSocket = socketBuckets[socket][socketDirection];
                                     validPiecesForSocket.forEach((validPiece: string) => {
                                         let blackList = piece.blacklistedNeighbors[rotation][socketDirection] ?? [];
@@ -235,7 +243,7 @@ export class WFCTiles {
                         return Direction[newDir];
                     });
                 }
-                
+
                 piecesMap[pieceName] = new PieceObject(
                     piece.name + "_" + rotation,
                     piece.name, 
