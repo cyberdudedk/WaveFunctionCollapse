@@ -15,9 +15,9 @@ __webpack_require__.r(__webpack_exports__);
 var Backtracking;
 (function (Backtracking) {
     Backtracking[Backtracking["None"] = 0] = "None";
-    //Full,
-    Backtracking[Backtracking["Linear"] = 1] = "Linear";
-    Backtracking[Backtracking["Exponential"] = 2] = "Exponential";
+    Backtracking[Backtracking["Full"] = 1] = "Full";
+    Backtracking[Backtracking["Linear"] = 2] = "Linear";
+    Backtracking[Backtracking["Exponential"] = 3] = "Exponential";
     //Grid,
     //Combination
 })(Backtracking || (Backtracking = {}));
@@ -118,6 +118,7 @@ var Replay;
     Replay[Replay["None"] = 0] = "None";
     Replay[Replay["Backtrack"] = 1] = "Backtrack";
     Replay[Replay["Preset"] = 2] = "Preset";
+    Replay[Replay["BacktrackOnly"] = 3] = "BacktrackOnly";
 })(Replay || (Replay = {}));
 
 
@@ -365,8 +366,9 @@ class WFCRender {
             if (event.type != 'step' &&
                 event.type != "found" &&
                 event.type != "stopped" &&
-                event.type != "reset")
-                console.log('event', event.type, event.data);
+                event.type != "reset") {
+                //console.log('event', event.type, event.data);
+            }
             if (event.type == 'step') {
                 this.draw(event.data.affectedTiles);
             }
@@ -862,7 +864,6 @@ class WFCRunner {
         this.lastPosition = undefined;
         this.replay = [];
         this.replayPreset = [];
-        this.backtrackingSelections = [];
         this.hasRunWFC = (event) => {
             let results = this.callbacks.map((callback) => {
                 return callback(event);
@@ -873,6 +874,7 @@ class WFCRunner {
         this.entropyPositions = {};
         this.config = config;
         this.wfc = wfc;
+        this.backtrackingSelections = [];
     }
     addCallback(callback) {
         this.callbacks.push(callback);
@@ -932,22 +934,46 @@ class WFCRunner {
         }
     }
     backtrack() {
-        var splicedReplay = [];
+        var slicedReplay = [];
+        var lastReplay = undefined;
+        var restReplays = [];
         if (this.config.backtracking == _Backtracking__WEBPACK_IMPORTED_MODULE_0__.Backtracking.Linear) {
-            splicedReplay = this.replay.slice(0, -this.retryCount);
+            slicedReplay = this.replay.slice(0, -this.retryCount);
+            restReplays = this.replay.slice(-this.retryCount);
         }
         else if (this.config.backtracking == _Backtracking__WEBPACK_IMPORTED_MODULE_0__.Backtracking.Exponential) {
-            splicedReplay = this.replay.slice(0, -(this.retryCount * this.retryCount));
+            slicedReplay = this.replay.slice(0, -(this.retryCount * this.retryCount));
+            restReplays = this.replay.slice(-(this.retryCount * this.retryCount));
         }
-        console.log('backtracking from', this.lastPosition, 'number of replays', splicedReplay.length);
+        else if (this.config.backtracking == _Backtracking__WEBPACK_IMPORTED_MODULE_0__.Backtracking.Full) {
+            slicedReplay = this.replay.slice(0, -1);
+            restReplays = this.replay.slice(-1);
+        }
         this.replay = [];
         this.reset(false, false);
         this.replayPreset.forEach((value, index, array) => {
             this.placeTile(value.x, value.y, value.key, _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.None);
         });
-        splicedReplay.forEach((value, index, array) => {
-            this.placeTile(value.x, value.y, value.key, _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.Backtrack);
+        slicedReplay.forEach((value, index, array) => {
+            this.placeTile(value.x, value.y, value.key, _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.BacktrackOnly);
         });
+        lastReplay = restReplays[0];
+        for (var i = 1; i < restReplays.length; i++) {
+            delete this.backtrackingSelections[restReplays[i].x][restReplays[i].y];
+        }
+        if (lastReplay != undefined) {
+            let lastReplayBackTrackingSelection = this.backtrackingSelections[lastReplay.x][lastReplay.y];
+            let lastReplayTile = this.wfc.tiles[lastReplay.x][lastReplay.y];
+            const lastReplayBackTrackingSelectionToRemove = new Set(lastReplayBackTrackingSelection);
+            this.wfc.tiles[lastReplay.x][lastReplay.y].validPieces =
+                this.wfc.tiles[lastReplay.x][lastReplay.y].validPieces
+                    .filter((x) => !lastReplayBackTrackingSelectionToRemove.has(x));
+            if (lastReplayTile.validPieces.length == 0) {
+                delete this.backtrackingSelections[lastReplay.x][lastReplay.y];
+                this.backtrack();
+                return;
+            }
+        }
         this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('backtracked'));
         this.continueRun();
     }
@@ -1020,7 +1046,6 @@ class WFCRunner {
         }
         if (!this.config.fast) {
             let allAffectedTilesSet = Array.from(new Set(allAffectedTiles));
-            console.log('allAffectedTilesSet', allAffectedTilesSet);
             this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTilesSet }));
         }
     }
@@ -1037,9 +1062,7 @@ class WFCRunner {
                 return false;
             }
             let affectedTiles = this.placeTile(x, y, tileKey, _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.Backtrack);
-            console.log('placeTilePosition, affectedTiles', affectedTiles);
             if (affectedTiles == null) {
-                console.log('placeTilePosition, affectedTiles is null');
                 return false;
             }
             return affectedTiles;
@@ -1078,35 +1101,38 @@ class WFCRunner {
         let pickedPos = [pos];
         this.hasRunWFC(new _WFCEvent__WEBPACK_IMPORTED_MODULE_3__.WFCEvent('step', { 'pickedPos': pickedPos, 'affectedTiles': allAffectedTiles }));
     }
+    addBacktrackingSelection(x, y, key) {
+        if (this.backtrackingSelections[x] == undefined) {
+            this.backtrackingSelections[x] = [];
+        }
+        if (this.backtrackingSelections[x][y] == undefined) {
+            this.backtrackingSelections[x][y] = [];
+        }
+        this.backtrackingSelections[x][y].push(key);
+    }
     placeTile(x, y, tileKey, replayType) {
-        console.log('placing tile', x, y, tileKey);
         let piece = this.wfc.piecesMap[tileKey];
-        console.log('piece', piece);
         this.wfc.tiles[x][y] = Object.assign(this.wfc.tiles[x][y], piece);
-        console.log('wfc.tiles[x][y]', this.wfc.tiles[x][y]);
         this.recalculateEntropyGroup(x, y);
         let affectedTiles = this.runValidationLoop(x, y, [piece]);
-        console.log('affectedTiles', affectedTiles);
         if (affectedTiles == null) {
             affectedTiles = [{ x: x, y: y }];
         }
         else {
             affectedTiles.push({ x: x, y: y });
         }
-        console.log('affectedTiles2', affectedTiles);
         this.wfc.tileCounters[piece.name].count += 1;
-        console.log('wfc.tileCounters', this.wfc.tileCounters);
         this.wfc.tiles[x][y].pickedFrom = this.lastPosition;
-        console.log('wfc.tiles[x][y].pickedFrom', this.wfc.tiles[x][y].pickedFrom);
         this.lastPosition = { x: x, y: y };
-        console.log('this.lastPosition', this.lastPosition);
         if (replayType == _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.Backtrack) {
             this.replay.push({ x: x, y: y, key: tileKey });
-            console.log('this.replay', this.replay);
+            this.addBacktrackingSelection(x, y, tileKey);
+        }
+        else if (replayType == _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.BacktrackOnly) {
+            this.replay.push({ x: x, y: y, key: tileKey });
         }
         else if (replayType == _Replay__WEBPACK_IMPORTED_MODULE_4__.Replay.Preset) {
             this.replayPreset.push({ x: x, y: y, key: tileKey });
-            console.log('this.replayPreset', this.replayPreset);
         }
         this.checkForMaximumTiles(piece.name);
         this.placedTiles += 1;
@@ -1341,7 +1367,7 @@ class WFCRunner {
         }
     }
     setStartTiles() {
-        console.log('this.wfc.piecesMap', this.wfc.piecesMap);
+        //console.log('this.wfc.piecesMap', this.wfc.piecesMap);
         let failed = false;
         Object.entries(this.wfc.tileCounters).forEach((values) => {
             if (failed)
@@ -1507,8 +1533,9 @@ class WFCTextRender {
             if (event.type != 'step' &&
                 event.type != "found" &&
                 event.type != "stopped" &&
-                event.type != "reset")
-                console.log('event', event.type, event.data);
+                event.type != "reset") {
+                //console.log('event', event.type, event.data);
+            }
             if (event.type == 'step') {
                 this.draw(event.data.affectedTiles);
             }
@@ -1796,6 +1823,13 @@ class WFCTiles {
             }
             piece.rotations.forEach((rotation) => {
                 var _a, _b;
+                let innerRotation = rotation;
+                if (rotation == 2) {
+                    innerRotation = 3;
+                }
+                else if (rotation == 3) {
+                    innerRotation = 5;
+                }
                 let pieceName = piece.name + "_" + rotation;
                 let validNeighbors = {
                     top: [],
@@ -1830,13 +1864,24 @@ class WFCTiles {
                 if (Array.isArray(piece.weight)) {
                     weight = (_b = weight[rotation]) !== null && _b !== void 0 ? _b : 1;
                 }
+                //
                 let edgeBlackList = null;
                 if (piece.edgeblacklist) {
                     edgeBlackList = piece.edgeblacklist.map((direction) => {
                         let dir = _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[direction];
+                        if (direction == 'grid')
+                            return;
+                        if (direction == 'grid2')
+                            return;
                         let directionsCount = (Object.keys(_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction).length / 2);
-                        let newDir = (dir + rotation) % directionsCount;
-                        return _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[newDir];
+                        let rotationMoved = (dir + innerRotation) % directionsCount;
+                        if ((_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved] == 'grid' || _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved] == 'grid2') && innerRotation == 1) {
+                            rotationMoved = (rotationMoved + 1) % directionsCount;
+                        }
+                        else if ((_Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved] == 'grid' || _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved] == 'grid2') && innerRotation == 5) {
+                            rotationMoved = (rotationMoved - 1) % directionsCount;
+                        }
+                        return _Direction__WEBPACK_IMPORTED_MODULE_0__.Direction[rotationMoved];
                     });
                 }
                 piecesMap[pieceName] = new _PieceObject__WEBPACK_IMPORTED_MODULE_1__.PieceObject(piece.name + "_" + rotation, piece.name, rotation, validNeighbors, edgeBlackList, weight, piece.socketmatching[rotation], piece.minimum, piece.maximum);
@@ -1868,7 +1913,7 @@ class WFCTiles {
                 this.tiles[x] = this.startingRow(x, startingTile, useEdgeSocket, edgeSockets);
             }
         }
-        console.log('this.tiles', this.tiles);
+        //console.log('this.tiles', this.tiles);
         Object.entries(this.tileCounters).forEach((value) => {
             let numbers = value[1];
             numbers.count = 0;

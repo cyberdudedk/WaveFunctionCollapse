@@ -51,7 +51,6 @@ export class WFCTiles {
         let pieces: any[] = this.wfcData.tilePieces[this.config.tileName];
         let sets = this.wfcData.tileSets[this.config.tileName];
         let currentSet = sets[this.config.set];
-        
         Object.entries<any>(currentSet).forEach((value: [string, {weight: number, rotations: number[], edgeblacklist: string[], minimum: number, maximum: number}]) => {
             let pieceName = value[0];
             let properties = value[1];
@@ -196,6 +195,14 @@ export class WFCTiles {
             }
             
             piece.rotations.forEach((rotation: number) => {
+                let innerRotation = rotation;
+                if(rotation == 2) {
+                    innerRotation = 3;
+                }
+                else if(rotation == 3) {
+                    innerRotation = 5;
+                }
+
                 let pieceName = piece.name + "_" + rotation;
 
                 let validNeighbors: { [name: string]: string[] } = {
@@ -233,17 +240,26 @@ export class WFCTiles {
                 if(Array.isArray(piece.weight)) {
                     weight = weight[rotation] ?? 1;
                 }
-
+//
                 let edgeBlackList: string[] | null = null;
                 if(piece.edgeblacklist) {
                     edgeBlackList = piece.edgeblacklist.map((direction: string) => {
                         let dir = Direction[direction as keyof typeof Direction];
+                        if(direction == 'grid') return;
+                        if(direction == 'grid2') return;
                         let directionsCount = (Object.keys(Direction).length / 2);
-                        let newDir = (dir + rotation) % directionsCount;
-                        return Direction[newDir];
+
+                        let rotationMoved = (dir + innerRotation) % directionsCount;
+                        if((Direction[rotationMoved] == 'grid' || Direction[rotationMoved] == 'grid2') && innerRotation == 1) {
+                            rotationMoved = (rotationMoved + 1) % directionsCount;
+                        }
+                        else if((Direction[rotationMoved] == 'grid' || Direction[rotationMoved] == 'grid2') && innerRotation == 5) {
+                            rotationMoved = (rotationMoved - 1) % directionsCount;
+                        }
+                        
+                        return Direction[rotationMoved];
                     });
                 }
-
                 piecesMap[pieceName] = new PieceObject(
                     piece.name + "_" + rotation,
                     piece.name, 
@@ -256,7 +272,6 @@ export class WFCTiles {
                     piece.maximum
                 );
             });
-            
             return piecesMap;
         }, <{ [name: string]: any }>{});
 
@@ -291,7 +306,7 @@ export class WFCTiles {
             }
         }
 
-        console.log('this.tiles', this.tiles);
+        //console.log('this.tiles', this.tiles);
 
         Object.entries(this.tileCounters).forEach((value: [string, any]) => {
             let numbers = value[1];
@@ -318,7 +333,6 @@ export class WFCTiles {
                     allow = edges.every(edge => piece.sockets[edge].includes(edgeSockets[edge])
                     );
                 }
-
                 if (piece.edgeblacklist) {
                     return !edges.some(v => piece.edgeblacklist.includes(v)) && allow;
                 } else {

@@ -1,5 +1,6 @@
 export enum Replay {
     None,
     Backtrack,
-    Preset
+    Preset,
+    BacktrackOnly
 }

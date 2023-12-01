@@ -22,11 +22,12 @@ export class WFCRunner {
     private lastPosition: {x: number, y: number} | undefined = undefined;
     private replay: {x: number, y: number, key: string}[] = [];
     private replayPreset: {x: number, y: number, key: string}[] = [];
-    private backtrackingSelections: [][][] = [];
+    private backtrackingSelections: string[][][];
 
     public constructor(config: WFCConfig, wfc: WFCTiles) {
         this.config = config;
         this.wfc = wfc;
+        this.backtrackingSelections = [];
     }
 
     public addCallback(callback: (event: WFCEvent) => boolean) {
@@ -94,14 +95,20 @@ export class WFCRunner {
     }
 
     private backtrack() {
-        var splicedReplay: { x: number; y: number; key: string; }[] = [];
+        var slicedReplay: { x: number; y: number; key: string; }[] = [];
+        var lastReplay: { x: number; y: number; key: string; } | undefined = undefined;
+        var restReplays: { x: number; y: number; key: string; }[] =  [];
         if(this.config.backtracking == Backtracking.Linear) {
-            splicedReplay = this.replay.slice(0, -this.retryCount);
+            slicedReplay = this.replay.slice(0, -this.retryCount);
+            restReplays = this.replay.slice(-this.retryCount);
         } else if(this.config.backtracking == Backtracking.Exponential) {
-            splicedReplay = this.replay.slice(0, -(this.retryCount * this.retryCount));
+            slicedReplay = this.replay.slice(0, -(this.retryCount * this.retryCount));
+            restReplays = this.replay.slice(-(this.retryCount * this.retryCount));
+        } else if(this.config.backtracking == Backtracking.Full) {
+            slicedReplay = this.replay.slice(0, -1);
+            restReplays = this.replay.slice(-1);
         }
         
-        console.log('backtracking from', this.lastPosition, 'number of replays', splicedReplay.length);
         this.replay = [];
         this.reset(false, false);
 
@@ -109,9 +116,30 @@ export class WFCRunner {
             this.placeTile(value.x, value.y, value.key, Replay.None);
         });
 
-        splicedReplay.forEach((value: {x: number, y: number, key: string}, index: number, array: {x: number, y: number, key: string}[]) => {
-            this.placeTile(value.x, value.y, value.key, Replay.Backtrack);
+        slicedReplay.forEach((value: {x: number, y: number, key: string}, index: number, array: {x: number, y: number, key: string}[]) => {
+            this.placeTile(value.x, value.y, value.key, Replay.BacktrackOnly);
         });
+
+        lastReplay = restReplays[0];
+        for(var i = 1; i < restReplays.length; i++) {
+            delete this.backtrackingSelections[restReplays[i].x][restReplays[i].y];
+        }
+        if(lastReplay != undefined) {
+            let lastReplayBackTrackingSelection = this.backtrackingSelections[lastReplay.x][lastReplay.y];
+            let lastReplayTile = this.wfc.tiles[lastReplay.x][lastReplay.y];
+            const lastReplayBackTrackingSelectionToRemove = new Set(lastReplayBackTrackingSelection);
+
+            this.wfc.tiles[lastReplay.x][lastReplay.y].validPieces = 
+                this.wfc.tiles[lastReplay.x][lastReplay.y].validPieces
+                .filter( (x : string) => !lastReplayBackTrackingSelectionToRemove.has(x) );
+
+            if(lastReplayTile.validPieces.length == 0) {
+                delete this.backtrackingSelections[lastReplay.x][lastReplay.y];
+                this.backtrack();
+                return;
+            }
+        }
+
         this.hasRunWFC(new WFCEvent('backtracked'));
         this.continueRun();
     }
@@ -188,7 +216,6 @@ export class WFCRunner {
         }
         if( !this.config.fast ) {
             let allAffectedTilesSet = Array.from(new Set(allAffectedTiles));
-            console.log('allAffectedTilesSet', allAffectedTilesSet);
             this.hasRunWFC(
                 new WFCEvent('step', {'pickedPos': pickedPos, 'affectedTiles': allAffectedTilesSet})
             );
@@ -210,9 +237,7 @@ export class WFCRunner {
             }
 
             let affectedTiles = this.placeTile(x, y, tileKey, Replay.Backtrack);
-            console.log('placeTilePosition, affectedTiles', affectedTiles);
             if(affectedTiles == null) {
-                console.log('placeTilePosition, affectedTiles is null');
                 return false;
             }
             return affectedTiles;
@@ -260,33 +285,37 @@ export class WFCRunner {
         );
     }
 
+    private addBacktrackingSelection(x: number, y: number, key: string) {
+        if(this.backtrackingSelections[x] == undefined) {
+            this.backtrackingSelections[x] = [];
+        }
+        if(this.backtrackingSelections[x][y] == undefined) {
+            this.backtrackingSelections[x][y] = [];
+        }
+        this.backtrackingSelections[x][y].push(key);
+    }
+
     public placeTile(x: number, y: number, tileKey: string, replayType: Replay) : {x: number, y: number}[] {
-        console.log('placing tile', x, y, tileKey);
         let piece = this.wfc.piecesMap[tileKey];
-        console.log('piece', piece);
         this.wfc.tiles[x][y] = Object.assign(this.wfc.tiles[x][y],  piece);
-        console.log('wfc.tiles[x][y]', this.wfc.tiles[x][y]);
         this.recalculateEntropyGroup(x, y);
         let affectedTiles = this.runValidationLoop(x, y, [piece]);
-        console.log('affectedTiles', affectedTiles);
         if(affectedTiles == null) {
             affectedTiles = [{x: x, y: y}];
         } else {
             affectedTiles.push({x: x, y: y});
         }
-        console.log('affectedTiles2', affectedTiles);
         this.wfc.tileCounters[piece.name].count += 1;
-        console.log('wfc.tileCounters', this.wfc.tileCounters);
         this.wfc.tiles[x][y].pickedFrom = this.lastPosition;
-        console.log('wfc.tiles[x][y].pickedFrom', this.wfc.tiles[x][y].pickedFrom);
         this.lastPosition = {x: x, y: y};
-        console.log('this.lastPosition', this.lastPosition);
         if(replayType == Replay.Backtrack) {
             this.replay.push({x: x, y: y, key: tileKey});
-            console.log('this.replay', this.replay);
+            this.addBacktrackingSelection(x, y, tileKey);
+        } 
+        else if(replayType == Replay.BacktrackOnly) {
+            this.replay.push({x: x, y: y, key: tileKey});
         } else if(replayType == Replay.Preset) {
             this.replayPreset.push({x: x, y: y, key: tileKey});
-            console.log('this.replayPreset', this.replayPreset);
         }
 
         this.checkForMaximumTiles(piece.name);
@@ -583,7 +612,7 @@ export class WFCRunner {
     }
 
     public setStartTiles() {
-        console.log('this.wfc.piecesMap', this.wfc.piecesMap);
+        //console.log('this.wfc.piecesMap', this.wfc.piecesMap);
         let failed = false;
         Object.entries(this.wfc.tileCounters).forEach((values) => {
             if(failed) return;

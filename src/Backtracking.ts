@@ -1,6 +1,6 @@
 export enum Backtracking {
     None,
-    //Full,
+    Full,
     Linear,
     Exponential,
     //Grid,

@@ -62,7 +62,9 @@ export class WFCTextRender {
             event.type != "found" && 
             event.type != "stopped" &&
             event.type != "reset"
-        ) console.log('event', event.type, event.data);
+        ) {
+            //console.log('event', event.type, event.data);
+        }
         if(event.type == 'step') {
             this.draw(event.data.affectedTiles);
         } else if(event.type == 'reset') {
