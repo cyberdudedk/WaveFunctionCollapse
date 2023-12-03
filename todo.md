@@ -1,12 +1,6 @@
 # Todo
 
 ## 2.1 Backtracking extended
-- Implement full
-  - When running backtrack until we hit a path we haven't tried
-  - Essentially replay up until the tile where we have 1 or more remaining paths, as far as possible.
-  - This needs implemenation where we track and retain what paths have been tried on a tile
-- Implement tracking of paths, retain between backtracking, unless backtracking goes past the tile, then reset the path information
-  - This should avoid the retrying of same paths
 - Implement grid
   - Reset in a x*x grid around the problem area, essentially removing any of those positions from the replay.
 - Nice to have tracking paths on other implementations, linear, exponential, grid.

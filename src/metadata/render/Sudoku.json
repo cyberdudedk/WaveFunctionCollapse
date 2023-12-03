@@ -43,5 +43,40 @@
         "name": "9",
         "imgsrc": "9.png",
         "color": "#c0e6c0"
+    },
+    {
+        "name": "A",
+        "imgsrc": "A.png",
+        "color": "#c0e6c0"
+    },
+    {
+        "name": "B",
+        "imgsrc": "B.png",
+        "color": "#c0e6c0"
+    },
+    {
+        "name": "C",
+        "imgsrc": "C.png",
+        "color": "#c0e6c0"
+    },
+    {
+        "name": "D",
+        "imgsrc": "D.png",
+        "color": "#c0e6c0"
+    },
+    {
+        "name": "E",
+        "imgsrc": "E.png",
+        "color": "#c0e6c0"
+    },
+    {
+        "name": "F",
+        "imgsrc": "F.png",
+        "color": "#c0e6c0"
+    },
+    {
+        "name": "G",
+        "imgsrc": "G.png",
+        "color": "#c0e6c0"
     }
 ]
