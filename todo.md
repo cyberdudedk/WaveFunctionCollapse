@@ -1,5 +1,13 @@
 # Todo
 
+# 1 - Tech
+## 1.1 - Performance
+### 1.1.1 - Cache drawSuperimposedPartGrid
+Calculate hash of a tile with all superimposedparts
+Check if cashe already has same, draw it.
+If not already exists, make a cached drawing and store in cache and then draw
+
+
 ## 2.1 Backtracking extended
 - Implement grid
   - Reset in a x*x grid around the problem area, essentially removing any of those positions from the replay.

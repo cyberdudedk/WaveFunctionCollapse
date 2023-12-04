@@ -362,6 +362,7 @@ class WFCRender {
         this.halfScaleHeight = this.config.tileScale / 2;
         this.halfScaleWidth = this.config.tileScale / 2;
         this.imagesMap = {};
+        this.gridHashmap = {};
         this.wfcCallback = (event) => {
             if (event.type != 'step' &&
                 event.type != "found" &&
@@ -370,12 +371,15 @@ class WFCRender {
                 //console.log('event', event.type, event.data);
             }
             if (event.type == 'step') {
-                this.draw(event.data.affectedTiles);
+                if (this.renderConfig.renderType != _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.None)
+                    this.draw(event.data.affectedTiles);
             }
             else if (event.type == 'reset') {
+                //if(this.renderConfig.renderType != RenderType.None) 
                 this.startOver();
             }
             else {
+                //if(this.renderConfig.renderType != RenderType.None) console.log('calling draw from wfcCallback', event);
                 this.draw();
             }
             return true;
@@ -567,6 +571,8 @@ class WFCRender {
     }
     expand() {
         this.resizeCanvas();
+        if (this.renderConfig.renderType != _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.None)
+            console.log('calling draw from expand');
         this.draw();
     }
     reset() {
@@ -586,10 +592,14 @@ class WFCRender {
         let tileY = Math.floor(position.y / this.config.tileScale) - this.config.offsetY;
         if (event.button == 0) {
             this.wfcRunner.cycleTile(tileX, tileY);
+            if (this.renderConfig.renderType != _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.None)
+                console.log('calling draw from canvasClicked');
             this.draw();
         }
         else if (event.button == 2) {
             this.wfcRunner.placeCycledTile(tileX, tileY);
+            if (this.renderConfig.renderType != _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.None)
+                console.log('calling draw from canvasClicked');
             this.draw();
         }
     }
@@ -608,17 +618,19 @@ class WFCRender {
             });
         }
         this.draw();
-        this.wfcRunner.start(interval);
+        //this.wfcRunner.start(interval);
     }
     draw(tiles = undefined) {
-        this.ctx.save();
-        if (tiles != undefined) {
-            this.drawTiles(tiles);
+        if (this.renderConfig.renderType != _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.None) {
+            this.ctx.save();
+            if (tiles != undefined) {
+                this.drawTiles(tiles);
+            }
+            else {
+                this.drawAllTiles();
+            }
+            this.ctx.restore();
         }
-        else {
-            this.drawAllTiles();
-        }
-        this.ctx.restore();
     }
     drawTiles(positions) {
         for (let pos of positions) {
@@ -707,10 +719,14 @@ class WFCRender {
         }
     }
     drawSuperImposed_Layered(columnIndex, rowIndex, tile, validCount) {
-        tile.validPieces.forEach((key) => {
-            let piece = this.wfc.piecesMap[key];
-            let tileImage = this.imagesMap[piece.name];
-            this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
+        this.drawSuperImposedCache(tile.validPieces, (ctx) => {
+            tile.validPieces.forEach((key) => {
+                let piece = this.wfc.piecesMap[key];
+                let tileImage = this.imagesMap[piece.name];
+                this.drawSuperimposed_single(ctx, tileImage, piece.rotation, validCount);
+            });
+        }, (canvas) => {
+            this.drawTile(canvas, columnIndex, rowIndex, 0, 1);
         });
     }
     drawSuperImposed_LayeredSorted(columnIndex, rowIndex, tile, validCount) {
@@ -719,18 +735,31 @@ class WFCRender {
             let pieceB = this.wfc.piecesMap[b];
             return pieceB.weight - pieceA.weight;
         });
-        sortedValid.forEach((key) => {
+        /*sortedValid.forEach((key: string) => {
             let piece = this.wfc.piecesMap[key];
             let tileImage = this.imagesMap[piece.name];
             this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
+        });*/
+        this.drawSuperImposedCache(sortedValid, (ctx) => {
+            sortedValid.forEach((key, index) => {
+                let piece = this.wfc.piecesMap[key];
+                let tileImage = this.imagesMap[piece.name];
+                this.drawSuperimposedWeighted_single(ctx, tileImage, piece.rotation, validCount, 0.4);
+            });
+        }, (canvas) => {
+            this.drawTile(canvas, columnIndex, rowIndex, 0, 1);
         });
     }
     drawSuperImposed_GridScaled(columnIndex, rowIndex, tile, validCount) {
         let gridSize = Math.ceil(Math.sqrt(validCount));
-        tile.validPieces.forEach((key, index) => {
-            let piece = this.wfc.piecesMap[key];
-            let tileImage = this.imagesMap[piece.name];
-            this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, 0.4);
+        this.drawSuperImposedCache(tile.validPieces, (ctx) => {
+            tile.validPieces.forEach((key, index) => {
+                let piece = this.wfc.piecesMap[key];
+                let tileImage = this.imagesMap[piece.name];
+                this.drawSuperimposedPartGrid_single(ctx, tileImage, gridSize, index, piece.rotation, validCount, 0.6);
+            });
+        }, (canvas) => {
+            this.drawTile(canvas, columnIndex, rowIndex, 0, 1);
         });
     }
     drawSuperImposed_Grid(columnIndex, rowIndex, tile, validCount) {
@@ -753,10 +782,14 @@ class WFCRender {
             }
             return pieceB.weight - pieceA.weight;
         });
-        sortedValid.forEach((key, index) => {
-            let piece = this.wfc.piecesMap[key];
-            let tileImage = this.imagesMap[piece.name];
-            this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, piecesCount, 0.4);
+        this.drawSuperImposedCache(sortedValid, (ctx) => {
+            sortedValid.forEach((key, index) => {
+                let piece = this.wfc.piecesMap[key];
+                let tileImage = this.imagesMap[piece.name];
+                this.drawSuperimposedPartGrid_single(ctx, tileImage, gridSize, index, piece.rotation, piecesCount, 0.5);
+            });
+        }, (canvas) => {
+            this.drawTile(canvas, columnIndex, rowIndex, 0, 1);
         });
     }
     drawSuperImposed_GridAlpha(columnIndex, rowIndex, tile, validCount) {
@@ -777,15 +810,35 @@ class WFCRender {
             }
             return pieceB.weight - pieceA.weight;
         });
-        sortedValid.forEach((key, index) => {
-            let piece = this.wfc.piecesMap[key];
-            let tileImage = this.imagesMap[piece.name];
-            let weight = piece.weight;
-            let weightPercent = ((weight - minWeight)) / (maxWeight - minWeight);
-            let adjustedAlpha = (weightPercent * (0.6 - 0.2)) + 0.2;
-            let gridSize = Math.ceil(Math.sqrt(validCount));
-            this.drawSuperimposedPartGrid(tileImage, columnIndex, rowIndex, gridSize, index, piece.rotation, validCount, adjustedAlpha);
+        this.drawSuperImposedCache(sortedValid, (ctx) => {
+            sortedValid.forEach((key, index) => {
+                let piece = this.wfc.piecesMap[key];
+                let tileImage = this.imagesMap[piece.name];
+                let weight = piece.weight;
+                let weightPercent = ((weight - minWeight)) / (maxWeight - minWeight);
+                let adjustedAlpha = (weightPercent * (0.6 - 0.2)) + 0.2;
+                let gridSize = Math.ceil(Math.sqrt(validCount));
+                this.drawSuperimposedPartGrid_single(ctx, tileImage, gridSize, index, piece.rotation, validCount, adjustedAlpha);
+            });
+        }, (canvas) => {
+            this.drawTile(canvas, columnIndex, rowIndex, 0, 1);
         });
+    }
+    drawSuperImposedCache(arr, drawFunction, drawTileFunction) {
+        let sortedValidStr = arr.join('|');
+        let hash = JSON.stringify(sortedValidStr);
+        if (hash in this.gridHashmap) {
+            drawTileFunction(this.gridHashmap[hash]);
+        }
+        else {
+            let canvas = document.createElement('canvas');
+            this.gridHashmap[hash] = canvas;
+            let ctx = canvas.getContext("2d");
+            canvas.width = this.config.tileScale;
+            canvas.height = this.config.tileScale;
+            drawFunction(ctx);
+            drawTileFunction(canvas);
+        }
     }
     drawImgGrid(img, x, y, rotation, alpha) {
         this.ctx.save();
@@ -794,6 +847,14 @@ class WFCRender {
         this.ctx.rotate((rotation * 90) * (Math.PI / 180));
         this.ctx.drawImage(img, -this.halfScaleWidth, -this.halfScaleHeight, this.config.tileScale, this.config.tileScale);
         this.ctx.restore();
+    }
+    drawImgGrid_onContext(ctx, img, rotation, alpha) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(this.halfScaleWidth, this.halfScaleHeight);
+        ctx.rotate((rotation * 90) * (Math.PI / 180));
+        ctx.drawImage(img, -this.halfScaleWidth, -this.halfScaleHeight, this.config.tileScale, this.config.tileScale);
+        ctx.restore();
     }
     clearTile(x, y) {
         this.ctx.clearRect((this.config.tileScale * (x + this.config.offsetX)), (this.config.tileScale * (y + this.config.offsetY)), this.config.tileScale, this.config.tileScale);
@@ -816,6 +877,19 @@ class WFCRender {
             + ((Math.floor(gridIndex / gridSize)) * height);
         this.drawImg(img, newX, newY, width, height, rotation, alpha);
     }
+    drawSuperimposedPartGrid_single(ctx, img, gridSize, gridIndex, rotation, possible, alpha) {
+        let width = this.config.tileScale / gridSize;
+        let height = this.config.tileScale / (gridSize);
+        let newX = ((gridIndex % gridSize) * width);
+        let newY = ((Math.floor(gridIndex / gridSize)) * height);
+        this.drawImg_onContext(ctx, img, newX, newY, width, height, rotation, alpha);
+    }
+    drawSuperimposed_single(ctx, img, rotation, possible) {
+        this.drawImgGrid_onContext(ctx, img, rotation, 0.9 / possible);
+    }
+    drawSuperimposedWeighted_single(ctx, img, rotation, possible, alpha) {
+        this.drawImgGrid_onContext(ctx, img, rotation, alpha);
+    }
     drawImg(img, x, y, width, height, rotation, alpha) {
         this.ctx.save();
         this.ctx.globalAlpha = alpha;
@@ -823,6 +897,14 @@ class WFCRender {
         this.ctx.rotate((rotation * 90) * (Math.PI / 180));
         this.ctx.drawImage(img, -(width / 2), -(height / 2), width, height);
         this.ctx.restore();
+    }
+    drawImg_onContext(ctx, img, x, y, width, height, rotation, alpha) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(x + (width / 2), y + (height / 2));
+        ctx.rotate((rotation * 90) * (Math.PI / 180));
+        ctx.drawImage(img, -(width / 2), -(height / 2), width, height);
+        ctx.restore();
     }
     getImage() {
         return this.canvas.toDataURL("image/png");
