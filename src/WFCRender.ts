@@ -328,7 +328,6 @@ export class WFCRender {
             });
         }
         this.draw();
-        //this.wfcRunner.start(interval);
     }
 
     public draw(tiles: {x: number, y: number}[] | undefined = undefined) {
@@ -452,17 +451,12 @@ export class WFCRender {
             let pieceB = this.wfc.piecesMap[b];
             return pieceB.weight - pieceA.weight;
         });
-        /*sortedValid.forEach((key: string) => {
-            let piece = this.wfc.piecesMap[key];
-            let tileImage = this.imagesMap[piece.name];
-            this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
-        });*/
 
         this.drawSuperImposedCache(sortedValid, (ctx: CanvasRenderingContext2D) => {
             sortedValid.forEach((key: string, index: number) => {
                 let piece = this.wfc.piecesMap[key];
                 let tileImage = this.imagesMap[piece.name];
-                this.drawSuperimposedWeighted_single(ctx, tileImage, piece.rotation, validCount, 0.4);
+                this.drawSuperimposed_single(ctx, tileImage, piece.rotation, validCount);
             });
         }, (canvas: CanvasImageSource) => {
             this.drawTile(canvas, columnIndex, rowIndex, 0, 1);

@@ -618,7 +618,6 @@ class WFCRender {
             });
         }
         this.draw();
-        //this.wfcRunner.start(interval);
     }
     draw(tiles = undefined) {
         if (this.renderConfig.renderType != _RenderType__WEBPACK_IMPORTED_MODULE_6__.RenderType.None) {
@@ -735,16 +734,11 @@ class WFCRender {
             let pieceB = this.wfc.piecesMap[b];
             return pieceB.weight - pieceA.weight;
         });
-        /*sortedValid.forEach((key: string) => {
-            let piece = this.wfc.piecesMap[key];
-            let tileImage = this.imagesMap[piece.name];
-            this.drawSuperimposed(tileImage, columnIndex, rowIndex, piece.rotation, validCount);
-        });*/
         this.drawSuperImposedCache(sortedValid, (ctx) => {
             sortedValid.forEach((key, index) => {
                 let piece = this.wfc.piecesMap[key];
                 let tileImage = this.imagesMap[piece.name];
-                this.drawSuperimposedWeighted_single(ctx, tileImage, piece.rotation, validCount, 0.4);
+                this.drawSuperimposed_single(ctx, tileImage, piece.rotation, validCount);
             });
         }, (canvas) => {
             this.drawTile(canvas, columnIndex, rowIndex, 0, 1);

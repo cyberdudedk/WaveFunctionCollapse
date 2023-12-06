@@ -75,7 +75,7 @@ export class WFCTiles {
             if(currentSet[piece.name] == undefined) {
                 return piecesMap;
             }
-            let pieceSockets = piece.socket
+            let pieceSockets = piece.socket;
             piece.socketmatching = {};
             piece.blacklistedNeighbors = {};
             this.tileCounters[piece.name] = {minimum: piece.minimum, maximum: piece.maximum, count: 0};
