@@ -39,40 +39,80 @@ export class WFCTiles {
         this.wfcData.tilePieces = {};
         this.wfcData.tileSets = {};
         
-        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms","Summer", "Sudoku", "Happyland"];
+        var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms","Summer", "Sudoku", "Happyland", "TmwDesertSpacing"];
         for(let tileIndex in tileNames) {
             const tile = tileNames[tileIndex];
-            this.wfcData.tilePieces[tile] = require('./metadata/tiles/'+tile+'.json');
+            this.loadTilePieces(tile);
             this.wfcData.tileSets[tile] = require('./metadata/sets/'+tile+'.json');
         }
     }
 
-    public async initTileData() {
-        let pieces: any[] = this.wfcData.tilePieces[this.config.tileName];
-        let sets = this.wfcData.tileSets[this.config.tileName];
-        let currentSet = sets[this.config.set];
-        Object.entries<any>(currentSet).forEach((value: [string, {weight: number, rotations: number[], edgeblacklist: string[], minimum: number, maximum: number}]) => {
+    private loadTilePieces(tile: string) {
+        let tilePieces = require('./metadata/tiles/'+tile+'.json');
+        if(Array.isArray(tilePieces)) {
+            this.wfcData.tilePieces[tile] = tilePieces;    
+        } else if(typeof tilePieces === 'object' && tilePieces !== null) {
+            if(tilePieces.tiles != undefined) {
+                if(tilePieces.metadata != undefined) {
+                    this.wfcData.tilePieces[tile] = this.loadTilePiecesWithMetadata(tilePieces.tiles, tilePieces.metadata);
+                } else {
+                    this.wfcData.tilePieces[tile] = tilePieces.tiles;
+                }
+            }
+        }
+    }
+
+    private loadTilePiecesWithMetadata(tiles: any, metadata: any) {
+        if(metadata.socketGenerator) {
+            let generator = metadata.socketGenerator;
+            if(generator.type == "name") {
+                let settings = generator.settings;
+                let regex = new RegExp(settings.regex);
+                tiles.forEach((tile: any) => {
+                    if(settings.namingtype == "border") {
+                        tile.socket = tile.name.match(regex).groups;
+                    } else if(settings.namingtype == "rows") {
+                        let rows = tile.name.match(regex).slice(1);
+                        tile.socket = {
+                            "top": rows[0],
+                            "bottom": rows[rows.length - 1].split("").reverse().join(""),
+                            "left": rows.reduce((a: string, b: string) => b[0] + a, ""),
+                            "right": rows.reduce((a: string, b: string) => a + b[b.length-1], "")
+                        };
+                    }
+                });
+            }
+        }
+
+        return tiles;
+    }
+    
+    private mapSetConfigToPieces(set: any, pieces: any[]) {
+        Object.entries<any>(set).forEach((value: [string, {weight: number, rotations: number[], edgeblacklist: string[], minimum: number, maximum: number}]) => {
             let pieceName = value[0];
             let properties = value[1];
+            let piece = pieces.find(x => x.name == pieceName);
             if(properties.rotations != undefined) {
-                pieces.find(x => x.name == pieceName).rotations = properties.rotations;
+                piece.rotations = properties.rotations;
             }
             if(properties.weight != undefined) {
-                pieces.find(x => x.name == pieceName).weight = properties.weight;
+                piece.weight = properties.weight;
             }
             if(properties.edgeblacklist != undefined) {
-                pieces.find(x => x.name == pieceName).edgeblacklist = properties.edgeblacklist;
+                piece.edgeblacklist = properties.edgeblacklist;
             }
             if(properties.minimum != undefined) {
-                pieces.find(x => x.name == pieceName).minimum = properties.minimum;
+                piece.minimum = properties.minimum;
             }
             if(properties.maximum != undefined) {
-                pieces.find(x => x.name == pieceName).maximum = properties.maximum;
+                piece.maximum = properties.maximum;
             }
         });
+    }
 
-        let mappedPieces = pieces.reduce((piecesMap, piece) => {
-            if(currentSet[piece.name] == undefined) {
+    private mapPieces(pieces: any[], set: any) {
+        return pieces.reduce((piecesMap, piece) => {
+            if(set[piece.name] == undefined) {
                 return piecesMap;
             }
             let pieceSockets = piece.socket;
@@ -151,9 +191,12 @@ export class WFCTiles {
             piecesMap[piece.name] = piece;
             return piecesMap;
         }, <{ [name: string]: any }>{});
+    }
 
+
+
+    private mapSocketBuckets(mappedPieces: any) {
         let socketBuckets: { [socket: string]: { [socket: string]: string[] } } = {};
-
         Object.entries(mappedPieces).forEach((mappedPieceValue: [string, any]) => {
             let pieceName = mappedPieceValue[0];
             let piece = mappedPieceValue[1];
@@ -184,10 +227,15 @@ export class WFCTiles {
                 });
             }
         });
-        
-        this.piecesMap = Object.entries(mappedPieces).reduce((piecesMap: { [name: string]: PieceObject }, piecePair: any) => {
+
+        return socketBuckets;
+    }
+
+    private mapPiecesMap(mappedPieces: any[], set: any, socketBuckets: { [socket: string]: { [socket: string]: string[] } }) {
+        return Object.entries(mappedPieces).reduce((piecesMap: { [name: string]: PieceObject }, piecePair: any) => {
+            //TODO: Fix grid fixes and innerRotation
             let piece = piecePair[1];
-            if(currentSet[piece.name] == undefined) {
+            if(set[piece.name] == undefined) {
                 return piecesMap;
             }
             if(piece.rotations == undefined) {
@@ -240,10 +288,11 @@ export class WFCTiles {
                 if(Array.isArray(piece.weight)) {
                     weight = weight[rotation] ?? 1;
                 }
-//
+
                 let edgeBlackList: string[] | null = null;
                 if(piece.edgeblacklist) {
                     edgeBlackList = piece.edgeblacklist.map((direction: string) => {
+                        //TODO: Fix grid fixes and innerRotation
                         let dir = Direction[direction as keyof typeof Direction];
                         if(direction == 'grid') return;
                         if(direction == 'grid2') return;
@@ -274,6 +323,18 @@ export class WFCTiles {
             });
             return piecesMap;
         }, <{ [name: string]: any }>{});
+    }
+
+    public async initTileData() {
+        let pieces: any[] = this.wfcData.tilePieces[this.config.tileName];
+        let sets = this.wfcData.tileSets[this.config.tileName];
+        let currentSet = sets[this.config.set];
+
+        this.mapSetConfigToPieces(currentSet, pieces);
+        let mappedPieces = this.mapPieces(pieces, currentSet);
+        let socketBuckets = this.mapSocketBuckets(mappedPieces);
+        
+        this.piecesMap = this.mapPiecesMap(mappedPieces, currentSet, socketBuckets);
 
         return true;
     }
