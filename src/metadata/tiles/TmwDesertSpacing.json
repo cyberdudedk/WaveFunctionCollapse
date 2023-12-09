@@ -1,0 +1,254 @@
+{
+    "metadata": {
+        "name": "TmwDesertSpacing",
+        "socketGenerator": {
+            "type": "name",
+            "settings": {
+                "namingtype": "rows",
+                "regex": "(.{3})_(.{3})_(.{3})"
+            }
+        }
+    },
+    "tiles": [
+        {
+            "name": "000_000_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_000_001",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_000_100",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_000_111",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_033_032",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_055_054",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_0a0_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_0b0_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_0c0_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_0d0_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_0e0_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_0f0_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_0g0_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_0h0_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_330_230",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_333_222",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_550_450",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "000_555_444",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "001_000_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "001_001_001",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "001_001_111",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "032_032_032",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "032_033_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "032_332_222",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "054_054_054",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "054_055_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "054_554_444",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "100_000_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "100_100_100",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "100_100_111",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "111_000_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "111_001_001",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "111_100_100",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "111_111_111",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "222_222_222",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "222_233_230",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "222_332_032",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "222_333_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "230_230_230",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "230_233_222",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "230_330_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "444_444_444",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "444_455_450",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "444_554_054",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "444_555_000",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "450_450_450",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "450_455_444",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "450_550_000",
+            "rotations": [0],
+            "weight": 1
+        }
+    ]
+}
