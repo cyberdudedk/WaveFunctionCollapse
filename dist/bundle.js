@@ -1740,9 +1740,24 @@ class WFCTiles {
         this.minY = 0;
         this.maxX = 0;
         this.maxY = 0;
+        this.imageToRGB = (image) => {
+            let tempcontext = document.createElement('canvas').getContext('2d');
+            tempcontext.drawImage(image, 0, 0, image.width, image.height);
+            let imageData = tempcontext.getImageData(0, 0, image.width, image.height);
+            let dataRGB = [];
+            for (let i = 0; i < imageData.data.length; i += 4) {
+                dataRGB.push({
+                    r: imageData.data[i],
+                    g: imageData.data[i + 1],
+                    b: imageData.data[i + 2],
+                });
+            }
+            return dataRGB;
+        };
     }
     async init(config) {
         //console.clear();
+        console.log('init config', config);
         this.config = config;
         this.config.offsetX = 0;
         this.config.offsetY = 0;
@@ -1750,20 +1765,20 @@ class WFCTiles {
         this.minY = 0;
         this.maxX = this.config.tilesWidth;
         this.maxY = this.config.tilesHeight;
-        this.loadTiles();
+        await this.loadTiles();
     }
-    loadTiles() {
+    async loadTiles() {
         this.wfcData = new _WFCData__WEBPACK_IMPORTED_MODULE_3__.WFCData();
         this.wfcData.tilePieces = {};
         this.wfcData.tileSets = {};
         var tileNames = ["Castle", "Circles", "Circuit", "FloorPlan", "Knots", "Rooms", "Summer", "Sudoku", "Happyland", "TmwDesertSpacing"];
         for (let tileIndex in tileNames) {
             const tile = tileNames[tileIndex];
-            this.loadTilePieces(tile);
             this.wfcData.tileSets[tile] = __webpack_require__("./src/metadata/sets sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
         }
+        await this.loadTilePieces(this.config.tileName);
     }
-    loadTilePieces(tile) {
+    async loadTilePieces(tile) {
         let tilePieces = __webpack_require__("./src/metadata/tiles sync recursive ^\\.\\/.*\\.json$")("./" + tile + ".json");
         if (Array.isArray(tilePieces)) {
             this.wfcData.tilePieces[tile] = tilePieces;
@@ -1771,7 +1786,7 @@ class WFCTiles {
         else if (typeof tilePieces === 'object' && tilePieces !== null) {
             if (tilePieces.tiles != undefined) {
                 if (tilePieces.metadata != undefined) {
-                    this.wfcData.tilePieces[tile] = this.loadTilePiecesWithMetadata(tilePieces.tiles, tilePieces.metadata);
+                    this.wfcData.tilePieces[tile] = await this.loadTilePiecesWithMetadata(tilePieces.tiles, tilePieces.metadata);
                 }
                 else {
                     this.wfcData.tilePieces[tile] = tilePieces.tiles;
@@ -1779,7 +1794,7 @@ class WFCTiles {
             }
         }
     }
-    loadTilePiecesWithMetadata(tiles, metadata) {
+    async loadTilePiecesWithMetadata(tiles, metadata) {
         if (metadata.socketGenerator) {
             let generator = metadata.socketGenerator;
             if (generator.type == "name") {
@@ -1800,8 +1815,495 @@ class WFCTiles {
                     }
                 });
             }
+            else if (generator.type == "pixelsedge" || generator.type == 'pixels') {
+                let settings = generator.settings;
+                let socketKeys = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+                let gridSize = settings.gridSize || 7;
+                let maxBuckets = settings.buckets || 12;
+                let debugSize = 8;
+                let debugSpace = 1;
+                let tileImages = __webpack_require__("./src/metadata/render sync recursive ^\\.\\/.*\\.json$")("./" + this.config.tileName + ".json");
+                let tileImageMap = tileImages.reduce((tileMap, tileImage) => {
+                    tileMap[tileImage.name] = tileImage.imgsrc;
+                    return tileMap;
+                }, {});
+                let loadImagesAsync = [];
+                loadImagesAsync = tiles.map(async (tile) => {
+                    return {
+                        name: tile.name,
+                        img: await this.preloadImage('tiles/' + this.config.tileName + '/' + tileImageMap[tile.name]),
+                        gridBuckets: [],
+                    };
+                });
+                let canvasrender = document.getElementById('drawrender');
+                let context = canvasrender.getContext('2d');
+                let imageCache = await Promise.all(loadImagesAsync);
+                let imageIndex = 0;
+                let calculateAverageGridBuckets = (gridBuckets) => {
+                    gridBuckets.forEach((gridBucket) => {
+                        let r = 0;
+                        let g = 0;
+                        let b = 0;
+                        let a = 0;
+                        gridBucket.gridBucket.forEach((pixel) => {
+                            r += pixel.r;
+                            g += pixel.g;
+                            b += pixel.b;
+                        });
+                        r /= gridBucket.gridBucket.length;
+                        g /= gridBucket.gridBucket.length;
+                        b /= gridBucket.gridBucket.length;
+                        gridBucket.avgColor = {
+                            r: r,
+                            g: g,
+                            b: b,
+                        };
+                        gridBucket.avgColorKey = [r, g, b].join("|");
+                    });
+                    return gridBuckets;
+                };
+                if (generator.type == "pixelsedge") {
+                    let edgeThickness = 1;
+                    //debug
+                    imageCache.forEach((cachedImage) => {
+                        let dataRGB = this.imageToRGB(cachedImage.img);
+                        let edgeRGB = {
+                            top: [],
+                            bottom: [],
+                            left: [],
+                            right: []
+                        };
+                        for (var x = 0; x < cachedImage.img.width; x++) {
+                            let top = [];
+                            let bottom = [];
+                            for (var t = 0; t < edgeThickness; t++) {
+                                let topY = t;
+                                let bottomY = (cachedImage.img.height - 1) - t;
+                                top.push(dataRGB[topY * cachedImage.img.width + x]);
+                                bottom.push(dataRGB[bottomY * cachedImage.img.width + x]);
+                            }
+                            edgeRGB['top'].push(top);
+                            edgeRGB['bottom'].push(bottom);
+                        }
+                        for (var y = 0; y < cachedImage.img.height; y++) {
+                            let left = [];
+                            let right = [];
+                            for (var t = 0; t < edgeThickness; t++) {
+                                let leftX = t;
+                                let rightX = (cachedImage.img.width - 1) - t;
+                                left.push(dataRGB[y * cachedImage.img.width + leftX]);
+                                right.push(dataRGB[y * cachedImage.img.width + rightX]);
+                            }
+                            edgeRGB['left'].push(left);
+                            edgeRGB['right'].push(right);
+                        }
+                        let gridBuckets = [];
+                        let pixelX = 0;
+                        for (let x = 0; x < gridSize; x++) {
+                            let innerGridWidth = Math.floor(cachedImage.img.width / gridSize);
+                            if (x != 0 && x != (gridSize - 1)) {
+                                innerGridWidth = Math.ceil(cachedImage.img.width / gridSize);
+                            }
+                            let gridBucketTop = [];
+                            let gridBucketBottom = [];
+                            for (let x2 = 0; x2 < innerGridWidth; x2++) {
+                                for (let t = 0; t < edgeThickness; t++) {
+                                    let top = edgeRGB['top'][pixelX][t];
+                                    let bottom = edgeRGB['bottom'][pixelX][t];
+                                    gridBucketTop.push({
+                                        position: pixelX,
+                                        layer: t,
+                                        edge: 'top',
+                                        r: top.r,
+                                        g: top.g,
+                                        b: top.b,
+                                    });
+                                    gridBucketBottom.push({
+                                        position: pixelX,
+                                        layer: t,
+                                        edge: 'bottom',
+                                        r: bottom.r,
+                                        g: bottom.g,
+                                        b: bottom.b,
+                                    });
+                                    context.fillStyle = "rgb(" + top.r + ", " + top.g + ", " + top.b + ")";
+                                    context.fillRect((0 + pixelX * debugSize) + (debugSpace * x) + (imageIndex * cachedImage.img.width * debugSize) + (imageIndex * (debugSpace + 1)), (200 + 0 * debugSize) + (debugSpace * 0) + (t * debugSize), debugSize, debugSize);
+                                    context.fillStyle = "rgb(" + bottom.r + ", " + bottom.g + ", " + bottom.b + ")";
+                                    context.fillRect((0 + pixelX * debugSize) + (debugSpace * x) + (imageIndex * cachedImage.img.width * debugSize) + (imageIndex * (debugSpace + 1)), (200 + cachedImage.img.height * debugSize) + (debugSpace * 0) - (t * debugSize), debugSize, debugSize);
+                                }
+                                pixelX++;
+                            }
+                            gridBuckets.push({
+                                position: x,
+                                edge: 'top',
+                                gridBucket: gridBucketTop,
+                                avgColor: {
+                                    r: 0,
+                                    g: 0,
+                                    b: 0,
+                                },
+                                avgColorKey: ""
+                            });
+                            gridBuckets.push({
+                                position: x,
+                                edge: 'bottom',
+                                gridBucket: gridBucketBottom,
+                                avgColor: {
+                                    r: 0,
+                                    g: 0,
+                                    b: 0,
+                                },
+                                avgColorKey: ""
+                            });
+                        }
+                        let pixelY = 0;
+                        pixelX--;
+                        for (let y = 0; y < gridSize; y++) {
+                            let innerGridHeight = Math.floor(cachedImage.img.height / gridSize);
+                            if (y != 0 && y != (gridSize - 1)) {
+                                innerGridHeight = Math.ceil(cachedImage.img.height / gridSize);
+                            }
+                            let gridBucketLeft = [];
+                            let gridBucketRight = [];
+                            for (let y2 = 0; y2 < innerGridHeight; y2++) {
+                                for (let t = 0; t < edgeThickness; t++) {
+                                    let left = edgeRGB['left'][pixelY][t];
+                                    let right = edgeRGB['right'][pixelY][t];
+                                    gridBucketLeft.push({
+                                        position: pixelY,
+                                        edge: 'left',
+                                        layer: t,
+                                        r: left.r,
+                                        g: left.g,
+                                        b: left.b,
+                                    });
+                                    gridBucketRight.push({
+                                        position: pixelY,
+                                        edge: 'right',
+                                        layer: t,
+                                        r: right.r,
+                                        g: right.g,
+                                        b: right.b,
+                                    });
+                                    context.fillStyle = "rgb(" + left.r + ", " + left.g + ", " + left.b + ")";
+                                    context.fillRect((0 + 0 * debugSize) + (debugSpace * 0) + (imageIndex * cachedImage.img.width * debugSize) + (imageIndex * (debugSpace + 1)) + (t * debugSize), (200 + pixelY * debugSize) + (debugSpace * pixelY), debugSize, debugSize);
+                                    context.fillStyle = "rgb(" + right.r + ", " + right.g + ", " + right.b + ")";
+                                    context.fillRect((0 + pixelX * debugSize) + (debugSpace * x) + (imageIndex * cachedImage.img.width * debugSize) + (imageIndex * (debugSpace + 1)) - (t * debugSize), (200 + pixelY * debugSize) + (debugSpace * pixelY), debugSize, debugSize);
+                                }
+                                pixelY++;
+                            }
+                            gridBuckets.push({
+                                position: y,
+                                edge: 'left',
+                                gridBucket: gridBucketLeft,
+                                avgColor: {
+                                    r: 0,
+                                    g: 0,
+                                    b: 0,
+                                },
+                                avgColorKey: ""
+                            });
+                            gridBuckets.push({
+                                position: y,
+                                edge: 'right',
+                                gridBucket: gridBucketRight,
+                                avgColor: {
+                                    r: 0,
+                                    g: 0,
+                                    b: 0,
+                                },
+                                avgColorKey: ""
+                            });
+                        }
+                        imageIndex++;
+                        cachedImage.gridBuckets = calculateAverageGridBuckets(gridBuckets);
+                    });
+                    let colorKeyLookupToSocket = this.getColorKeyLookupToSocket(imageCache, maxBuckets, socketKeys, context);
+                    let namedEdges = {};
+                    imageCache.forEach((cachedImage) => {
+                        let rows = [];
+                        cachedImage.gridBuckets.forEach((bucket) => {
+                            if (rows[bucket.edge] == undefined) {
+                                rows[bucket.edge] = [];
+                            }
+                            rows[bucket.edge][bucket.position] = colorKeyLookupToSocket[bucket.avgColorKey];
+                        });
+                        namedEdges[cachedImage.name] = rows;
+                    });
+                    tiles.forEach((tile) => {
+                        if (namedEdges[tile.name] == undefined) {
+                            return;
+                        }
+                        let edges = namedEdges[tile.name];
+                        tile.socket = {
+                            "top": edges['top'].join(""),
+                            "bottom": [...edges['bottom']].reverse().join(""),
+                            "left": [...edges['left']].reverse().join(""),
+                            "right": edges['right'].join("")
+                        };
+                    });
+                }
+                else if (generator.type == "pixels") {
+                    imageCache.forEach((cachedImage) => {
+                        let dataRGB = this.imageToRGB(cachedImage.img);
+                        let gridBuckets = [];
+                        let pixelY = 0;
+                        for (let y = 0; y < gridSize; y++) {
+                            let innerGridHeight = Math.floor(cachedImage.img.height / gridSize);
+                            if (y != 0 && y != (gridSize - 1)) {
+                                innerGridHeight = Math.ceil(cachedImage.img.height / gridSize);
+                            }
+                            let pixelX = 0;
+                            let storedPixelY = pixelY;
+                            for (let x = 0; x < gridSize; x++) {
+                                let innerGridWidth = Math.floor(cachedImage.img.width / gridSize);
+                                if (x != 0 && x != (gridSize - 1)) {
+                                    innerGridWidth = Math.ceil(cachedImage.img.width / gridSize);
+                                }
+                                let gridBucket = [];
+                                let storedPixelX = pixelX;
+                                pixelY = storedPixelY;
+                                for (let y2 = 0; y2 < innerGridHeight; y2++) {
+                                    pixelX = storedPixelX;
+                                    for (let x2 = 0; x2 < innerGridWidth; x2++) {
+                                        gridBucket.push({
+                                            x: pixelX,
+                                            y: pixelY,
+                                            r: dataRGB[pixelX + pixelY * cachedImage.img.width].r,
+                                            g: dataRGB[pixelX + pixelY * cachedImage.img.width].g,
+                                            b: dataRGB[pixelX + pixelY * cachedImage.img.width].b,
+                                        });
+                                        //debug
+                                        context.fillStyle = "rgb(" + dataRGB[pixelX + pixelY * cachedImage.img.width].r + ", " + dataRGB[pixelX + pixelY * cachedImage.img.width].g + ", " + dataRGB[pixelX + pixelY * cachedImage.img.width].b + ")";
+                                        context.fillRect((0 + pixelX * debugSize) + (debugSpace * x) + (imageIndex * cachedImage.img.width * debugSize) + (imageIndex * (debugSpace + 1)), (200 + pixelY * debugSize) + (debugSpace * y), debugSize, debugSize);
+                                        pixelX++;
+                                    }
+                                    pixelY++;
+                                }
+                                gridBuckets.push({
+                                    x: x,
+                                    y: y,
+                                    gridBucket,
+                                    avgColor: {
+                                        r: 0,
+                                        g: 0,
+                                        b: 0,
+                                    },
+                                    avgColorKey: ""
+                                });
+                            }
+                        }
+                        imageIndex++;
+                        cachedImage.gridBuckets = calculateAverageGridBuckets(gridBuckets);
+                    });
+                    let colorKeyLookupToSocket = this.getColorKeyLookupToSocket(imageCache, maxBuckets, socketKeys, context);
+                    let namedRows = {};
+                    imageCache.forEach((cachedImage) => {
+                        let rows = [];
+                        cachedImage.gridBuckets.forEach((bucket) => {
+                            if (rows[bucket.y] == undefined) {
+                                rows[bucket.y] = [];
+                            }
+                            rows[bucket.y][bucket.x] = colorKeyLookupToSocket[bucket.avgColorKey];
+                        });
+                        namedRows[cachedImage.name] = rows;
+                    });
+                    tiles.forEach((tile) => {
+                        if (namedRows[tile.name] == undefined) {
+                            return;
+                        }
+                        let rows = namedRows[tile.name];
+                        tile.socket = {
+                            "top": rows[0].join(""),
+                            "bottom": [...rows[rows.length - 1]].reverse().join(""),
+                            "left": rows.reduce((a, b) => b[0] + a, ""),
+                            "right": rows.reduce((a, b) => a + b[b.length - 1], "")
+                        };
+                    });
+                }
+            }
         }
         return tiles;
+    }
+    getColorKeyLookupToSocket(imageCache, maxBuckets, socketKeys, debugContext) {
+        let colorBucketToSocket = [];
+        let maxDistanceIndexes = [];
+        let avgColorsKeys = imageCache.map(cache => cache.gridBuckets.map((gridBucket) => gridBucket.avgColorKey)).flat();
+        let uniqueAvgColors = [...new Set(avgColorsKeys)].map((key) => {
+            var spl = key.split("|");
+            let r = parseFloat(spl[0]);
+            let g = parseFloat(spl[1]);
+            let b = parseFloat(spl[2]);
+            return {
+                r: r,
+                g: g,
+                b: b,
+                key: key
+            };
+        });
+        let uniqueAvgColorsHsv = uniqueAvgColors.map((color) => {
+            return {
+                hsv: this.rgb2hsv(color),
+                rgbKey: color.key
+            };
+        });
+        let distancesLookup = [];
+        for (let color1index = 0; color1index < uniqueAvgColors.length; color1index++) {
+            for (let color2index = color1index + 1; color2index < uniqueAvgColors.length; color2index++) {
+                if (color1index == color2index)
+                    continue;
+                let color1hsv = uniqueAvgColorsHsv[color1index].hsv;
+                let color2hsv = uniqueAvgColorsHsv[color2index].hsv;
+                let distance = this.hsvdistance(color1hsv, color2hsv);
+                distancesLookup[color1index < color2index ? color1index : color2index] = distancesLookup[color1index < color2index ? color1index : color2index] || [];
+                distancesLookup[color1index < color2index ? color1index : color2index][color1index < color2index ? color2index : color1index] = {
+                    color1index: color1index,
+                    color2index: color2index,
+                    color1hsv,
+                    color2hsv,
+                    distance
+                };
+            }
+        }
+        let lookupDistance = (color1index, color2index) => {
+            if (color1index == color2index)
+                return 0;
+            if (color1index < color2index) {
+                return distancesLookup[color1index][color2index].distance;
+            }
+            else {
+                return distancesLookup[color2index][color1index].distance;
+            }
+        };
+        maxBuckets = Math.min(maxBuckets, uniqueAvgColors.length);
+        if (maxBuckets == 1) {
+            colorBucketToSocket.push([0]);
+            maxDistanceIndexes.push(0);
+        }
+        if (maxBuckets > 1) {
+            let maxPair = [...distancesLookup.flat()]
+                .sort((a, b) => a.distance - b.distance)
+                .slice(-1)[0];
+            colorBucketToSocket.push([maxPair.color1index]);
+            colorBucketToSocket.push([maxPair.color2index]);
+            maxDistanceIndexes.push(maxPair.color1index);
+            maxDistanceIndexes.push(maxPair.color2index);
+            for (var loop = 3; loop <= maxBuckets; loop++) {
+                let maxDistanceCompare = 0;
+                let maxDistanceNewIndex = -1;
+                for (let i = 0; i < uniqueAvgColors.length; i++) {
+                    if (maxDistanceIndexes.includes(i))
+                        continue;
+                    let newDistance = Math.sqrt(maxDistanceIndexes.reduce((sum, index) => sum += Math.pow(lookupDistance(index, i), 2), 0));
+                    if (newDistance > maxDistanceCompare) {
+                        maxDistanceCompare = newDistance;
+                        maxDistanceNewIndex = i;
+                    }
+                }
+                maxDistanceIndexes.push(maxDistanceNewIndex);
+                colorBucketToSocket.push([maxDistanceNewIndex]);
+            }
+        }
+        for (let i = 0; i < uniqueAvgColors.length; i++) {
+            if (maxDistanceIndexes.includes(i))
+                continue;
+            let arr = [];
+            for (var j = 0; j < maxDistanceIndexes.length; j++) {
+                arr.push({
+                    "index": j,
+                    "distance": lookupDistance(maxDistanceIndexes[j], i)
+                });
+            }
+            let sorted = arr.sort((a, b) => a.distance - b.distance);
+            colorBucketToSocket[sorted[0].index].push(i);
+        }
+        // debug avgColors
+        for (let i = 0; i < uniqueAvgColors.length; i++) {
+            let color = uniqueAvgColors[i];
+            debugContext.fillStyle = "rgb(" + color.r + ", " + color.g + ", " + color.b + ")";
+            debugContext.fillRect(20 * i, 0, 20, 20);
+        }
+        //debug buckets
+        colorBucketToSocket.forEach((bucket, bucketIndex) => {
+            bucket.forEach((index, i) => {
+                let color = uniqueAvgColors[index];
+                debugContext.fillStyle = "rgb(" + color.r + ", " + color.g + ", " + color.b + ")";
+                debugContext.fillRect(20 * i, (30 * bucketIndex) + 30, 20, 20);
+            });
+        });
+        let colorKeyLookupToSocket = {};
+        for (var i = 0; i < colorBucketToSocket.length; i++) {
+            let colorBucket = colorBucketToSocket[i];
+            for (let j = 0; j < colorBucket.length; j++) {
+                let colorIndex = colorBucket[j];
+                let color = uniqueAvgColors[colorIndex];
+                colorKeyLookupToSocket[color.key] = socketKeys[i];
+            }
+        }
+        return colorKeyLookupToSocket;
+    }
+    ;
+    hsvdistance(color1hsv, color2hsv) {
+        let hbias = 4.0;
+        let sbias = 4.0;
+        let vbias = 1;
+        //let hbias = 7.0;
+        //let sbias = 1.0;
+        //let vbias = 1;
+        let hdiff = Math.min(Math.abs(color1hsv.h - color2hsv.h), Math.abs(color1hsv.h - color2hsv.h + (color1hsv.h < color2hsv.h ? -360.0 : 360.0))); // * 1.2;
+        let sdiff = Math.abs(color1hsv.s - color2hsv.s);
+        let vdiff = Math.abs(color1hsv.v - color2hsv.v);
+        let distance = Math.sqrt(Math.pow(hdiff * hbias, 2) + Math.pow(sdiff * sbias, 2) + Math.pow(vdiff * vbias, 2));
+        return distance;
+    }
+    rgb2hsv(c) {
+        let rabs, gabs, babs, rr, gg, bb, h, s, v, diff;
+        rabs = c.r / 255;
+        gabs = c.g / 255;
+        babs = c.b / 255;
+        h = 0;
+        v = Math.max(rabs, gabs, babs),
+            diff = v - Math.min(rabs, gabs, babs);
+        let diffc = (c) => (v - c) / 6 / diff + 1 / 2;
+        let percentRoundFn = (num) => Math.round(num * 100) / 100;
+        if (diff == 0) {
+            h = s = 0;
+        }
+        else {
+            s = diff / v;
+            rr = diffc(rabs);
+            gg = diffc(gabs);
+            bb = diffc(babs);
+            if (rabs === v) {
+                h = bb - gg;
+            }
+            else if (gabs === v) {
+                h = (1 / 3) + rr - bb;
+            }
+            else if (babs === v) {
+                h = (2 / 3) + gg - rr;
+            }
+            if (h < 0) {
+                h += 1;
+            }
+            else if (h > 1) {
+                h -= 1;
+            }
+        }
+        return {
+            h: Math.round(h * 360),
+            s: percentRoundFn(s * 100),
+            v: percentRoundFn(v * 100)
+        };
+    }
+    preloadImage(src) {
+        return new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = (event) => resolve(image);
+            image.onerror = (event) => reject();
+            image.src = src;
+            return image;
+        });
     }
     mapSetConfigToPieces(set, pieces) {
         Object.entries(set).forEach((value) => {
@@ -2506,7 +3008,7 @@ module.exports = JSON.parse('{"all":{"000_000_000":{},"000_000_001":{},"000_000_
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"bridge","rotations":[0,1],"weight":2,"socket":{"top":"010","right":"020","bottom":"010","left":"020"}},{"name":"ground","rotations":[0],"weight":3,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"river","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"riverturn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"road","rotations":[0,1],"weight":3,"socket":{"top":"020","right":"000","bottom":"020","left":"000"}},{"name":"roadturn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"020","right":"020","bottom":"000","left":"000"}},{"name":"t","rotations":[0,1,2,3],"weight":2,"socket":{"top":"000","right":"020","bottom":"020","left":"020"}},{"name":"tower","rotations":[0,1,2,3],"weight":1,"socket":{"top":["030"],"right":["030"],"bottom":["000"],"left":["000"]},"blacklist":{"bottom":{"tower":[0,1,2,3],"wall":[1,3]},"right":{"tower":[0,1,2,3],"wall":[0,2]},"top":{"tower":[0,1,2,3],"wall":[1,3]},"left":{"tower":[0,1,2,3],"wall":[0,2]}}},{"name":"wall","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"000","bottom":"030","left":"000"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}},{"name":"wallriver","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"010","bottom":"030","left":"010"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}},{"name":"wallroad","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"020","bottom":"030","left":"020"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}}]');
+module.exports = JSON.parse('{"metadata":{"name":"Castle","socketGenerator":{"type":"pixelsedge","settings":{"gridSize":7,"buckets":6}}},"tiles":[{"name":"bridge","rotations":[0,1],"weight":2,"socket":{"top":"010","right":"020","bottom":"010","left":"020"}},{"name":"ground","rotations":[0],"weight":3,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"river","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"riverturn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"road","rotations":[0,1],"weight":3,"socket":{"top":"020","right":"000","bottom":"020","left":"000"}},{"name":"roadturn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"020","right":"020","bottom":"000","left":"000"}},{"name":"t","rotations":[0,1,2,3],"weight":2,"socket":{"top":"000","right":"020","bottom":"020","left":"020"}},{"name":"tower","rotations":[0,1,2,3],"weight":1,"socket":{"top":["030"],"right":["030"],"bottom":["000"],"left":["000"]},"blacklist":{"bottom":{"tower":[0,1,2,3],"wall":[1,3]},"right":{"tower":[0,1,2,3],"wall":[0,2]},"top":{"tower":[0,1,2,3],"wall":[1,3]},"left":{"tower":[0,1,2,3],"wall":[0,2]}}},{"name":"wall","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"000","bottom":"030","left":"000"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}},{"name":"wallriver","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"010","bottom":"030","left":"010"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}},{"name":"wallroad","rotations":[0,1],"weight":1,"socket":{"top":"030","right":"020","bottom":"030","left":"020"},"blacklist":{"left":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]},"right":{"wall":[0],"wallriver":[0],"wallroad":[0],"tower":[0,1,2,3]}}}]}');
 
 /***/ }),
 
@@ -2517,7 +3019,7 @@ module.exports = JSON.parse('[{"name":"bridge","rotations":[0,1],"weight":2,"soc
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"b_half","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"011","bottom":"111","left":"110"}},{"name":"b_i","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"b_quarter","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"000","bottom":"111","left":"111"}},{"name":"b","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"w_half","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"100","bottom":"000","left":"001"}},{"name":"w_i","rotations":[0,1],"weight":1,"socket":{"top":"111","right":"101","bottom":"111","left":"101"}},{"name":"w_quarter","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"111","bottom":"000","left":"000"}},{"name":"w","rotations":[0],"weight":1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}}]');
+module.exports = JSON.parse('{"metadata":{"name":"Circle","socketGenerator":{"type":"pixelsedge","settings":{}}},"tiles":[{"name":"b_half","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"011","bottom":"111","left":"110"}},{"name":"b_i","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"b_quarter","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"000","bottom":"111","left":"111"}},{"name":"b","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"w_half","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"100","bottom":"000","left":"001"}},{"name":"w_i","rotations":[0,1],"weight":1,"socket":{"top":"111","right":"101","bottom":"111","left":"101"}},{"name":"w_quarter","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"111","bottom":"000","left":"000"}},{"name":"w","rotations":[0],"weight":1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}}]}');
 
 /***/ }),
 
@@ -2528,7 +3030,7 @@ module.exports = JSON.parse('[{"name":"b_half","rotations":[0,1,2,3],"weight":1,
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"bridge","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"020","bottom":"010","left":"020"}},{"name":"connection","rotations":[0,1,2,3],"weight":3,"socket":{"top":"010","right":"003","bottom":"333","left":"300"},"blacklist":{"bottom":{"connection":[2]}}},{"name":"dskew","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"skew","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"substrate","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}},{"name":"track","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"transition","rotations":[0,1,2,3],"weight":1,"socket":{"top":"020","right":"000","bottom":"010","left":"000"}},{"name":"turn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"viad","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"vias","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"000","left":"000"}},{"name":"wire","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"020","bottom":"000","left":"020"}},{"name":"component","rotations":[0],"weight":1,"socket":{"top":"333","right":"333","bottom":"333","left":"333"}},{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"000","bottom":"003","left":"300"}}]');
+module.exports = JSON.parse('{"metadata":{"name":"Circuit","socketGenerator":{"type":"pixels","settings":{}}},"tiles":[{"name":"bridge","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"020","bottom":"010","left":"020"}},{"name":"connection","rotations":[0,1,2,3],"weight":3,"socket":{"top":"010","right":"003","bottom":"333","left":"300"},"blacklist":{"bottom":{"connection":[2]}}},{"name":"dskew","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"skew","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"substrate","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}},{"name":"track","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"transition","rotations":[0,1,2,3],"weight":1,"socket":{"top":"020","right":"000","bottom":"010","left":"000"}},{"name":"turn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"viad","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"vias","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"000","left":"000"}},{"name":"wire","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"020","bottom":"000","left":"020"}},{"name":"component","rotations":[0],"weight":1,"socket":{"top":"333","right":"333","bottom":"333","left":"333"}},{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"000","bottom":"003","left":"300"}}]}');
 
 /***/ }),
 
@@ -2539,7 +3041,7 @@ module.exports = JSON.parse('[{"name":"bridge","rotations":[0,1],"weight":1,"soc
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"div","rotations":[0,1],"weight":0.5,"socket":{"top":"111","right":"121","bottom":"111","left":"121"}},{"name":"divt","rotations":[0,1,2,3],"weight":0.5,"socket":{"top":"111","right":"121","bottom":"121","left":"121"}},{"name":"divturn","rotations":[0,1,2,3],"weight":0.5,"socket":{"top":"121","right":"121","bottom":"111","left":"111"}},{"name":"door","rotations":[0,1,2,3],"weight":0.2,"socket":{"top":"111","right":"121","bottom":"111","left":"121"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"floor","rotations":[0],"weight":3,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"glass","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"130","bottom":"000","left":"031"}},{"name":"halfglass","rotations":[0,1,2,3],"weight":0.3,"socket":{"top":"111","right":"130","bottom":"000","left":"021"}},{"name":"halfglass2","rotations":[0,1,2,3],"weight":0.3,"socket":{"top":"111","right":"120","bottom":"000","left":"031"}},{"name":"in","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"120","left":"021"}},{"name":"out","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"021","right":"120","bottom":"000","left":"000"}},{"name":"stairs","rotations":[0,1,2,3],"weight":0.2,"socket":{"top":"111","right":"121","bottom":"222","left":"121"}},{"name":"table","rotations":[0],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"vent","rotations":[0],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"w","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}},{"name":"wall","rotations":[0,1,2,3],"weight":0.25,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}},{"name":"walldiv","rotations":[0,1,2,3],"weight":0.25,"socket":{"top":"121","right":"120","bottom":"000","left":"021"}},{"name":"window","rotations":[0,1,2,3],"weight":0.05,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}}]');
+module.exports = JSON.parse('{"metadata":{"name":"FloorPlan","socketGenerator":{"type":"pixels","settings":{"gridSize":9,"buckets":4}}},"tiles":[{"name":"div","rotations":[0,1],"weight":0.5,"socket":{"top":"111","right":"121","bottom":"111","left":"121"}},{"name":"divt","rotations":[0,1,2,3],"weight":0.5,"socket":{"top":"111","right":"121","bottom":"121","left":"121"}},{"name":"divturn","rotations":[0,1,2,3],"weight":0.5,"socket":{"top":"121","right":"121","bottom":"111","left":"111"}},{"name":"door","rotations":[0,1,2,3],"weight":0.2,"socket":{"top":"111","right":"121","bottom":"111","left":"121"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"floor","rotations":[0],"weight":3,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"glass","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"130","bottom":"000","left":"031"}},{"name":"halfglass","rotations":[0,1,2,3],"weight":0.3,"socket":{"top":"111","right":"130","bottom":"000","left":"021"}},{"name":"halfglass2","rotations":[0,1,2,3],"weight":0.3,"socket":{"top":"111","right":"120","bottom":"000","left":"031"}},{"name":"in","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"120","left":"021"}},{"name":"out","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"021","right":"120","bottom":"000","left":"000"}},{"name":"stairs","rotations":[0,1,2,3],"weight":0.2,"socket":{"top":"111","right":"121","bottom":"222","left":"121"}},{"name":"table","rotations":[0],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"vent","rotations":[0],"weight":0.1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"w","rotations":[0,1,2,3],"weight":0.1,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}},{"name":"wall","rotations":[0,1,2,3],"weight":0.25,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}},{"name":"walldiv","rotations":[0,1,2,3],"weight":0.25,"socket":{"top":"121","right":"120","bottom":"000","left":"021"}},{"name":"window","rotations":[0,1,2,3],"weight":0.05,"socket":{"top":"111","right":"120","bottom":"000","left":"021"}}]}');
 
 /***/ }),
 
@@ -2550,7 +3052,7 @@ module.exports = JSON.parse('[{"name":"div","rotations":[0,1],"weight":0.5,"sock
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"metadata":{"name":"Happyland","socketGenerator":{"type":"name","settings":{"namingtype":"border","regex":"set[0-9]+_(?<top>[0-9]+)_(?<right>[0-9]+)_(?<bottom>[0-9]+)_(?<left>[0-9]+)"}}},"tiles":[{"name":"set2_000_000_000_000","rotations":[0],"weight":1},{"name":"set2_000_000_001_100","rotations":[0],"weight":1},{"name":"set2_000_001_111_100","rotations":[0],"weight":1},{"name":"set2_000_001_100_000","rotations":[0],"weight":1},{"name":"set2_001_111_111_100","rotations":[0],"weight":1},{"name":"set2_001_111_100_000","rotations":[0],"weight":1},{"name":"set2_001_100_000_000","rotations":[0],"weight":1},{"name":"set2_001_100_001_100","rotations":[0],"weight":1},{"name":"set2_111_111_111_111","rotations":[0],"weight":1},{"name":"set2_111_111_100_001","rotations":[0],"weight":1},{"name":"set2_111_100_000_001","rotations":[0],"weight":1},{"name":"set2_111_100_001_111","rotations":[0],"weight":1},{"name":"set2_100_000_000_001","rotations":[0],"weight":1},{"name":"set2_100_000_001_111","rotations":[0],"weight":1},{"name":"set2_100_001_111_111","rotations":[0],"weight":1},{"name":"set2_100_001_100_001","rotations":[0],"weight":1},{"name":"set3_000_000_000_000","rotations":[0],"weight":1},{"name":"set3_000_000_001_100","rotations":[0],"weight":1},{"name":"set3_000_000_022_220","rotations":[0],"weight":1},{"name":"set3_000_001_100_000","rotations":[0],"weight":1},{"name":"set3_000_001_111_100","rotations":[0],"weight":1},{"name":"set3_000_021_122_220","rotations":[0],"weight":1},{"name":"set3_000_022_220_000","rotations":[0],"weight":1},{"name":"set3_000_022_221_120","rotations":[0],"weight":1},{"name":"set3_000_022_222_220","rotations":[0],"weight":1},{"name":"set3_001_100_000_000","rotations":[0],"weight":1},{"name":"set3_001_100_001_100","rotations":[0],"weight":1},{"name":"set3_001_111_100_000","rotations":[0],"weight":1},{"name":"set3_001_111_111_100","rotations":[0],"weight":1},{"name":"set3_021_111_122_220","rotations":[0],"weight":1},{"name":"set3_021_120_022_220","rotations":[0],"weight":1},{"name":"set3_021_122_220_000","rotations":[0],"weight":1},{"name":"set3_021_122_221_120","rotations":[0],"weight":1},{"name":"set3_021_122_222_220","rotations":[0],"weight":1},{"name":"set3_022_220_000_000","rotations":[0],"weight":1},{"name":"set3_022_220_021_120","rotations":[0],"weight":1},{"name":"set3_022_220_022_220","rotations":[0],"weight":1},{"name":"set3_022_221_111_120","rotations":[0],"weight":1},{"name":"set3_022_221_120_000","rotations":[0],"weight":1},{"name":"set3_022_221_122_220","rotations":[0],"weight":1},{"name":"set3_022_222_220_000","rotations":[0],"weight":1},{"name":"set3_022_222_221_120","rotations":[0],"weight":1},{"name":"set3_022_222_222_220","rotations":[0],"weight":1},{"name":"set3_100_000_000_001","rotations":[0],"weight":1},{"name":"set3_100_000_001_111","rotations":[0],"weight":1},{"name":"set3_100_001_100_001","rotations":[0],"weight":1},{"name":"set3_100_001_111_111","rotations":[0],"weight":1},{"name":"set3_111_100_000_001","rotations":[0],"weight":1},{"name":"set3_111_100_001_111","rotations":[0],"weight":1},{"name":"set3_111_111_100_001","rotations":[0],"weight":1},{"name":"set3_111_111_111_111","rotations":[0],"weight":1},{"name":"set3_111_111_122_221","rotations":[0],"weight":1},{"name":"set3_111_120_022_221","rotations":[0],"weight":1},{"name":"set3_111_122_220_021","rotations":[0],"weight":1},{"name":"set3_111_122_221_111","rotations":[0],"weight":1},{"name":"set3_111_122_222_221","rotations":[0],"weight":1},{"name":"set3_120_000_022_221","rotations":[0],"weight":1},{"name":"set3_120_021_122_221","rotations":[0],"weight":1},{"name":"set3_120_022_220_021","rotations":[0],"weight":1},{"name":"set3_120_022_221_111","rotations":[0],"weight":1},{"name":"set3_120_022_222_221","rotations":[0],"weight":1},{"name":"set3_122_220_000_021","rotations":[0],"weight":1},{"name":"set3_122_220_021_111","rotations":[0],"weight":1},{"name":"set3_122_220_022_221","rotations":[0],"weight":1},{"name":"set3_122_221_111_111","rotations":[0],"weight":1},{"name":"set3_122_221_120_021","rotations":[0],"weight":1},{"name":"set3_122_221_122_221","rotations":[0],"weight":1},{"name":"set3_122_222_220_021","rotations":[0],"weight":1},{"name":"set3_122_222_221_111","rotations":[0],"weight":1},{"name":"set3_122_222_222_221","rotations":[0],"weight":1},{"name":"set3_220_000_000_022","rotations":[0],"weight":1},{"name":"set3_220_000_021_122","rotations":[0],"weight":1},{"name":"set3_220_000_022_222","rotations":[0],"weight":1},{"name":"set3_220_021_111_122","rotations":[0],"weight":1},{"name":"set3_220_021_122_222","rotations":[0],"weight":1},{"name":"set3_220_022_220_022","rotations":[0],"weight":1},{"name":"set3_220_022_221_122","rotations":[0],"weight":1},{"name":"set3_220_022_222_222","rotations":[0],"weight":1},{"name":"set3_221_111_100_022","rotations":[0],"weight":1},{"name":"set3_221_111_111_122","rotations":[0],"weight":1},{"name":"set3_221_111_122_222","rotations":[0],"weight":1},{"name":"set3_221_120_000_022","rotations":[0],"weight":1},{"name":"set3_221_120_021_122","rotations":[0],"weight":1},{"name":"set3_221_120_022_222","rotations":[0],"weight":1},{"name":"set3_221_122_220_022","rotations":[0],"weight":1},{"name":"set3_221_122_221_122","rotations":[0],"weight":1},{"name":"set3_221_122_222_222","rotations":[0],"weight":1},{"name":"set3_222_220_000_022","rotations":[0],"weight":1},{"name":"set3_222_220_021_122","rotations":[0],"weight":1},{"name":"set3_222_220_022_222","rotations":[0],"weight":1},{"name":"set3_222_221_111_122","rotations":[0],"weight":1},{"name":"set3_222_221_120_022","rotations":[0],"weight":1},{"name":"set3_222_221_122_222","rotations":[0],"weight":1},{"name":"set3_222_222_220_022","rotations":[0],"weight":1},{"name":"set3_222_222_221_122","rotations":[0],"weight":1},{"name":"set3_222_222_222_222","rotations":[0],"weight":1}]}');
+module.exports = JSON.parse('{"metadata":{"name":"Happyland","socketGenerator":{"type2":"name","settings2":{"namingtype":"border","regex":"set[0-9]+_(?<top>[0-9]+)_(?<right>[0-9]+)_(?<bottom>[0-9]+)_(?<left>[0-9]+)"},"type":"pixelsedge","settings":{}}},"tiles":[{"name":"set2_000_000_000_000","rotations":[0],"weight":1},{"name":"set2_000_000_001_100","rotations":[0],"weight":1},{"name":"set2_000_001_111_100","rotations":[0],"weight":1},{"name":"set2_000_001_100_000","rotations":[0],"weight":1},{"name":"set2_001_111_111_100","rotations":[0],"weight":1},{"name":"set2_001_111_100_000","rotations":[0],"weight":1},{"name":"set2_001_100_000_000","rotations":[0],"weight":1},{"name":"set2_001_100_001_100","rotations":[0],"weight":1},{"name":"set2_111_111_111_111","rotations":[0],"weight":1},{"name":"set2_111_111_100_001","rotations":[0],"weight":1},{"name":"set2_111_100_000_001","rotations":[0],"weight":1},{"name":"set2_111_100_001_111","rotations":[0],"weight":1},{"name":"set2_100_000_000_001","rotations":[0],"weight":1},{"name":"set2_100_000_001_111","rotations":[0],"weight":1},{"name":"set2_100_001_111_111","rotations":[0],"weight":1},{"name":"set2_100_001_100_001","rotations":[0],"weight":1},{"name":"set3_000_000_000_000","rotations":[0],"weight":1},{"name":"set3_000_000_001_100","rotations":[0],"weight":1},{"name":"set3_000_000_022_220","rotations":[0],"weight":1},{"name":"set3_000_001_100_000","rotations":[0],"weight":1},{"name":"set3_000_001_111_100","rotations":[0],"weight":1},{"name":"set3_000_021_122_220","rotations":[0],"weight":1},{"name":"set3_000_022_220_000","rotations":[0],"weight":1},{"name":"set3_000_022_221_120","rotations":[0],"weight":1},{"name":"set3_000_022_222_220","rotations":[0],"weight":1},{"name":"set3_001_100_000_000","rotations":[0],"weight":1},{"name":"set3_001_100_001_100","rotations":[0],"weight":1},{"name":"set3_001_111_100_000","rotations":[0],"weight":1},{"name":"set3_001_111_111_100","rotations":[0],"weight":1},{"name":"set3_021_111_122_220","rotations":[0],"weight":1},{"name":"set3_021_120_022_220","rotations":[0],"weight":1},{"name":"set3_021_122_220_000","rotations":[0],"weight":1},{"name":"set3_021_122_221_120","rotations":[0],"weight":1},{"name":"set3_021_122_222_220","rotations":[0],"weight":1},{"name":"set3_022_220_000_000","rotations":[0],"weight":1},{"name":"set3_022_220_021_120","rotations":[0],"weight":1},{"name":"set3_022_220_022_220","rotations":[0],"weight":1},{"name":"set3_022_221_111_120","rotations":[0],"weight":1},{"name":"set3_022_221_120_000","rotations":[0],"weight":1},{"name":"set3_022_221_122_220","rotations":[0],"weight":1},{"name":"set3_022_222_220_000","rotations":[0],"weight":1},{"name":"set3_022_222_221_120","rotations":[0],"weight":1},{"name":"set3_022_222_222_220","rotations":[0],"weight":1},{"name":"set3_100_000_000_001","rotations":[0],"weight":1},{"name":"set3_100_000_001_111","rotations":[0],"weight":1},{"name":"set3_100_001_100_001","rotations":[0],"weight":1},{"name":"set3_100_001_111_111","rotations":[0],"weight":1},{"name":"set3_111_100_000_001","rotations":[0],"weight":1},{"name":"set3_111_100_001_111","rotations":[0],"weight":1},{"name":"set3_111_111_100_001","rotations":[0],"weight":1},{"name":"set3_111_111_111_111","rotations":[0],"weight":1},{"name":"set3_111_111_122_221","rotations":[0],"weight":1},{"name":"set3_111_120_022_221","rotations":[0],"weight":1},{"name":"set3_111_122_220_021","rotations":[0],"weight":1},{"name":"set3_111_122_221_111","rotations":[0],"weight":1},{"name":"set3_111_122_222_221","rotations":[0],"weight":1},{"name":"set3_120_000_022_221","rotations":[0],"weight":1},{"name":"set3_120_021_122_221","rotations":[0],"weight":1},{"name":"set3_120_022_220_021","rotations":[0],"weight":1},{"name":"set3_120_022_221_111","rotations":[0],"weight":1},{"name":"set3_120_022_222_221","rotations":[0],"weight":1},{"name":"set3_122_220_000_021","rotations":[0],"weight":1},{"name":"set3_122_220_021_111","rotations":[0],"weight":1},{"name":"set3_122_220_022_221","rotations":[0],"weight":1},{"name":"set3_122_221_111_111","rotations":[0],"weight":1},{"name":"set3_122_221_120_021","rotations":[0],"weight":1},{"name":"set3_122_221_122_221","rotations":[0],"weight":1},{"name":"set3_122_222_220_021","rotations":[0],"weight":1},{"name":"set3_122_222_221_111","rotations":[0],"weight":1},{"name":"set3_122_222_222_221","rotations":[0],"weight":1},{"name":"set3_220_000_000_022","rotations":[0],"weight":1},{"name":"set3_220_000_021_122","rotations":[0],"weight":1},{"name":"set3_220_000_022_222","rotations":[0],"weight":1},{"name":"set3_220_021_111_122","rotations":[0],"weight":1},{"name":"set3_220_021_122_222","rotations":[0],"weight":1},{"name":"set3_220_022_220_022","rotations":[0],"weight":1},{"name":"set3_220_022_221_122","rotations":[0],"weight":1},{"name":"set3_220_022_222_222","rotations":[0],"weight":1},{"name":"set3_221_111_100_022","rotations":[0],"weight":1},{"name":"set3_221_111_111_122","rotations":[0],"weight":1},{"name":"set3_221_111_122_222","rotations":[0],"weight":1},{"name":"set3_221_120_000_022","rotations":[0],"weight":1},{"name":"set3_221_120_021_122","rotations":[0],"weight":1},{"name":"set3_221_120_022_222","rotations":[0],"weight":1},{"name":"set3_221_122_220_022","rotations":[0],"weight":1},{"name":"set3_221_122_221_122","rotations":[0],"weight":1},{"name":"set3_221_122_222_222","rotations":[0],"weight":1},{"name":"set3_222_220_000_022","rotations":[0],"weight":1},{"name":"set3_222_220_021_122","rotations":[0],"weight":1},{"name":"set3_222_220_022_222","rotations":[0],"weight":1},{"name":"set3_222_221_111_122","rotations":[0],"weight":1},{"name":"set3_222_221_120_022","rotations":[0],"weight":1},{"name":"set3_222_221_122_222","rotations":[0],"weight":1},{"name":"set3_222_222_220_022","rotations":[0],"weight":1},{"name":"set3_222_222_221_122","rotations":[0],"weight":1},{"name":"set3_222_222_222_222","rotations":[0],"weight":1}]}');
 
 /***/ }),
 
@@ -2561,7 +3063,7 @@ module.exports = JSON.parse('{"metadata":{"name":"Happyland","socketGenerator":{
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"cross","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"010","bottom":"010","left":"010"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"line","rotations":[0,1],"weight":1,"socket":{"top":"000","right":"010","bottom":"000","left":"010"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}}]');
+module.exports = JSON.parse('{"metadata":{"name":"Knots","socketGenerator":{"type":"pixels","settings":{"gridSize":3,"buckets":2}}},"tiles":[{"name":"corner","rotations":[0,1,2,3],"weight":1},{"name":"cross","rotations":[0,1],"weight":1},{"name":"empty","rotations":[0],"weight":1},{"name":"line","rotations":[0,1],"weight":1},{"name":"t","rotations":[0,1,2,3],"weight":1}]}');
 
 /***/ }),
 
@@ -2572,7 +3074,7 @@ module.exports = JSON.parse('[{"name":"corner","rotations":[0,1,2,3],"weight":1,
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"bend","rotations":[0,1,2,3],"weight":1,"socket":{"top":"100","right":"001","bottom":"111","left":"111"}},{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"001","right":"100","bottom":"000","left":"000"}},{"name":"corridor","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"door","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"100","bottom":"010","left":"001"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"side","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"001","bottom":"111","left":"100"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}},{"name":"turn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"wall","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}}]');
+module.exports = JSON.parse('{"metadata":{"name":"Rooms","socketGenerator":{"type":"pixels","settings":{"gridSize":3,"buckets":2}}},"tiles":[{"name":"bend","rotations":[0,1,2,3],"weight":1,"socket":{"top":"100","right":"001","bottom":"111","left":"111"}},{"name":"corner","rotations":[0,1,2,3],"weight":1,"socket":{"top":"001","right":"100","bottom":"000","left":"000"}},{"name":"corridor","rotations":[0,1],"weight":1,"socket":{"top":"010","right":"000","bottom":"010","left":"000"}},{"name":"door","rotations":[0,1,2,3],"weight":1,"socket":{"top":"111","right":"100","bottom":"010","left":"001"}},{"name":"empty","rotations":[0],"weight":1,"socket":{"top":"111","right":"111","bottom":"111","left":"111"}},{"name":"side","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"001","bottom":"111","left":"100"}},{"name":"t","rotations":[0,1,2,3],"weight":1,"socket":{"top":"000","right":"010","bottom":"010","left":"010"}},{"name":"turn","rotations":[0,1,2,3],"weight":1,"socket":{"top":"010","right":"010","bottom":"000","left":"000"}},{"name":"wall","rotations":[0],"weight":1,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}}]}');
 
 /***/ }),
 
@@ -2594,7 +3096,7 @@ module.exports = JSON.parse('[{"name":"1","rotations":[0],"weight":1,"socket":{"
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('[{"name":"cliff 0","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"040","bottom":"000","left":"040"}},{"name":"cliff 1","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"040","left":"000"}},{"name":"cliff 2","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"030","bottom":"000","left":"030"}},{"name":"cliff 3","rotations":[0],"weight":0.1,"socket":{"top":"030","right":"000","bottom":"030","left":"000"}},{"name":"cliffcorner 0","rotations":[0],"weight":0.1,"socket":{"top":"030","right":"030","bottom":"000","left":"000"}},{"name":"cliffcorner 1","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"000","left":"030"}},{"name":"cliffcorner 2","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"000","bottom":"030","left":"040"}},{"name":"cliffcorner 3","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"040","bottom":"040","left":"000"}},{"name":"cliffturn 0","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"040","bottom":"000","left":"000"}},{"name":"cliffturn 1","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"000","left":"040"}},{"name":"cliffturn 2","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"000","bottom":"030","left":"030"}},{"name":"cliffturn 3","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"030","bottom":"030","left":"000"}},{"name":"grass 0","rotations":[0],"weight":2,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"grasscorner 0","rotations":[0],"weight":0.4,"socket":{"top":"110","right":"011","bottom":"111","left":"111"}},{"name":"grasscorner 1","rotations":[0],"weight":0.4,"socket":{"top":"011","right":"111","bottom":"111","left":"110"}},{"name":"grasscorner 2","rotations":[0],"weight":0.4,"socket":{"top":"111","right":"111","bottom":"110","left":"011"}},{"name":"grasscorner 3","rotations":[0],"weight":0.4,"socket":{"top":"111","right":"110","bottom":"011","left":"111"}},{"name":"road 0","rotations":[0],"weight":0.7,"socket":{"top":"111","right":"110","bottom":"000","left":"011"}},{"name":"road 1","rotations":[0],"weight":0.7,"socket":{"top":"110","right":"000","bottom":"011","left":"111"}},{"name":"road 2","rotations":[0],"weight":0.7,"socket":{"top":"000","right":"011","bottom":"111","left":"110"}},{"name":"road 3","rotations":[0],"weight":0.7,"socket":{"top":"011","right":"111","bottom":"110","left":"000"}},{"name":"roadturn 0","rotations":[0],"weight":0.2,"socket":{"top":"011","right":"110","bottom":"000","left":"000"}},{"name":"roadturn 1","rotations":[0],"weight":0.2,"socket":{"top":"110","right":"000","bottom":"000","left":"011"}},{"name":"roadturn 2","rotations":[0],"weight":0.2,"socket":{"top":"000","right":"000","bottom":"011","left":"110"}},{"name":"roadturn 3","rotations":[0],"weight":0.2,"socket":{"top":"000","right":"011","bottom":"110","left":"000"}},{"name":"water_a 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"water_b 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"water_c 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"watercorner 0","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"230","bottom":"000","left":"000"}},{"name":"watercorner 1","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"000","bottom":"000","left":"032"}},{"name":"watercorner 2","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"000","bottom":"032","left":"230"}},{"name":"watercorner 3","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"032","bottom":"230","left":"000"}},{"name":"waterside 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"230","bottom":"000","left":"032"}},{"name":"waterside 1","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"000","bottom":"032","left":"222"}},{"name":"waterside 2","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"032","bottom":"222","left":"230"}},{"name":"waterside 3","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"222","bottom":"230","left":"000"}},{"name":"waterturn 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"230","left":"032"}},{"name":"waterturn 1","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"230","bottom":"032","left":"222"}},{"name":"waterturn 2","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"032","bottom":"222","left":"222"}},{"name":"waterturn 3","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"222","bottom":"222","left":"230"}}]');
+module.exports = JSON.parse('{"metadata":{"name":"Summer","socketGenerator":{"type":"pixelsedge","settings":{}}},"tiles":[{"name":"cliff 0","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"040","bottom":"000","left":"040"}},{"name":"cliff 1","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"040","left":"000"}},{"name":"cliff 2","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"030","bottom":"000","left":"030"}},{"name":"cliff 3","rotations":[0],"weight":0.1,"socket":{"top":"030","right":"000","bottom":"030","left":"000"}},{"name":"cliffcorner 0","rotations":[0],"weight":0.1,"socket":{"top":"030","right":"030","bottom":"000","left":"000"}},{"name":"cliffcorner 1","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"000","left":"030"}},{"name":"cliffcorner 2","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"000","bottom":"030","left":"040"}},{"name":"cliffcorner 3","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"040","bottom":"040","left":"000"}},{"name":"cliffturn 0","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"040","bottom":"000","left":"000"}},{"name":"cliffturn 1","rotations":[0],"weight":0.1,"socket":{"top":"040","right":"000","bottom":"000","left":"040"}},{"name":"cliffturn 2","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"000","bottom":"030","left":"030"}},{"name":"cliffturn 3","rotations":[0],"weight":0.1,"socket":{"top":"000","right":"030","bottom":"030","left":"000"}},{"name":"grass 0","rotations":[0],"weight":2,"socket":{"top":"000","right":"000","bottom":"000","left":"000"}},{"name":"grasscorner 0","rotations":[0],"weight":0.4,"socket":{"top":"110","right":"011","bottom":"111","left":"111"}},{"name":"grasscorner 1","rotations":[0],"weight":0.4,"socket":{"top":"011","right":"111","bottom":"111","left":"110"}},{"name":"grasscorner 2","rotations":[0],"weight":0.4,"socket":{"top":"111","right":"111","bottom":"110","left":"011"}},{"name":"grasscorner 3","rotations":[0],"weight":0.4,"socket":{"top":"111","right":"110","bottom":"011","left":"111"}},{"name":"road 0","rotations":[0],"weight":0.7,"socket":{"top":"111","right":"110","bottom":"000","left":"011"}},{"name":"road 1","rotations":[0],"weight":0.7,"socket":{"top":"110","right":"000","bottom":"011","left":"111"}},{"name":"road 2","rotations":[0],"weight":0.7,"socket":{"top":"000","right":"011","bottom":"111","left":"110"}},{"name":"road 3","rotations":[0],"weight":0.7,"socket":{"top":"011","right":"111","bottom":"110","left":"000"}},{"name":"roadturn 0","rotations":[0],"weight":0.2,"socket":{"top":"011","right":"110","bottom":"000","left":"000"}},{"name":"roadturn 1","rotations":[0],"weight":0.2,"socket":{"top":"110","right":"000","bottom":"000","left":"011"}},{"name":"roadturn 2","rotations":[0],"weight":0.2,"socket":{"top":"000","right":"000","bottom":"011","left":"110"}},{"name":"roadturn 3","rotations":[0],"weight":0.2,"socket":{"top":"000","right":"011","bottom":"110","left":"000"}},{"name":"water_a 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"water_b 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"water_c 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"222","left":"222"}},{"name":"watercorner 0","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"230","bottom":"000","left":"000"}},{"name":"watercorner 1","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"000","bottom":"000","left":"032"}},{"name":"watercorner 2","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"000","bottom":"032","left":"230"}},{"name":"watercorner 3","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"032","bottom":"230","left":"000"}},{"name":"waterside 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"230","bottom":"000","left":"032"}},{"name":"waterside 1","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"000","bottom":"032","left":"222"}},{"name":"waterside 2","rotations":[0],"weight":0.3,"socket":{"top":"000","right":"032","bottom":"222","left":"230"}},{"name":"waterside 3","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"222","bottom":"230","left":"000"}},{"name":"waterturn 0","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"222","bottom":"230","left":"032"}},{"name":"waterturn 1","rotations":[0],"weight":0.3,"socket":{"top":"222","right":"230","bottom":"032","left":"222"}},{"name":"waterturn 2","rotations":[0],"weight":0.3,"socket":{"top":"230","right":"032","bottom":"222","left":"222"}},{"name":"waterturn 3","rotations":[0],"weight":0.3,"socket":{"top":"032","right":"222","bottom":"222","left":"230"}}]}');
 
 /***/ }),
 
@@ -2605,7 +3107,7 @@ module.exports = JSON.parse('[{"name":"cliff 0","rotations":[0],"weight":0.1,"so
 /***/ ((module) => {
 
 "use strict";
-module.exports = JSON.parse('{"metadata":{"name":"TmwDesertSpacing","socketGenerator":{"type":"name","settings":{"namingtype":"rows","regex":"(.{3})_(.{3})_(.{3})"}}},"tiles":[{"name":"000_000_000","rotations":[0],"weight":1},{"name":"000_000_001","rotations":[0],"weight":1},{"name":"000_000_100","rotations":[0],"weight":1},{"name":"000_000_111","rotations":[0],"weight":1},{"name":"000_033_032","rotations":[0],"weight":1},{"name":"000_055_054","rotations":[0],"weight":1},{"name":"000_0a0_000","rotations":[0],"weight":1},{"name":"000_0b0_000","rotations":[0],"weight":1},{"name":"000_0c0_000","rotations":[0],"weight":1},{"name":"000_0d0_000","rotations":[0],"weight":1},{"name":"000_0e0_000","rotations":[0],"weight":1},{"name":"000_0f0_000","rotations":[0],"weight":1},{"name":"000_0g0_000","rotations":[0],"weight":1},{"name":"000_0h0_000","rotations":[0],"weight":1},{"name":"000_330_230","rotations":[0],"weight":1},{"name":"000_333_222","rotations":[0],"weight":1},{"name":"000_550_450","rotations":[0],"weight":1},{"name":"000_555_444","rotations":[0],"weight":1},{"name":"001_000_000","rotations":[0],"weight":1},{"name":"001_001_001","rotations":[0],"weight":1},{"name":"001_001_111","rotations":[0],"weight":1},{"name":"032_032_032","rotations":[0],"weight":1},{"name":"032_033_000","rotations":[0],"weight":1},{"name":"032_332_222","rotations":[0],"weight":1},{"name":"054_054_054","rotations":[0],"weight":1},{"name":"054_055_000","rotations":[0],"weight":1},{"name":"054_554_444","rotations":[0],"weight":1},{"name":"100_000_000","rotations":[0],"weight":1},{"name":"100_100_100","rotations":[0],"weight":1},{"name":"100_100_111","rotations":[0],"weight":1},{"name":"111_000_000","rotations":[0],"weight":1},{"name":"111_001_001","rotations":[0],"weight":1},{"name":"111_100_100","rotations":[0],"weight":1},{"name":"111_111_111","rotations":[0],"weight":1},{"name":"222_222_222","rotations":[0],"weight":1},{"name":"222_233_230","rotations":[0],"weight":1},{"name":"222_332_032","rotations":[0],"weight":1},{"name":"222_333_000","rotations":[0],"weight":1},{"name":"230_230_230","rotations":[0],"weight":1},{"name":"230_233_222","rotations":[0],"weight":1},{"name":"230_330_000","rotations":[0],"weight":1},{"name":"444_444_444","rotations":[0],"weight":1},{"name":"444_455_450","rotations":[0],"weight":1},{"name":"444_554_054","rotations":[0],"weight":1},{"name":"444_555_000","rotations":[0],"weight":1},{"name":"450_450_450","rotations":[0],"weight":1},{"name":"450_455_444","rotations":[0],"weight":1},{"name":"450_550_000","rotations":[0],"weight":1}]}');
+module.exports = JSON.parse('{"metadata":{"name":"TmwDesertSpacing","socketGenerator":{"type2":"name","settings2":{"namingtype":"rows","regex":"(.{3})_(.{3})_(.{3})"},"type":"pixelsedge","settings":{}}},"tiles":[{"name":"000_000_000","rotations":[0],"weight":1},{"name":"000_000_001","rotations":[0],"weight":1},{"name":"000_000_100","rotations":[0],"weight":1},{"name":"000_000_111","rotations":[0],"weight":1},{"name":"000_033_032","rotations":[0],"weight":1},{"name":"000_055_054","rotations":[0],"weight":1},{"name":"000_0a0_000","rotations":[0],"weight":1},{"name":"000_0b0_000","rotations":[0],"weight":1},{"name":"000_0c0_000","rotations":[0],"weight":1},{"name":"000_0d0_000","rotations":[0],"weight":1},{"name":"000_0e0_000","rotations":[0],"weight":1},{"name":"000_0f0_000","rotations":[0],"weight":1},{"name":"000_0g0_000","rotations":[0],"weight":1},{"name":"000_0h0_000","rotations":[0],"weight":1},{"name":"000_330_230","rotations":[0],"weight":1},{"name":"000_333_222","rotations":[0],"weight":1},{"name":"000_550_450","rotations":[0],"weight":1},{"name":"000_555_444","rotations":[0],"weight":1},{"name":"001_000_000","rotations":[0],"weight":1},{"name":"001_001_001","rotations":[0],"weight":1},{"name":"001_001_111","rotations":[0],"weight":1},{"name":"032_032_032","rotations":[0],"weight":1},{"name":"032_033_000","rotations":[0],"weight":1},{"name":"032_332_222","rotations":[0],"weight":1},{"name":"054_054_054","rotations":[0],"weight":1},{"name":"054_055_000","rotations":[0],"weight":1},{"name":"054_554_444","rotations":[0],"weight":1},{"name":"100_000_000","rotations":[0],"weight":1},{"name":"100_100_100","rotations":[0],"weight":1},{"name":"100_100_111","rotations":[0],"weight":1},{"name":"111_000_000","rotations":[0],"weight":1},{"name":"111_001_001","rotations":[0],"weight":1},{"name":"111_100_100","rotations":[0],"weight":1},{"name":"111_111_111","rotations":[0],"weight":1},{"name":"222_222_222","rotations":[0],"weight":1},{"name":"222_233_230","rotations":[0],"weight":1},{"name":"222_332_032","rotations":[0],"weight":1},{"name":"222_333_000","rotations":[0],"weight":1},{"name":"230_230_230","rotations":[0],"weight":1},{"name":"230_233_222","rotations":[0],"weight":1},{"name":"230_330_000","rotations":[0],"weight":1},{"name":"444_444_444","rotations":[0],"weight":1},{"name":"444_455_450","rotations":[0],"weight":1},{"name":"444_554_054","rotations":[0],"weight":1},{"name":"444_555_000","rotations":[0],"weight":1},{"name":"450_450_450","rotations":[0],"weight":1},{"name":"450_455_444","rotations":[0],"weight":1},{"name":"450_550_000","rotations":[0],"weight":1}]}');
 
 /***/ })
 

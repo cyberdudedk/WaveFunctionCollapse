@@ -1,57 +1,39 @@
-[
-    {
-        "name": "corner",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "010",
-            "right": "010",
-            "bottom": "000",
-            "left": "000"
+{
+    "metadata": {
+        "name": "Knots",
+        "socketGenerator": {
+            "type": "pixels",
+            "settings": {
+                "gridSize": 3,
+                "buckets": 2
+            }
         }
     },
-    {
-        "name": "cross",
-        "rotations": [0,1],
-        "weight": 1,
-        "socket": {
-            "top": "010",
-            "right": "010",
-            "bottom": "010",
-            "left": "010"
+    "tiles": [
+        {
+            "name": "corner",
+            "rotations": [0,1,2,3],
+            "weight": 1
+        },
+        {
+            "name": "cross",
+            "rotations": [0,1],
+            "weight": 1
+        },
+        {
+            "name": "empty",
+            "rotations": [0],
+            "weight": 1
+        },
+        {
+            "name": "line",
+            "rotations": [0,1],
+            "weight": 1
+        },
+        {
+            "name": "t",
+            "rotations": [0,1,2,3],
+            "weight": 1
         }
-    },
-    {
-        "name": "empty",
-        "rotations": [0],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "000",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "line",
-        "rotations": [0,1],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "010",
-            "bottom": "000",
-            "left": "010"
-        }
-    },
-    {
-        "name": "t",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "010",
-            "bottom": "010",
-            "left": "010"
-        }
-    }
-]
+    ]
+}

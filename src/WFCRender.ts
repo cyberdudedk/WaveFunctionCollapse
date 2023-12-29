@@ -260,7 +260,6 @@ export class WFCRender {
                 };
             });
         }
-        
 
         this.imagesMap = (await Promise.all(loadImagesAsync)).reduce((piecesMap, piece) => {
             piecesMap[piece.name] = piece.img;

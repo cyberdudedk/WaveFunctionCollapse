@@ -1,442 +1,453 @@
-[
-    {
-        "name": "cliff 0",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "000",
-            "right": "040",
-            "bottom": "000",
-            "left": "040"
+{
+    "metadata": {
+        "name": "Summer",
+        "socketGenerator": {
+            "type": "pixelsedge",
+            "settings": {
+                
+            }
         }
     },
-    {
-        "name": "cliff 1",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "040",
-            "right": "000",
-            "bottom": "040",
-            "left": "000"
+    "tiles": [
+        {
+            "name": "cliff 0",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "000",
+                "right": "040",
+                "bottom": "000",
+                "left": "040"
+            }
+        },
+        {
+            "name": "cliff 1",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "040",
+                "right": "000",
+                "bottom": "040",
+                "left": "000"
+            }
+        },
+        {
+            "name": "cliff 2",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "000",
+                "right": "030",
+                "bottom": "000",
+                "left": "030"
+            }
+        },
+        {
+            "name": "cliff 3",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "030",
+                "right": "000",
+                "bottom": "030",
+                "left": "000"
+            }
+        },            
+        {
+            "name": "cliffcorner 0",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "030",
+                "right": "030",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "cliffcorner 1",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "040",
+                "right": "000",
+                "bottom": "000",
+                "left": "030"
+            }
+        },
+        {
+            "name": "cliffcorner 2",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "000",
+                "right": "000",
+                "bottom": "030",
+                "left": "040"
+            }
+        },
+        {
+            "name": "cliffcorner 3",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "000",
+                "right": "040",
+                "bottom": "040",
+                "left": "000"
+            }
+        },
+        {
+            "name": "cliffturn 0",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "040",
+                "right": "040",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "cliffturn 1",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "040",
+                "right": "000",
+                "bottom": "000",
+                "left": "040"
+            }
+        },
+        {
+            "name": "cliffturn 2",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "000",
+                "right": "000",
+                "bottom": "030",
+                "left": "030"
+            }
+        },
+        {
+            "name": "cliffturn 3",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "000",
+                "right": "030",
+                "bottom": "030",
+                "left": "000"
+            }
+        },
+        {
+            "name": "grass 0",
+            "rotations": [0],
+            "weight": 2,
+            "socket": {
+                "top": "000",
+                "right": "000",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "grasscorner 0",
+            "rotations": [0],
+            "weight": 0.4,
+            "socket": {
+                "top": "110",
+                "right": "011",
+                "bottom": "111",
+                "left": "111"
+            }
+        },
+        {
+            "name": "grasscorner 1",
+            "rotations": [0],
+            "weight": 0.4,
+            "socket": {
+                "top": "011",
+                "right": "111",
+                "bottom": "111",
+                "left": "110"
+            }
+        },
+        {
+            "name": "grasscorner 2",
+            "rotations": [0],
+            "weight": 0.4,
+            "socket": {
+                "top": "111",
+                "right": "111",
+                "bottom": "110",
+                "left": "011"
+            }
+        },
+        {
+            "name": "grasscorner 3",
+            "rotations": [0],
+            "weight": 0.4,
+            "socket": {
+                "top": "111",
+                "right": "110",
+                "bottom": "011",
+                "left": "111"
+            }
+        },
+        {
+            "name": "road 0",
+            "rotations": [0],
+            "weight": 0.7,
+            "socket": {
+                "top": "111",
+                "right": "110",
+                "bottom": "000",
+                "left": "011"
+            }
+        },
+        {
+            "name": "road 1",
+            "rotations": [0],
+            "weight": 0.7,
+            "socket": {
+                "top": "110",
+                "right": "000",
+                "bottom": "011",
+                "left": "111"
+            }
+        },
+        {
+            "name": "road 2",
+            "rotations": [0],
+            "weight": 0.7,
+            "socket": {
+                "top": "000",
+                "right": "011",
+                "bottom": "111",
+                "left": "110"
+            }
+        },
+        {
+            "name": "road 3",
+            "rotations": [0],
+            "weight": 0.7,
+            "socket": {
+                "top": "011",
+                "right": "111",
+                "bottom": "110",
+                "left": "000"
+            }
+        },
+        {
+            "name": "roadturn 0",
+            "rotations": [0],
+            "weight": 0.2,
+            "socket": {
+                "top": "011",
+                "right": "110",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "roadturn 1",
+            "rotations": [0],
+            "weight": 0.2,
+            "socket": {
+                "top": "110",
+                "right": "000",
+                "bottom": "000",
+                "left": "011"
+            }
+        },
+        {
+            "name": "roadturn 2",
+            "rotations": [0],
+            "weight": 0.2,
+            "socket": {
+                "top": "000",
+                "right": "000",
+                "bottom": "011",
+                "left": "110"
+            }
+        },
+        {
+            "name": "roadturn 3",
+            "rotations": [0],
+            "weight": 0.2,
+            "socket": {
+                "top": "000",
+                "right": "011",
+                "bottom": "110",
+                "left": "000"
+            }
+        },
+        {
+            "name": "water_a 0",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "222",
+                "right": "222",
+                "bottom": "222",
+                "left": "222"
+            }
+        },
+        {
+            "name": "water_b 0",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "222",
+                "right": "222",
+                "bottom": "222",
+                "left": "222"
+            }
+        },
+        {
+            "name": "water_c 0",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "222",
+                "right": "222",
+                "bottom": "222",
+                "left": "222"
+            }
+        },
+        {
+            "name": "watercorner 0",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "032",
+                "right": "230",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "watercorner 1",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "230",
+                "right": "000",
+                "bottom": "000",
+                "left": "032"
+            }
+        },
+        {
+            "name": "watercorner 2",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "000",
+                "right": "000",
+                "bottom": "032",
+                "left": "230"
+            }
+        },
+        {
+            "name": "watercorner 3",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "000",
+                "right": "032",
+                "bottom": "230",
+                "left": "000"
+            }
+        },
+        {
+            "name": "waterside 0",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "222",
+                "right": "230",
+                "bottom": "000",
+                "left": "032"
+            }
+        },
+        {
+            "name": "waterside 1",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "230",
+                "right": "000",
+                "bottom": "032",
+                "left": "222"
+            }
+        },
+        {
+            "name": "waterside 2",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "000",
+                "right": "032",
+                "bottom": "222",
+                "left": "230"
+            }
+        },
+        {
+            "name": "waterside 3",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "032",
+                "right": "222",
+                "bottom": "230",
+                "left": "000"
+            }
+        },
+        {
+            "name": "waterturn 0",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "222",
+                "right": "222",
+                "bottom": "230",
+                "left": "032"
+            }
+        },
+        {
+            "name": "waterturn 1",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "222",
+                "right": "230",
+                "bottom": "032",
+                "left": "222"
+            }
+        },
+        {
+            "name": "waterturn 2",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "230",
+                "right": "032",
+                "bottom": "222",
+                "left": "222"
+            }
+        },
+        {
+            "name": "waterturn 3",
+            "rotations": [0],
+            "weight": 0.3,
+            "socket": {
+                "top": "032",
+                "right": "222",
+                "bottom": "222",
+                "left": "230"
+            }
         }
-    },
-    {
-        "name": "cliff 2",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "000",
-            "right": "030",
-            "bottom": "000",
-            "left": "030"
-        }
-    },
-    {
-        "name": "cliff 3",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "030",
-            "right": "000",
-            "bottom": "030",
-            "left": "000"
-        }
-    },            
-    {
-        "name": "cliffcorner 0",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "030",
-            "right": "030",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "cliffcorner 1",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "040",
-            "right": "000",
-            "bottom": "000",
-            "left": "030"
-        }
-    },
-    {
-        "name": "cliffcorner 2",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "000",
-            "right": "000",
-            "bottom": "030",
-            "left": "040"
-        }
-    },
-    {
-        "name": "cliffcorner 3",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "000",
-            "right": "040",
-            "bottom": "040",
-            "left": "000"
-        }
-    },
-    {
-        "name": "cliffturn 0",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "040",
-            "right": "040",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "cliffturn 1",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "040",
-            "right": "000",
-            "bottom": "000",
-            "left": "040"
-        }
-    },
-    {
-        "name": "cliffturn 2",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "000",
-            "right": "000",
-            "bottom": "030",
-            "left": "030"
-        }
-    },
-    {
-        "name": "cliffturn 3",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "000",
-            "right": "030",
-            "bottom": "030",
-            "left": "000"
-        }
-    },
-    {
-        "name": "grass 0",
-        "rotations": [0],
-        "weight": 2,
-        "socket": {
-            "top": "000",
-            "right": "000",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "grasscorner 0",
-        "rotations": [0],
-        "weight": 0.4,
-        "socket": {
-            "top": "110",
-            "right": "011",
-            "bottom": "111",
-            "left": "111"
-        }
-    },
-    {
-        "name": "grasscorner 1",
-        "rotations": [0],
-        "weight": 0.4,
-        "socket": {
-            "top": "011",
-            "right": "111",
-            "bottom": "111",
-            "left": "110"
-        }
-    },
-    {
-        "name": "grasscorner 2",
-        "rotations": [0],
-        "weight": 0.4,
-        "socket": {
-            "top": "111",
-            "right": "111",
-            "bottom": "110",
-            "left": "011"
-        }
-    },
-    {
-        "name": "grasscorner 3",
-        "rotations": [0],
-        "weight": 0.4,
-        "socket": {
-            "top": "111",
-            "right": "110",
-            "bottom": "011",
-            "left": "111"
-        }
-    },
-    {
-        "name": "road 0",
-        "rotations": [0],
-        "weight": 0.7,
-        "socket": {
-            "top": "111",
-            "right": "110",
-            "bottom": "000",
-            "left": "011"
-        }
-    },
-    {
-        "name": "road 1",
-        "rotations": [0],
-        "weight": 0.7,
-        "socket": {
-            "top": "110",
-            "right": "000",
-            "bottom": "011",
-            "left": "111"
-        }
-    },
-    {
-        "name": "road 2",
-        "rotations": [0],
-        "weight": 0.7,
-        "socket": {
-            "top": "000",
-            "right": "011",
-            "bottom": "111",
-            "left": "110"
-        }
-    },
-    {
-        "name": "road 3",
-        "rotations": [0],
-        "weight": 0.7,
-        "socket": {
-            "top": "011",
-            "right": "111",
-            "bottom": "110",
-            "left": "000"
-        }
-    },
-    {
-        "name": "roadturn 0",
-        "rotations": [0],
-        "weight": 0.2,
-        "socket": {
-            "top": "011",
-            "right": "110",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "roadturn 1",
-        "rotations": [0],
-        "weight": 0.2,
-        "socket": {
-            "top": "110",
-            "right": "000",
-            "bottom": "000",
-            "left": "011"
-        }
-    },
-    {
-        "name": "roadturn 2",
-        "rotations": [0],
-        "weight": 0.2,
-        "socket": {
-            "top": "000",
-            "right": "000",
-            "bottom": "011",
-            "left": "110"
-        }
-    },
-    {
-        "name": "roadturn 3",
-        "rotations": [0],
-        "weight": 0.2,
-        "socket": {
-            "top": "000",
-            "right": "011",
-            "bottom": "110",
-            "left": "000"
-        }
-    },
-    {
-        "name": "water_a 0",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "222",
-            "right": "222",
-            "bottom": "222",
-            "left": "222"
-        }
-    },
-    {
-        "name": "water_b 0",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "222",
-            "right": "222",
-            "bottom": "222",
-            "left": "222"
-        }
-    },
-    {
-        "name": "water_c 0",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "222",
-            "right": "222",
-            "bottom": "222",
-            "left": "222"
-        }
-    },
-    {
-        "name": "watercorner 0",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "032",
-            "right": "230",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "watercorner 1",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "230",
-            "right": "000",
-            "bottom": "000",
-            "left": "032"
-        }
-    },
-    {
-        "name": "watercorner 2",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "000",
-            "right": "000",
-            "bottom": "032",
-            "left": "230"
-        }
-    },
-    {
-        "name": "watercorner 3",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "000",
-            "right": "032",
-            "bottom": "230",
-            "left": "000"
-        }
-    },
-    {
-        "name": "waterside 0",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "222",
-            "right": "230",
-            "bottom": "000",
-            "left": "032"
-        }
-    },
-    {
-        "name": "waterside 1",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "230",
-            "right": "000",
-            "bottom": "032",
-            "left": "222"
-        }
-    },
-    {
-        "name": "waterside 2",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "000",
-            "right": "032",
-            "bottom": "222",
-            "left": "230"
-        }
-    },
-    {
-        "name": "waterside 3",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "032",
-            "right": "222",
-            "bottom": "230",
-            "left": "000"
-        }
-    },
-    {
-        "name": "waterturn 0",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "222",
-            "right": "222",
-            "bottom": "230",
-            "left": "032"
-        }
-    },
-    {
-        "name": "waterturn 1",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "222",
-            "right": "230",
-            "bottom": "032",
-            "left": "222"
-        }
-    },
-    {
-        "name": "waterturn 2",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "230",
-            "right": "032",
-            "bottom": "222",
-            "left": "222"
-        }
-    },
-    {
-        "name": "waterturn 3",
-        "rotations": [0],
-        "weight": 0.3,
-        "socket": {
-            "top": "032",
-            "right": "222",
-            "bottom": "222",
-            "left": "230"
-        }
-    }
-]
+    ]
+}

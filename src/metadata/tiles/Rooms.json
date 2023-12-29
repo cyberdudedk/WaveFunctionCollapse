@@ -1,101 +1,113 @@
-[
-    {
-        "name": "bend",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "100",
-            "right": "001",
-            "bottom": "111",
-            "left": "111"
+{
+    "metadata": {
+        "name": "Rooms",
+        "socketGenerator": {
+            "type": "pixels",
+            "settings": {
+                "gridSize": 3,
+                "buckets": 2
+            }
         }
     },
-    {
-        "name": "corner",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "001",
-            "right": "100",
-            "bottom": "000",
-            "left": "000"
+    "tiles": [
+        {
+            "name": "bend",
+            "rotations": [0,1,2,3],
+            "weight": 1,
+            "socket": {
+                "top": "100",
+                "right": "001",
+                "bottom": "111",
+                "left": "111"
+            }
+        },
+        {
+            "name": "corner",
+            "rotations": [0,1,2,3],
+            "weight": 1,
+            "socket": {
+                "top": "001",
+                "right": "100",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "corridor",
+            "rotations": [0,1],
+            "weight": 1,
+            "socket": {
+                "top": "010",
+                "right": "000",
+                "bottom": "010",
+                "left": "000"
+            }
+        },
+        {
+            "name": "door",
+            "rotations": [0,1,2,3],
+            "weight": 1,
+            "socket": {
+                "top": "111",
+                "right": "100",
+                "bottom": "010",
+                "left": "001"
+            }
+        },
+        {
+            "name": "empty",
+            "rotations": [0],
+            "weight": 1,
+            "socket": {
+                "top": "111",
+                "right": "111",
+                "bottom": "111",
+                "left": "111"
+            }
+        },
+        {
+            "name": "side",
+            "rotations": [0,1,2,3],
+            "weight": 1,
+            "socket": {
+                "top": "000",
+                "right": "001",
+                "bottom": "111",
+                "left": "100"
+            }
+        },
+        {
+            "name": "t",
+            "rotations": [0,1,2,3],
+            "weight": 1,
+            "socket": {
+                "top": "000",
+                "right": "010",
+                "bottom": "010",
+                "left": "010"
+            }
+        },
+        {
+            "name": "turn",
+            "rotations": [0,1,2,3],
+            "weight": 1,
+            "socket": {
+                "top": "010",
+                "right": "010",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "wall",
+            "rotations": [0],
+            "weight": 1,
+            "socket": {
+                "top": "000",
+                "right": "000",
+                "bottom": "000",
+                "left": "000"
+            }
         }
-    },
-    {
-        "name": "corridor",
-        "rotations": [0,1],
-        "weight": 1,
-        "socket": {
-            "top": "010",
-            "right": "000",
-            "bottom": "010",
-            "left": "000"
-        }
-    },
-    {
-        "name": "door",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "111",
-            "right": "100",
-            "bottom": "010",
-            "left": "001"
-        }
-    },
-    {
-        "name": "empty",
-        "rotations": [0],
-        "weight": 1,
-        "socket": {
-            "top": "111",
-            "right": "111",
-            "bottom": "111",
-            "left": "111"
-        }
-    },
-    {
-        "name": "side",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "001",
-            "bottom": "111",
-            "left": "100"
-        }
-    },
-    {
-        "name": "t",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "010",
-            "bottom": "010",
-            "left": "010"
-        }
-    },
-    {
-        "name": "turn",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "010",
-            "right": "010",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "wall",
-        "rotations": [0],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "000",
-            "bottom": "000",
-            "left": "000"
-        }
-    }
-]
+    ]
+}

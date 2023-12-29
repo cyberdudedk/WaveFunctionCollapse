@@ -1,90 +1,101 @@
-[
-    {
-        "name": "b_half",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "011",
-            "bottom": "111",
-            "left": "110"
+{
+    "metadata": {
+        "name": "Circle",
+        "socketGenerator": {
+            "type": "pixelsedge",
+            "settings": {
+                
+            }
         }
     },
-    {
-        "name": "b_i",
-        "rotations": [0,1],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "010",
-            "bottom": "000",
-            "left": "010"
+    "tiles": [
+        {
+            "name": "b_half",
+            "rotations": [0,1,2,3],
+            "weight": 1,
+            "socket": {
+                "top": "000",
+                "right": "011",
+                "bottom": "111",
+                "left": "110"
+            }
+        },
+        {
+            "name": "b_i",
+            "rotations": [0,1],
+            "weight": 1,
+            "socket": {
+                "top": "000",
+                "right": "010",
+                "bottom": "000",
+                "left": "010"
+            }
+        },
+        {
+            "name": "b_quarter",
+            "rotations": [0,1,2,3],
+            "weight": 1,
+            "socket": {
+                "top": "000",
+                "right": "000",
+                "bottom": "111",
+                "left": "111"
+            }
+        },
+        {
+            "name": "b",
+            "rotations": [0],
+            "weight": 1,
+            "socket": {
+                "top": "000",
+                "right": "000",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "w_half",
+            "rotations": [0,1,2,3],
+            "weight": 1,
+            "socket": {
+                "top": "111",
+                "right": "100",
+                "bottom": "000",
+                "left": "001"
+            }
+        },
+        {
+            "name": "w_i",
+            "rotations": [0,1],
+            "weight": 1,
+            "socket": {
+                "top": "111",
+                "right": "101",
+                "bottom": "111",
+                "left": "101"
+            }
+        },
+        {
+            "name": "w_quarter",
+            "rotations": [0,1,2,3],
+            "weight": 1,
+            "socket": {
+                "top": "111",
+                "right": "111",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "w",
+            "rotations": [0],
+            "weight": 1,
+            "socket": {
+                "top": "111",
+                "right": "111",
+                "bottom": "111",
+                "left": "111"
+            }
         }
-    },
-    {
-        "name": "b_quarter",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "000",
-            "bottom": "111",
-            "left": "111"
-        }
-    },
-    {
-        "name": "b",
-        "rotations": [0],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "000",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "w_half",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "111",
-            "right": "100",
-            "bottom": "000",
-            "left": "001"
-        }
-    },
-    {
-        "name": "w_i",
-        "rotations": [0,1],
-        "weight": 1,
-        "socket": {
-            "top": "111",
-            "right": "101",
-            "bottom": "111",
-            "left": "101"
-        }
-    },
-    {
-        "name": "w_quarter",
-        "rotations": [0,1,2,3],
-        "weight": 1,
-        "socket": {
-            "top": "111",
-            "right": "111",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "w",
-        "rotations": [0],
-        "weight": 1,
-        "socket": {
-            "top": "111",
-            "right": "111",
-            "bottom": "111",
-            "left": "111"
-        }
-    }
-]
+    ]
+}

@@ -175,7 +175,7 @@
                 wfcRenderText = getWFCTextRender('textrender');
 
                 this.wfc = getWFC();
-                this.wfc.init(config);
+                await this.wfc.init(config);
 
                 this.wfcRunner = getWFCRunner(config, this.wfc);
                 this.wfcRunner.addCallback(this.wfcCallback);
@@ -310,7 +310,8 @@
             </div>
         </div>
         <br>
-
+        <canvas id="drawrender" height="400" width="600">
+        </canvas>
         <canvas id="draw">
         </canvas>
         <canvas id="draw2">

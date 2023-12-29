@@ -1,200 +1,212 @@
-[
-    {
-        "name": "div",
-        "rotations": [0,1],
-        "weight": 0.5,
-        "socket": {
-            "top": "111",
-            "right": "121",
-            "bottom": "111",
-            "left": "121"
+{
+    "metadata": {
+        "name": "FloorPlan",
+        "socketGenerator": {
+            "type": "pixels",
+            "settings": {
+                "gridSize": 9,
+                "buckets": 4
+            }
         }
     },
-    {
-        "name": "divt",
-        "rotations": [0,1,2,3],
-        "weight": 0.5,
-        "socket": {
-            "top": "111",
-            "right": "121",
-            "bottom": "121",
-            "left": "121"
+    "tiles": [
+        {
+            "name": "div",
+            "rotations": [0,1],
+            "weight": 0.5,
+            "socket": {
+                "top": "111",
+                "right": "121",
+                "bottom": "111",
+                "left": "121"
+            }
+        },
+        {
+            "name": "divt",
+            "rotations": [0,1,2,3],
+            "weight": 0.5,
+            "socket": {
+                "top": "111",
+                "right": "121",
+                "bottom": "121",
+                "left": "121"
+            }
+        },
+        {
+            "name": "divturn",
+            "rotations": [0,1,2,3],
+            "weight": 0.5,
+            "socket": {
+                "top": "121",
+                "right": "121",
+                "bottom": "111",
+                "left": "111"
+            }
+        },
+        {
+            "name": "door",
+            "rotations": [0,1,2,3],
+            "weight": 0.2,
+            "socket": {
+                "top": "111",
+                "right": "121",
+                "bottom": "111",
+                "left": "121"
+            }
+        },
+        {
+            "name": "empty",
+            "rotations": [0],
+            "weight": 1,
+            "socket": {
+                "top": "000",
+                "right": "000",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "floor",
+            "rotations": [0],
+            "weight": 3,
+            "socket": {
+                "top": "111",
+                "right": "111",
+                "bottom": "111",
+                "left": "111"
+            }
+        },
+        {
+            "name": "glass",
+            "rotations": [0,1,2,3],
+            "weight": 0.1,
+            "socket": {
+                "top": "111",
+                "right": "130",
+                "bottom": "000",
+                "left": "031"
+            }
+        },
+        {
+            "name": "halfglass",
+            "rotations": [0,1,2,3],
+            "weight": 0.3,
+            "socket": {
+                "top": "111",
+                "right": "130",
+                "bottom": "000",
+                "left": "021"
+            }
+        },
+        {
+            "name": "halfglass2",
+            "rotations": [0,1,2,3],
+            "weight": 0.3,
+            "socket": {
+                "top": "111",
+                "right": "120",
+                "bottom": "000",
+                "left": "031"
+            }
+        },
+        {
+            "name": "in",
+            "rotations": [0,1,2,3],
+            "weight": 0.1,
+            "socket": {
+                "top": "111",
+                "right": "111",
+                "bottom": "120",
+                "left": "021"
+            }
+        },
+        {
+            "name": "out",
+            "rotations": [0,1,2,3],
+            "weight": 0.1,
+            "socket": {
+                "top": "021",
+                "right": "120",
+                "bottom": "000",
+                "left": "000"
+            }
+        },
+        {
+            "name": "stairs",
+            "rotations": [0,1,2,3],
+            "weight": 0.2,
+            "socket": {
+                "top": "111",
+                "right": "121",
+                "bottom": "222",
+                "left": "121"
+            }
+        },
+        {
+            "name": "table",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "111",
+                "right": "111",
+                "bottom": "111",
+                "left": "111"
+            }
+        },
+        {
+            "name": "vent",
+            "rotations": [0],
+            "weight": 0.1,
+            "socket": {
+                "top": "111",
+                "right": "111",
+                "bottom": "111",
+                "left": "111"
+            }
+        },
+        {
+            "name": "w",
+            "rotations": [0,1,2,3],
+            "weight": 0.1,
+            "socket": {
+                "top": "111",
+                "right": "120",
+                "bottom": "000",
+                "left": "021"
+            }
+        },
+        {
+            "name": "wall",
+            "rotations": [0,1,2,3],
+            "weight": 0.25,
+            "socket": {
+                "top": "111",
+                "right": "120",
+                "bottom": "000",
+                "left": "021"
+            }
+        },
+        {
+            "name": "walldiv",
+            "rotations": [0,1,2,3],
+            "weight": 0.25,
+            "socket": {
+                "top": "121",
+                "right": "120",
+                "bottom": "000",
+                "left": "021"
+            }
+        },
+        {
+            "name": "window",
+            "rotations": [0,1,2,3],
+            "weight": 0.05,
+            "socket": {
+                "top": "111",
+                "right": "120",
+                "bottom": "000",
+                "left": "021"
+            }
         }
-    },
-    {
-        "name": "divturn",
-        "rotations": [0,1,2,3],
-        "weight": 0.5,
-        "socket": {
-            "top": "121",
-            "right": "121",
-            "bottom": "111",
-            "left": "111"
-        }
-    },
-    {
-        "name": "door",
-        "rotations": [0,1,2,3],
-        "weight": 0.2,
-        "socket": {
-            "top": "111",
-            "right": "121",
-            "bottom": "111",
-            "left": "121"
-        }
-    },
-    {
-        "name": "empty",
-        "rotations": [0],
-        "weight": 1,
-        "socket": {
-            "top": "000",
-            "right": "000",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "floor",
-        "rotations": [0],
-        "weight": 3,
-        "socket": {
-            "top": "111",
-            "right": "111",
-            "bottom": "111",
-            "left": "111"
-        }
-    },
-    {
-        "name": "glass",
-        "rotations": [0,1,2,3],
-        "weight": 0.1,
-        "socket": {
-            "top": "111",
-            "right": "130",
-            "bottom": "000",
-            "left": "031"
-        }
-    },
-    {
-        "name": "halfglass",
-        "rotations": [0,1,2,3],
-        "weight": 0.3,
-        "socket": {
-            "top": "111",
-            "right": "130",
-            "bottom": "000",
-            "left": "021"
-        }
-    },
-    {
-        "name": "halfglass2",
-        "rotations": [0,1,2,3],
-        "weight": 0.3,
-        "socket": {
-            "top": "111",
-            "right": "120",
-            "bottom": "000",
-            "left": "031"
-        }
-    },
-    {
-        "name": "in",
-        "rotations": [0,1,2,3],
-        "weight": 0.1,
-        "socket": {
-            "top": "111",
-            "right": "111",
-            "bottom": "120",
-            "left": "021"
-        }
-    },
-    {
-        "name": "out",
-        "rotations": [0,1,2,3],
-        "weight": 0.1,
-        "socket": {
-            "top": "021",
-            "right": "120",
-            "bottom": "000",
-            "left": "000"
-        }
-    },
-    {
-        "name": "stairs",
-        "rotations": [0,1,2,3],
-        "weight": 0.2,
-        "socket": {
-            "top": "111",
-            "right": "121",
-            "bottom": "222",
-            "left": "121"
-        }
-    },
-    {
-        "name": "table",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "111",
-            "right": "111",
-            "bottom": "111",
-            "left": "111"
-        }
-    },
-    {
-        "name": "vent",
-        "rotations": [0],
-        "weight": 0.1,
-        "socket": {
-            "top": "111",
-            "right": "111",
-            "bottom": "111",
-            "left": "111"
-        }
-    },
-    {
-        "name": "w",
-        "rotations": [0,1,2,3],
-        "weight": 0.1,
-        "socket": {
-            "top": "111",
-            "right": "120",
-            "bottom": "000",
-            "left": "021"
-        }
-    },
-    {
-        "name": "wall",
-        "rotations": [0,1,2,3],
-        "weight": 0.25,
-        "socket": {
-            "top": "111",
-            "right": "120",
-            "bottom": "000",
-            "left": "021"
-        }
-    },
-    {
-        "name": "walldiv",
-        "rotations": [0,1,2,3],
-        "weight": 0.25,
-        "socket": {
-            "top": "121",
-            "right": "120",
-            "bottom": "000",
-            "left": "021"
-        }
-    },
-    {
-        "name": "window",
-        "rotations": [0,1,2,3],
-        "weight": 0.05,
-        "socket": {
-            "top": "111",
-            "right": "120",
-            "bottom": "000",
-            "left": "021"
-        }
-    }
-]
+    ]
+}

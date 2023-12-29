@@ -2,10 +2,14 @@
     "metadata": {
         "name": "Happyland",
         "socketGenerator": {
-            "type": "name",
-            "settings": {
+            "type2": "name",
+            "settings2": {
                 "namingtype": "border",
                 "regex": "set[0-9]+_(?<top>[0-9]+)_(?<right>[0-9]+)_(?<bottom>[0-9]+)_(?<left>[0-9]+)"
+            },
+            "type": "pixelsedge",
+            "settings": {
+                
             }
         }
     },
