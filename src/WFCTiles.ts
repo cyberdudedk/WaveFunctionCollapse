@@ -87,10 +87,8 @@ export class WFCTiles {
             else if(generator.type == "pixelsedge" || generator.type == 'pixels') {
                 let settings = generator.settings;
                 let socketKeys = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-                let gridSize = settings.gridSize || 7;
-                let maxBuckets = settings.buckets || 12;
-                let debugSize = 8;
-                let debugSpace = 1;
+                let gridSize = settings.gridSize || 3;
+                let maxBuckets = settings.buckets || 4;
 
                 let tileImages = require('./metadata/render/' + this.config.tileName + '.json');
                 let tileImageMap = tileImages.reduce((tileMap: any, tileImage: any) => {
@@ -119,10 +117,7 @@ export class WFCTiles {
 
                 let calculateAverageGridBuckets = (gridBuckets: any[]) => {
                     gridBuckets.forEach((gridBucket) => {
-                        let r = 0;
-                        let g = 0;
-                        let b = 0;
-                        let a = 0;
+                        let r = 0; let g = 0; let b = 0;
                         gridBucket.gridBucket.forEach((pixel: any) => {
                             r += pixel.r;
                             g += pixel.g;
@@ -131,208 +126,96 @@ export class WFCTiles {
                         r /= gridBucket.gridBucket.length;
                         g /= gridBucket.gridBucket.length;
                         b /= gridBucket.gridBucket.length;
-                        gridBucket.avgColor = {
-                            r: r,
-                            g: g,
-                            b: b,
-                        };
                         gridBucket.avgColorKey = [r, g, b].join("|");
                     });
                     return gridBuckets;
                 }
 
+                let getNamedSocketLookup = (imageCache: any[], colorKeyLookupToSocket: any) => {
+                    let namedSocketLookup: any = {};
+                    imageCache.forEach((cachedImage: {name: string, img: HTMLImageElement; gridBuckets: any[]}) => {
+                        let rows: any[][] = [];
+                        cachedImage.gridBuckets.forEach((bucket: any) => {
+                            if(rows[bucket.position1] == undefined) {
+                                rows[bucket.position1] = [];
+                            }
+                            rows[bucket.position1][bucket.position2] = colorKeyLookupToSocket[bucket.avgColorKey];
+                        });
+                        namedSocketLookup[cachedImage.name] = rows;
+                    });
+                    return namedSocketLookup;
+                }
+
                 if(generator.type == "pixelsedge") {
-                    let edgeThickness = 1;
-
-                    //debug
-
+                    let edgeThickness = settings.thickness || 1;
                     imageCache.forEach((cachedImage: {name: string, img: HTMLImageElement; gridBuckets: any[]}) => {
                         let dataRGB = this.imageToRGB(cachedImage.img);
-                        let edgeRGB: {top: any[], bottom: any[], left: any[], right: any[]} = {
-                            top: [],
-                            bottom: [],
-                            left: [],
-                            right: []
-                        };
-                        for(var x = 0; x < cachedImage.img.width; x++) {
-                            let top: any[] = [];
-                            let bottom: any[] = [];
-                            for(var t = 0; t < edgeThickness; t++) {
-                                let topY = t;
-                                let bottomY = (cachedImage.img.height - 1) - t;
-                                top.push(dataRGB[topY * cachedImage.img.width + x]);
-                                bottom.push(dataRGB[bottomY * cachedImage.img.width + x]);
-                            }
-                            edgeRGB['top'].push(top);
-                            edgeRGB['bottom'].push(bottom);
-                        }
-                        for(var y = 0; y < cachedImage.img.height; y++) {
-                            let left: any[] = [];
-                            let right: any[] = [];
-                            for(var t = 0; t < edgeThickness; t++) {
-                                let leftX = t;
-                                let rightX = (cachedImage.img.width - 1) - t;
-                                left.push(dataRGB[y * cachedImage.img.width + leftX]);
-                                right.push(dataRGB[y * cachedImage.img.width + rightX]);
-                            }
-
-                            edgeRGB['left'].push(left);
-                            edgeRGB['right'].push(right);
-                        }
-
                         let gridBuckets: any[] = [];
-                        let pixelX = 0;
-                        for(let x = 0; x < gridSize; x++) {
-                            let innerGridWidth = Math.floor(cachedImage.img.width / gridSize);
-                            if(x != 0 && x != (gridSize -1)){
-                                innerGridWidth = Math.ceil(cachedImage.img.width / gridSize);
-                            }
-                            let gridBucketTop = [];
-                            let gridBucketBottom = [];
-                            for(let x2 = 0; x2 < innerGridWidth; x2++) {
-                                for(let t = 0; t < edgeThickness; t++) {
-                                    let top = edgeRGB['top'][pixelX][t];
-                                    let bottom = edgeRGB['bottom'][pixelX][t];
-                                    gridBucketTop.push({
-                                        position: pixelX,
-                                        layer: t,
-                                        edge: 'top',
-                                        r: top.r,
-                                        g: top.g,
-                                        b: top.b,
-                                    });
 
-                                    gridBucketBottom.push({
-                                        position: pixelX,
-                                        layer: t,
-                                        edge: 'bottom',
-                                        r: bottom.r,
-                                        g: bottom.g,
-                                        b: bottom.b,
-                                    });
-
-                                    context.fillStyle = "rgb(" + top.r + ", " + top.g + ", " + top.b + ")"; 
-                                    context.fillRect((0 + pixelX * debugSize) + (debugSpace * x) + (imageIndex * cachedImage.img.width * debugSize) + (imageIndex * (debugSpace+1)), (200 + 0 * debugSize) + (debugSpace * 0) + (t * debugSize), debugSize, debugSize);
-                                    context.fillStyle = "rgb(" + bottom.r + ", " + bottom.g + ", " + bottom.b + ")"; 
-                                    context.fillRect((0 + pixelX * debugSize) + (debugSpace * x) + (imageIndex * cachedImage.img.width * debugSize) + (imageIndex * (debugSpace+1)), (200 + cachedImage.img.height * debugSize) + (debugSpace * 0) - (t * debugSize), debugSize, debugSize);
-        
+                        let edges = [{
+                            direction: 1,
+                            type: 'horizontal'
+                        },
+                        {
+                            direction: -1,
+                            type: 'horizontal'
+                        },
+                        {
+                            direction: 1,
+                            type: 'vertical'
+                        },
+                        {
+                            direction: -1,
+                            type: 'vertical'
+                        }];
+                        
+                        edges.forEach((edge, index) => {
+                            let line1 = edge.type == 'horizontal' ? 'width' : 'height';
+                            let line2 = edge.type == 'horizontal' ? 'height' : 'width';
+                            let base = (edge.direction == 1 ? 1 : (<any>cachedImage.img)[line2]);
+                            let gridLength = (<any>cachedImage.img)[line1];
+                            let pixelPos = 0;
+                            for(let pos = 0; pos < gridSize; pos++) {
+                                let storedPixelPos = pixelPos;
+                                let innerGridLength = Math.floor(gridLength / gridSize);
+                                if(pos != 0 && pos != (gridSize -1)){
+                                    innerGridLength = Math.ceil(gridLength / gridSize);
                                 }
-                                
-                                pixelX++;
-                            }
-                            gridBuckets.push({
-                                position: x,
-                                edge: 'top',
-                                gridBucket: gridBucketTop,
-                                avgColor: {
-                                    r: 0,
-                                    g: 0,
-                                    b: 0,
-                                },
-                                avgColorKey: ""
-                            });
-                            gridBuckets.push({
-                                position: x,
-                                edge: 'bottom',
-                                gridBucket: gridBucketBottom,
-                                avgColor: {
-                                    r: 0,
-                                    g: 0,
-                                    b: 0,
-                                },
-                                avgColorKey: ""
-                            });
-                        }
-                        let pixelY = 0;
-                        pixelX--;
-                        for(let y = 0; y < gridSize; y++) {
-                            let innerGridHeight = Math.floor(cachedImage.img.height / gridSize);
-                            if(y != 0 && y != (gridSize -1)){
-                                innerGridHeight = Math.ceil(cachedImage.img.height / gridSize);
-                            }
-                            let gridBucketLeft = [];
-                            let gridBucketRight = [];
-                            for(let y2 = 0; y2 < innerGridHeight; y2++) {
-                                for(let t = 0; t < edgeThickness; t++) {
-                                    let left = edgeRGB['left'][pixelY][t];
-                                    let right = edgeRGB['right'][pixelY][t];
-                                    gridBucketLeft.push({
-                                        position: pixelY,
-                                        edge: 'left',
-                                        layer: t,
-                                        r: left.r,
-                                        g: left.g,
-                                        b: left.b,
-                                    });
-
-                                    gridBucketRight.push({
-                                        position: pixelY,
-                                        edge: 'right',
-                                        layer: t,
-                                        r: right.r,
-                                        g: right.g,
-                                        b: right.b,
-                                    });
-
-                                    context.fillStyle = "rgb(" + left.r + ", " + left.g + ", " + left.b + ")"; 
-                                    context.fillRect((0 + 0 * debugSize) + (debugSpace * 0) + (imageIndex * cachedImage.img.width * debugSize) + (imageIndex * (debugSpace+1)) + (t * debugSize), (200 + pixelY * debugSize) + (debugSpace * pixelY), debugSize, debugSize);
-                                    context.fillStyle = "rgb(" + right.r + ", " + right.g + ", " + right.b + ")"; 
-                                    context.fillRect((0 + pixelX * debugSize) + (debugSpace * x) + (imageIndex * cachedImage.img.width * debugSize) + (imageIndex * (debugSpace+1)) - (t * debugSize), (200 + pixelY * debugSize) + (debugSpace * pixelY), debugSize, debugSize);
+                                pixelPos = storedPixelPos;
+                                let gridBucket = [];
+                                for(let pos2 = 0; pos2 < innerGridLength; pos2++) {
+                                    for(let t = 0; t < edgeThickness; t++) {
+                                        let basePos = (base - 1) + (t * edge.direction); 
+                                        let xPart = (edge.type == 'horizontal' ? pixelPos : basePos);
+                                        let yPart = (edge.type == 'horizontal' ? basePos : pixelPos);
+                                        gridBucket.push(dataRGB[xPart + (yPart * cachedImage.img.width)]);
+                                    }
+                                    pixelPos++;
                                 }
-                                pixelY++;
+                                gridBuckets.push({
+                                    position1: index,
+                                    position2: pos,
+                                    gridBucket: gridBucket,
+                                });
                             }
-                            gridBuckets.push({
-                                position: y,
-                                edge: 'left',
-                                gridBucket: gridBucketLeft,
-                                avgColor: {
-                                    r: 0,
-                                    g: 0,
-                                    b: 0,
-                                },
-                                avgColorKey: ""
-                            });
-                            gridBuckets.push({
-                                position: y,
-                                edge: 'right',
-                                gridBucket: gridBucketRight,
-                                avgColor: {
-                                    r: 0,
-                                    g: 0,
-                                    b: 0,
-                                },
-                                avgColorKey: ""
-                            });
-                        }
+                        });
 
                         imageIndex++;
                         cachedImage.gridBuckets = calculateAverageGridBuckets(gridBuckets);
                     });
 
                     let colorKeyLookupToSocket = this.getColorKeyLookupToSocket(imageCache, maxBuckets, socketKeys, context);
-                    let namedEdges: any = {};
-
-                    imageCache.forEach((cachedImage: {name: string, img: HTMLImageElement; gridBuckets: any[]}) => {
-                        let rows: any[][] = [];
-                        cachedImage.gridBuckets.forEach((bucket: any) => {
-                            if(rows[bucket.edge] == undefined) {
-                                rows[bucket.edge] = [];
-                            }
-                            rows[bucket.edge][bucket.position] = colorKeyLookupToSocket[bucket.avgColorKey];
-                        });
-                        namedEdges[cachedImage.name] = rows;
-                    });
-
+                    let namedSocketLookup = getNamedSocketLookup(imageCache, colorKeyLookupToSocket);
                     tiles.forEach((tile: any) => {
-                        if(namedEdges[tile.name] == undefined) {
+                        if(namedSocketLookup[tile.name] == undefined) {
                             return;
                         }
-                        let edges = namedEdges[tile.name];
+                        let edges = namedSocketLookup[tile.name];
                         tile.socket = {
-                            "top": edges['top'].join(""),
-                            "bottom": [...edges['bottom']].reverse().join(""),
-                            "left": [...edges['left']].reverse().join(""),
-                            "right": edges['right'].join("")
+                            "top": edges[0].join(""),
+                            "bottom": [...edges[1]].reverse().join(""),
+                            "left": [...edges[2]].reverse().join(""),
+                            "right": edges[3].join("")
                         };
                     });
                 } else if(generator.type == "pixels") {
@@ -358,33 +241,16 @@ export class WFCTiles {
                                 for(let y2 = 0; y2 < innerGridHeight; y2++) {
                                     pixelX = storedPixelX;
                                     for(let x2 = 0; x2 < innerGridWidth; x2++) {
-                                        gridBucket.push({
-                                            x: pixelX,
-                                            y: pixelY,
-                                            r: dataRGB[pixelX + pixelY * cachedImage.img.width].r,
-                                            g: dataRGB[pixelX + pixelY * cachedImage.img.width].g,
-                                            b: dataRGB[pixelX + pixelY * cachedImage.img.width].b,
-                                        });
-
-                                        //debug
-                                        context.fillStyle = "rgb(" + dataRGB[pixelX + pixelY * cachedImage.img.width].r + ", " + dataRGB[pixelX + pixelY * cachedImage.img.width].g + ", " + dataRGB[pixelX + pixelY * cachedImage.img.width].b + ")"; 
-                                        context.fillRect((0 + pixelX * debugSize) + (debugSpace * x) + (imageIndex * cachedImage.img.width * debugSize) + (imageIndex * (debugSpace+1)), (200 + pixelY * debugSize) + (debugSpace * y), debugSize, debugSize);
-
+                                        gridBucket.push(dataRGB[pixelX + pixelY * cachedImage.img.width]);
                                         pixelX++;
                                     }
                                     pixelY++;
                                 }
 
                                 gridBuckets.push({
-                                    x: x,
-                                    y: y,
+                                    position1: y,
+                                    position2: x,
                                     gridBucket,
-                                    avgColor: {
-                                        r: 0,
-                                        g: 0,
-                                        b: 0,
-                                    },
-                                    avgColorKey: ""
                                 });
                             } 
                         }
@@ -394,24 +260,12 @@ export class WFCTiles {
                     });
 
                     let colorKeyLookupToSocket = this.getColorKeyLookupToSocket(imageCache, maxBuckets, socketKeys, context);
-                    let namedRows: any = {};
-
-                    imageCache.forEach((cachedImage: {name: string, img: HTMLImageElement; gridBuckets: any[]}) => {
-                        let rows: any[][] = [];
-                        cachedImage.gridBuckets.forEach((bucket: any) => {
-                            if(rows[bucket.y] == undefined) {
-                                rows[bucket.y] = [];
-                            }
-                            rows[bucket.y][bucket.x] = colorKeyLookupToSocket[bucket.avgColorKey];
-                        });
-                        namedRows[cachedImage.name] = rows;
-                    });
-
+                    let namedSocketLookup = getNamedSocketLookup(imageCache, colorKeyLookupToSocket);
                     tiles.forEach((tile: any) => {
-                        if(namedRows[tile.name] == undefined) {
+                        if(namedSocketLookup[tile.name] == undefined) {
                             return;
                         }
-                        let rows = namedRows[tile.name];
+                        let rows = namedSocketLookup[tile.name];
                         tile.socket = {
                             "top": rows[0].join(""),
                             "bottom": [...rows[rows.length - 1]].reverse().join(""),
@@ -551,7 +405,7 @@ export class WFCTiles {
             let sorted = arr.sort((a, b) => a.distance - b.distance);
             colorBucketToSocket[sorted[0].index].push(i);
         }
-        
+  /*      
         // debug avgColors
         for(let i = 0; i < uniqueAvgColors.length; i++) {
             let color = uniqueAvgColors[i];
@@ -566,7 +420,7 @@ export class WFCTiles {
                 debugContext.fillRect(20 * i, (30 * bucketIndex) + 30, 20, 20);
             })
         })
-
+*/
         let colorKeyLookupToSocket: any = {};
         for(var i = 0; i < colorBucketToSocket.length; i++) {
             let colorBucket = colorBucketToSocket[i];
