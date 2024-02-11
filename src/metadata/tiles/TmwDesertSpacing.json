@@ -2,14 +2,10 @@
     "metadata": {
         "name": "TmwDesertSpacing",
         "socketGenerator": {
-            "type2": "name",
-            "settings2": {
+            "type": "name",
+            "settings": {
                 "namingtype": "rows",
                 "regex": "(.{3})_(.{3})_(.{3})"
-            },
-            "type": "pixelsedge",
-            "settings": {
-                
             }
         }
     },

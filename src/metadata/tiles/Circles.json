@@ -2,9 +2,11 @@
     "metadata": {
         "name": "Circle",
         "socketGenerator": {
-            "type": "pixelsedge",
+            "type": "pixelsedgebuckets",
             "settings": {
-                
+                "buckets": 2,
+                "socketSize": 5
+
             }
         }
     },

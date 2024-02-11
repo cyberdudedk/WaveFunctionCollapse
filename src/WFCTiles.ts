@@ -83,8 +83,8 @@ export class WFCTiles {
                         };
                     }
                 });
-            } 
-            else if(generator.type == "pixelsedge" || generator.type == 'pixels') {
+            }
+            else if(generator.type == "pixelsedge" || generator.type == 'pixels' || generator.type == 'pixelsedgebuckets') {
                 let settings = generator.settings;
                 let socketKeys = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
                 let gridSize = settings.gridSize || 3;
@@ -109,8 +109,8 @@ export class WFCTiles {
                     };
                 });
 
-                let canvasrender = <HTMLCanvasElement>document.getElementById('drawrender');
-                let context = canvasrender.getContext('2d')!;
+                //let canvasrender = <HTMLCanvasElement>document.getElementById('drawrender');
+                //let context = canvasrender.getContext('2d')!;
 
                 let imageCache = await Promise.all(loadImagesAsync);
                 let imageIndex = 0;
@@ -146,7 +146,116 @@ export class WFCTiles {
                     return namedSocketLookup;
                 }
 
-                if(generator.type == "pixelsedge") {
+                if(generator.type == "pixelsedgebuckets") {
+                    let edgeThickness = settings.thickness || 1;
+                    let socketSize = settings.socketSize || 3;
+                    imageCache.forEach((cachedImage: {name: string, img: HTMLImageElement; gridBuckets: any[]}) => {
+                        let dataRGB = this.imageToRGB(cachedImage.img);
+                        let gridBuckets: any[] = [];
+
+                        let edges = [{
+                            direction: 1,
+                            type: 'horizontal'
+                        },
+                        {
+                            direction: -1,
+                            type: 'horizontal'
+                        },
+                        {
+                            direction: 1,
+                            type: 'vertical'
+                        },
+                        {
+                            direction: -1,
+                            type: 'vertical'
+                        }];
+                        
+                        edges.forEach((edge, index) => {
+                            let line1 = edge.type == 'horizontal' ? 'width' : 'height';
+                            let line2 = edge.type == 'horizontal' ? 'height' : 'width';
+                            let base = (edge.direction == 1 ? 1 : (<any>cachedImage.img)[line2]);
+                            let gridLength = (<any>cachedImage.img)[line1];
+                            let pixelPos = 0;
+                            gridSize = gridLength;
+                            for(let pos = 0; pos < gridSize; pos++) {
+                                let storedPixelPos = pixelPos;
+                                let innerGridLength = Math.floor(gridLength / gridSize);
+                                pixelPos = storedPixelPos;
+                                let gridBucket = [];
+                                for(let pos2 = 0; pos2 < innerGridLength; pos2++) {
+                                    for(let t = 0; t < edgeThickness; t++) {
+                                        let basePos = (base - 1) + (t * edge.direction); 
+                                        let xPart = (edge.type == 'horizontal' ? pixelPos : basePos);
+                                        let yPart = (edge.type == 'horizontal' ? basePos : pixelPos);
+                                        gridBucket.push(dataRGB[xPart + (yPart * cachedImage.img.width)]);
+                                    }
+                                    pixelPos++;
+                                }
+                                gridBuckets.push({
+                                    position1: index,
+                                    position2: pos,
+                                    gridBucket: gridBucket,
+                                });
+                            }
+                        });
+
+                        imageIndex++;
+                        cachedImage.gridBuckets = calculateAverageGridBuckets(gridBuckets);
+                    });
+                    let colorKeyLookupToSocket = this.getColorKeyLookupToSocket(imageCache, maxBuckets, socketKeys);
+                    let namedSocketLookup = getNamedSocketLookup(imageCache, colorKeyLookupToSocket);
+                    tiles.forEach((tile: any) => {
+                        
+                        if(namedSocketLookup[tile.name] == undefined) {
+                            return;
+                        }
+                        let edges = namedSocketLookup[tile.name];
+                        let edgesGrouped: {}[][] = [];
+                        
+                        edges.forEach((edge: any) => {
+                            let edgeGroups = [];
+                            let currentSocket = '';
+                            let currentCount = 0;
+                            edge.forEach((socket: string) => {
+                                if(currentSocket == '') {
+                                    currentSocket = socket;
+                                    currentCount = 0;
+                                }
+                                if(currentSocket != socket) {
+                                    const realSize = parseInt((currentCount / (edge.length / socketSize)).toFixed(0));
+                                    const clampedSize = Math.min(Math.max(realSize, 1), socketSize);
+                                    edgeGroups.push({'socket': currentSocket, size: clampedSize});
+                                    currentSocket = socket;
+                                    currentCount = 0;
+                                }
+                                currentCount++;
+                            });
+                            const realSize = parseInt((currentCount / (edge.length / socketSize)).toFixed(0));
+                            const clampedSize = Math.min(Math.max(realSize, 1), socketSize);
+                            edgeGroups.push({'socket': currentSocket, size: clampedSize});
+                            edgesGrouped.push(edgeGroups);
+                        });
+                        
+                        edgesGrouped.forEach((edgeGroup: any[]) => {
+                            const mappedEdgegroup = edgeGroup.map((edge: any, index: number) => {return {edge: edge, index}});
+                            mappedEdgegroup.sort((a: any, b: any) => {return a.edge.size - b.edge.size});
+                            let bucketsLeft = socketSize;
+                            mappedEdgegroup.forEach((edgeObject: any) => {
+                                edgeObject.edge.size = Math.min(Math.max(edgeObject.edge.size, 1), bucketsLeft);
+                                bucketsLeft -= edgeObject.edge.size;
+                            });
+                        });
+
+                        tile.socket = {
+                            "top": edgesGrouped[0].map((edge: any) => edge.socket.repeat(edge.size)).join(""),
+                            "bottom": [...edgesGrouped[1]].reverse().map((edge: any) => edge.socket.repeat(edge.size)).join(""),
+                            "left": [...edgesGrouped[2]].reverse().map((edge: any) => edge.socket.repeat(edge.size)).join(""),
+                            "right": edgesGrouped[3].map((edge: any) => edge.socket.repeat(edge.size)).join("")
+                        };
+                        console.log(tile.name, tile.socket);
+                    });
+                }
+                else if(generator.type == "pixelsedge") {
                     let edgeThickness = settings.thickness || 1;
                     imageCache.forEach((cachedImage: {name: string, img: HTMLImageElement; gridBuckets: any[]}) => {
                         let dataRGB = this.imageToRGB(cachedImage.img);
@@ -204,7 +313,7 @@ export class WFCTiles {
                         cachedImage.gridBuckets = calculateAverageGridBuckets(gridBuckets);
                     });
 
-                    let colorKeyLookupToSocket = this.getColorKeyLookupToSocket(imageCache, maxBuckets, socketKeys, context);
+                    let colorKeyLookupToSocket = this.getColorKeyLookupToSocket(imageCache, maxBuckets, socketKeys);
                     let namedSocketLookup = getNamedSocketLookup(imageCache, colorKeyLookupToSocket);
                     tiles.forEach((tile: any) => {
                         if(namedSocketLookup[tile.name] == undefined) {
@@ -259,7 +368,7 @@ export class WFCTiles {
                         cachedImage.gridBuckets = calculateAverageGridBuckets(gridBuckets);
                     });
 
-                    let colorKeyLookupToSocket = this.getColorKeyLookupToSocket(imageCache, maxBuckets, socketKeys, context);
+                    let colorKeyLookupToSocket = this.getColorKeyLookupToSocket(imageCache, maxBuckets, socketKeys);
                     let namedSocketLookup = getNamedSocketLookup(imageCache, colorKeyLookupToSocket);
                     tiles.forEach((tile: any) => {
                         if(namedSocketLookup[tile.name] == undefined) {
@@ -300,7 +409,7 @@ export class WFCTiles {
         name: string;
         img: HTMLImageElement;
         gridBuckets: any[];
-    }[], maxBuckets: number, socketKeys: string, debugContext: CanvasRenderingContext2D) : any {
+    }[], maxBuckets: number, socketKeys: string) : any {
         let colorBucketToSocket: any[] = [];
         let maxDistanceIndexes = [];
         let avgColorsKeys = imageCache.map(cache => 

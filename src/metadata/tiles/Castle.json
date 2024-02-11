@@ -2,8 +2,8 @@
     "metadata": {
         "name": "Castle",
         "socketGenerator": {
-            "type": "pixelsedge",
-            "settings": {
+            "type2": "pixelsedge",
+            "settings2": {
                 "gridSize": 7,
                 "buckets": 6
             }

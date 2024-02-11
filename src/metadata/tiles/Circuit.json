@@ -2,9 +2,10 @@
     "metadata": {
         "name": "Circuit",
         "socketGenerator": {
-            "type": "pixels",
+            "type": "pixelsedgebuckets",
             "settings": {
-                
+                "buckets": 8,
+                "socketSize": 5
             }
         }
     },
@@ -12,24 +13,12 @@
         {
             "name": "bridge",
             "rotations": [0,1],
-            "weight": 1,
-            "socket": {
-                "top": "010",
-                "right": "020",
-                "bottom": "010",
-                "left": "020"
-            }
+            "weight": 1
         },
         {
             "name": "connection",
             "rotations": [0,1,2,3],
             "weight": 3,
-            "socket": {
-                "top": "010",
-                "right": "003",
-                "bottom": "333",
-                "left": "300"
-            },
             "blacklist": {
                 "bottom": {"connection":[2]}
             }
@@ -37,134 +26,62 @@
         {
             "name": "dskew",
             "rotations": [0,1],
-            "weight": 1,
-            "socket": {
-                "top": "010",
-                "right": "010",
-                "bottom": "010",
-                "left": "010"
-            }
+            "weight": 1
         },
         {
             "name": "skew",
             "rotations": [0,1,2,3],
-            "weight": 1,
-            "socket": {
-                "top": "010",
-                "right": "010",
-                "bottom": "000",
-                "left": "000"
-            }
+            "weight": 1
         },
         {
             "name": "substrate",
             "rotations": [0],
-            "weight": 1,
-            "socket": {
-                "top": "000",
-                "right": "000",
-                "bottom": "000",
-                "left": "000"
-            }
+            "weight": 1
         },
         {
             "name": "t",
             "rotations": [0,1,2,3],
-            "weight": 1,
-            "socket": {
-                "top": "000",
-                "right": "010",
-                "bottom": "010",
-                "left": "010"
-            }
+            "weight": 1
         },
         {
             "name": "track",
             "rotations": [0,1],
-            "weight": 1,
-            "socket": {
-                "top": "010",
-                "right": "000",
-                "bottom": "010",
-                "left": "000"
-            }
+            "weight": 1
         },
         {
             "name": "transition",
             "rotations": [0,1,2,3],
-            "weight": 1,
-            "socket": {
-                "top": "020",
-                "right": "000",
-                "bottom": "010",
-                "left": "000"
-            }
+            "weight": 1
         },
         {
             "name": "turn",
             "rotations": [0,1,2,3],
-            "weight": 1,
-            "socket": {
-                "top": "010",
-                "right": "010",
-                "bottom": "000",
-                "left": "000"
-            }
+            "weight": 1
         },
         {
             "name": "viad",
             "rotations": [0,1],
-            "weight": 1,
-            "socket": {
-                "top": "000",
-                "right": "010",
-                "bottom": "000",
-                "left": "010"
-            }
+            "weight": 1
         },
         {
             "name": "vias",
             "rotations": [0,1],
-            "weight": 1,
-            "socket": {
-                "top": "010",
-                "right": "000",
-                "bottom": "000",
-                "left": "000"
-            }
+            "weight": 1
         },
         {
             "name": "wire",
             "rotations": [0,1],
-            "weight": 1,
-            "socket": {
-                "top": "000",
-                "right": "020",
-                "bottom": "000",
-                "left": "020"
-            }
+            "weight": 1
         },
         {
             "name": "component",
             "rotations": [0],
-            "weight": 1,
-            "socket": {
-                "top": "333",
-                "right": "333",
-                "bottom": "333",
-                "left": "333"
-            }
+            "weight": 1
         },
         {
             "name": "corner",
             "rotations": [0,1,2,3],
-            "weight": 1,
-            "socket": {
-                "top": "000",
-                "right": "000",
-                "bottom": "003",
-                "left": "300"
-            }
+            "weight": 1
         }
     ]
 }
